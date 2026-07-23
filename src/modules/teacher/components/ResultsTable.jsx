@@ -1,380 +1,905 @@
+import { 
+  useState, 
+  useMemo, 
+  useEffect 
+} from "react";
+
 import {
   CheckCircle2,
   AlertTriangle,
-  FileText
+  FileText,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Filter
 } from "lucide-react";
+
+import GeneralReportButton from "./GeneralReportButton";
+import DetailReportButton from "./DetailReportButton";
 
 
 export default function ResultsTable({
-  resultados = []
-}){
+  resultados = [],
+  onSelect,
+}) {
 
 
-if(!resultados.length){
+  const ITEMS_POR_PAGINA = 10;
 
-return (
 
-<div className="
-bg-white
-rounded-3xl
-border
-p-10
-text-center
-text-gray-500
-">
+  const [paginaActual, setPaginaActual] = useState(1);
 
 
-<FileText
-size={40}
-className="
-mx-auto
-text-gray-400
-"
-/>
+  const [busqueda, setBusqueda] = useState("");
 
 
-<p className="
-mt-4
-">
+  const [estadoFiltro, setEstadoFiltro] = useState("todos");
 
-No hay resultados para mostrar.
 
-</p>
+  const [nivelFiltro, setNivelFiltro] = useState("todos");
 
 
-</div>
 
-);
+  useEffect(() => {
 
-}
+    setPaginaActual(1);
 
+  }, [
+    resultados,
+    busqueda,
+    estadoFiltro,
+    nivelFiltro
+  ]);
 
 
 
-return (
+  /*
+  ==========================
+  FILTROS
+  ==========================
+  */
 
 
-<div className="
-rounded-3xl
-border
-bg-white
-overflow-hidden
-shadow-sm
-">
+  const resultadosFiltrados = useMemo(()=>{
 
 
-<div className="
-overflow-x-auto
-">
+    return resultados.filter(item=>{
 
 
-<table className="
-w-full
-min-w-[700px]
-">
+      const nombre =
+      (
+        item.nombre ||
+        ""
+      )
+      .toLowerCase();
 
 
 
-<thead className="
-bg-gradient-to-r
-from-blue-950
-to-indigo-700
-text-white
-">
+      const texto =
+      busqueda.toLowerCase();
 
 
-<tr>
 
+      const porcentaje =
+      Number(
+        item.puntaje?.porcentaje ?? 0
+      );
 
-<th className="
-p-5
-text-left
-">
 
-Documento
 
-</th>
+      const cumpleBusqueda =
+      nombre.includes(texto);
 
 
 
-<th className="
-p-5
-text-center
-">
+      let cumpleEstado = true;
 
-Puntaje
 
-</th>
 
+      if(
+        estadoFiltro === "aprobado"
+      ){
 
+        cumpleEstado =
+        porcentaje >=70;
 
-<th className="
-p-5
-text-center
-">
+      }
 
-Cumplimiento
 
-</th>
+      if(
+        estadoFiltro === "revisar"
+      ){
 
+        cumpleEstado =
+        porcentaje <70;
 
+      }
 
-<th className="
-p-5
-text-center
-">
 
-Estado
 
-</th>
+      let cumpleNivel=true;
 
 
 
-</tr>
+      if(
+        nivelFiltro==="excelente"
+      ){
 
+        cumpleNivel =
+        porcentaje>=90;
 
-</thead>
+      }
 
 
+      if(
+        nivelFiltro==="bueno"
+      ){
 
+        cumpleNivel =
+        porcentaje>=70 &&
+        porcentaje<90;
 
+      }
 
 
-<tbody>
+      if(
+        nivelFiltro==="regular"
+      ){
 
+        cumpleNivel =
+        porcentaje>=50 &&
+        porcentaje<70;
 
-{
-resultados.map((item,index)=>{
+      }
 
 
-const porcentaje =
-item.puntaje?.porcentaje ?? 0;
+      if(
+        nivelFiltro==="critico"
+      ){
 
+        cumpleNivel =
+        porcentaje<50;
 
+      }
 
-return (
 
-<tr
 
-key={
-item.nombre || index
-}
+      return (
+        cumpleBusqueda &&
+        cumpleEstado &&
+        cumpleNivel
+      );
 
-className="
-border-t
-hover:bg-slate-50
-transition
-"
 
+    });
 
->
 
+  },[
+    resultados,
+    busqueda,
+    estadoFiltro,
+    nivelFiltro
+  ]);
 
 
-<td className="
-p-5
-">
 
 
-<div className="
-flex
-items-center
-gap-3
-">
+  /*
+  ==========================
+  PAGINACION
+  ==========================
+  */
 
 
-<div className="
-bg-blue-100
-text-blue-900
-p-2
-rounded-xl
-">
+  const totalPaginas =
+  Math.max(
+    1,
+    Math.ceil(
+      resultadosFiltrados.length /
+      ITEMS_POR_PAGINA
+    )
+  );
 
 
-<FileText size={18}/>
 
+  const resultadosPaginados =
+  useMemo(()=>{
 
-</div>
 
+    const inicio =
+    (
+      paginaActual-1
+    )
+    *
+    ITEMS_POR_PAGINA;
 
 
 
-<span className="
-max-w-sm
-truncate
-font-semibold
-text-gray-700
-">
+    return resultadosFiltrados.slice(
+      inicio,
+      inicio+ITEMS_POR_PAGINA
+    );
 
 
-{item.nombre || "Documento sin nombre"}
+  },[
+    resultadosFiltrados,
+    paginaActual
+  ]);
 
 
-</span>
 
 
-</div>
+  if(!resultados.length){
 
+    return (
 
-</td>
+      <div className="
+        bg-white
+        rounded-3xl
+        border
+        p-10
+        text-center
+        text-gray-500
+      ">
 
+        <FileText
+          size={40}
+          className="
+            mx-auto
+            text-gray-400
+          "
+        />
 
+        <p className="mt-4">
+          No hay resultados para mostrar.
+        </p>
 
 
+      </div>
 
+    );
 
+  }
 
 
-<td className="
-p-5
-text-center
-font-bold
-text-gray-800
-">
 
+  return (
 
-{
-item.puntaje?.obtenido ?? 0
-}
+    <>
 
 
-/
+      {/* BOTONES REPORTES */}
 
+      <div className="
+        flex
+        justify-end
+        gap-3
+        mb-5
+        flex-wrap
+      ">
 
-{
-item.puntaje?.maximo ?? 0
-}
+        <GeneralReportButton
+          resultados={resultados}
+        />
 
 
+        <DetailReportButton
+          resultados={resultados}
+        />
 
-</td>
+      </div>
 
 
 
 
+      {/* FILTROS */}
 
 
+      <div className="
+        bg-white
+        rounded-3xl
+        border
+        shadow-sm
+        p-5
+        mb-6
+      ">
 
 
-<td className="
-p-5
-text-center
-">
+        <div className="
+          flex
+          items-center
+          gap-2
+          mb-4
+          text-blue-900
+          font-bold
+        ">
 
+          <Filter size={20}/>
 
-<span className="
-inline-block
-bg-blue-100
-text-blue-900
-px-4
-py-2
-rounded-full
-font-bold
-">
+          Filtros de búsqueda
 
+        </div>
 
-{porcentaje}%
 
 
-</span>
+        <div className="
+          grid
+          grid-cols-1
+          md:grid-cols-3
+          gap-4
+        ">
 
 
-</td>
 
+          {/* BUSCAR */}
 
+          <div className="
+            relative
+          ">
 
+            <Search
+              size={20}
+              className="
+                absolute
+                left-4
+                top-3
+                text-gray-400
+              "
+            />
 
 
+            <input
 
+              value={busqueda}
 
+              onChange={
+                e=>setBusqueda(
+                  e.target.value
+                )
+              }
 
-<td className="
-p-5
-">
 
+              placeholder="
+                Buscar documento...
+              "
 
-{
+              className="
+                w-full
+                pl-12
+                py-3
+                rounded-xl
+                border
+                outline-none
+                focus:ring-2
+                focus:ring-blue-500
+              "
 
-porcentaje >= 70
+            />
 
-?
 
-<div className="
-flex
-justify-center
-items-center
-gap-2
-text-green-600
-font-bold
-">
+          </div>
 
 
-<CheckCircle2 size={20}/>
 
 
-Aprobado
+          {/* ESTADO */}
 
+          <select
 
-</div>
+            value={estadoFiltro}
 
+            onChange={
+              e=>setEstadoFiltro(
+                e.target.value
+              )
+            }
 
-:
 
+            className="
+              rounded-xl
+              border
+              px-4
+              py-3
+              font-semibold
+            "
 
-<div className="
-flex
-justify-center
-items-center
-gap-2
-text-red-600
-font-bold
-">
+          >
 
+            <option value="todos">
+              Todos los estados
+            </option>
 
-<AlertTriangle size={20}/>
+            <option value="aprobado">
+              🟢 Aprobados
+            </option>
 
 
-Revisar
+            <option value="revisar">
+              🔴 Revisar
+            </option>
 
 
-</div>
+          </select>
 
 
-}
 
 
-</td>
+          {/* NIVEL */}
 
+          <select
 
+            value={nivelFiltro}
 
+            onChange={
+              e=>setNivelFiltro(
+                e.target.value
+              )
+            }
 
-</tr>
 
+            className="
+              rounded-xl
+              border
+              px-4
+              py-3
+              font-semibold
+            "
 
-);
+          >
 
+            <option value="todos">
+              Todos los niveles
+            </option>
 
-})
 
+            <option value="excelente">
+              🟢 Excelente 90+
+            </option>
 
-}
 
+            <option value="bueno">
+              🔵 Bueno 70-89
+            </option>
 
 
-</tbody>
+            <option value="regular">
+              🟡 Regular 50-69
+            </option>
 
 
+            <option value="critico">
+              🔴 Crítico 0-49
+            </option>
 
-</table>
 
+          </select>
 
-</div>
 
+        </div>
 
-</div>
 
 
-);
+      </div>
 
+
+
+
+
+      {/* TABLA */}
+
+
+      <div className="
+        rounded-3xl
+        border
+        bg-white
+        overflow-hidden
+        shadow-sm
+      ">
+
+
+      <div className="overflow-x-auto">
+
+
+      <table className="
+        w-full
+        min-w-[850px]
+      ">
+
+
+      <thead className="
+        bg-gradient-to-r
+        from-blue-950
+        to-indigo-700
+        text-white
+      ">
+
+      <tr>
+
+      <th className="p-5 text-left">
+        Documento
+      </th>
+
+
+      <th className="p-5 text-center">
+        Puntaje
+      </th>
+
+
+      <th className="p-5 text-center">
+        Cumplimiento
+      </th>
+
+
+      <th className="p-5 text-center">
+        Estado
+      </th>
+
+
+      <th className="p-5 text-center">
+        Acción
+      </th>
+
+
+      </tr>
+
+      </thead>
+
+
+
+
+      <tbody>
+
+
+      {
+        resultadosPaginados.map(
+          (item,index)=>{
+
+
+          const porcentaje =
+          Number(
+            item.puntaje?.porcentaje ?? 0
+          );
+
+
+
+          let estadoVisual;
+
+
+
+          if(porcentaje>=90){
+
+            estadoVisual={
+              texto:"Excelente",
+              clase:
+              "bg-green-100 text-green-700"
+            };
+
+          }
+          else if(porcentaje>=70){
+
+            estadoVisual={
+              texto:"Bueno",
+              clase:
+              "bg-blue-100 text-blue-700"
+            };
+
+          }
+          else if(porcentaje>=50){
+
+            estadoVisual={
+              texto:"Regular",
+              clase:
+              "bg-yellow-100 text-yellow-700"
+            };
+
+          }
+          else{
+
+            estadoVisual={
+              texto:"Crítico",
+              clase:
+              "bg-red-100 text-red-700"
+            };
+
+          }
+
+
+
+          return (
+
+          <tr
+
+          key={
+            `${item.nombre}-${index}`
+          }
+
+          className="
+            border-t
+            hover:bg-slate-50
+            transition
+          "
+
+          >
+
+
+          <td className="p-5">
+
+          <div className="
+            flex
+            items-center
+            gap-3
+          ">
+
+
+          <div className="
+            bg-blue-100
+            text-blue-900
+            p-2
+            rounded-xl
+          ">
+
+          <FileText size={18}/>
+
+          </div>
+
+
+          <span className="
+            font-semibold
+            truncate
+            max-w-sm
+          ">
+
+          {item.nombre}
+
+          </span>
+
+
+          </div>
+
+
+          </td>
+
+
+
+
+          <td className="
+            p-5
+            text-center
+            font-bold
+          ">
+
+          {
+          item.puntaje?.obtenido ?? 0
+          }
+          /
+          {
+          item.puntaje?.maximo ?? 0
+          }
+
+
+          </td>
+
+
+
+
+          <td className="p-5 text-center">
+
+
+          <span className="
+            bg-blue-100
+            text-blue-900
+            px-4
+            py-2
+            rounded-full
+            font-bold
+          ">
+
+          {porcentaje}%
+
+          </span>
+
+
+          </td>
+
+
+
+
+          <td className="p-5 text-center">
+
+
+          <span className={`
+            inline-flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            rounded-full
+            font-bold
+            ${estadoVisual.clase}
+          `}>
+
+
+          {
+            porcentaje>=70
+            ?
+            <CheckCircle2 size={18}/>
+            :
+            <AlertTriangle size={18}/>
+          }
+
+
+          {estadoVisual.texto}
+
+
+          </span>
+
+
+          </td>
+
+
+
+
+
+          <td className="p-5 text-center">
+
+
+          <button
+
+          onClick={
+            ()=>onSelect(item)
+          }
+
+          className="
+            bg-blue-900
+            hover:bg-blue-800
+            text-white
+            px-4
+            py-2
+            rounded-xl
+            inline-flex
+            gap-2
+            items-center
+          "
+
+          >
+
+          <Eye size={18}/>
+
+          Ver detalle
+
+
+          </button>
+
+
+          </td>
+
+
+
+          </tr>
+
+
+          );
+
+
+        })
+
+      }
+
+
+      </tbody>
+
+
+      </table>
+
+
+      </div>
+
+
+
+
+
+      {/* PAGINACION */}
+
+      <div className="
+        flex
+        justify-between
+        items-center
+        p-5
+        bg-gray-50
+        border-t
+      ">
+
+
+      <span className="text-sm text-gray-600">
+
+      {resultadosFiltrados.length}
+      resultados encontrados
+
+      </span>
+
+
+
+
+      <div className="flex gap-2">
+
+
+      <button
+
+      disabled={paginaActual===1}
+
+      onClick={()=>
+        setPaginaActual(
+          p=>p-1
+        )
+      }
+
+      className="
+        px-3
+        py-2
+        border
+        rounded-lg
+      "
+
+      >
+
+      <ChevronLeft/>
+
+      </button>
+
+
+
+      <span className="
+        px-4
+        py-2
+        font-bold
+      ">
+
+      {paginaActual}/{totalPaginas}
+
+      </span>
+
+
+
+      <button
+
+      disabled={
+        paginaActual===totalPaginas
+      }
+
+      onClick={()=>
+        setPaginaActual(
+          p=>p+1
+        )
+      }
+
+      className="
+        px-3
+        py-2
+        border
+        rounded-lg
+      "
+
+      >
+
+      <ChevronRight/>
+
+      </button>
+
+
+
+      </div>
+
+
+      </div>
+
+
+
+      </div>
+
+
+    </>
+
+  );
 
 }

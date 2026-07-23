@@ -5,7 +5,29 @@ import {
 } from "lucide-react";
 
 
-export default function StudentStats(){
+export default function StudentStats({
+ documentos = []
+}){
+
+
+const enviados =
+documentos.length;
+
+
+const pendientes =
+documentos.filter(
+item =>
+item.estado === "pendiente"
+).length;
+
+
+const revisados =
+documentos.filter(
+item =>
+item.estado === "revisado" ||
+item.puntaje
+).length;
+
 
 
 return (
@@ -23,9 +45,10 @@ icon={<FileText/>}
 
 title="Documentos enviados"
 
-value="0"
+value={enviados}
 
 />
+
 
 
 <Card
@@ -34,7 +57,7 @@ icon={<Clock/>}
 
 title="Pendientes"
 
-value="0"
+value={pendientes}
 
 />
 
@@ -46,7 +69,7 @@ icon={<CheckCircle/>}
 
 title="Revisados"
 
-value="0"
+value={revisados}
 
 />
 
@@ -58,6 +81,7 @@ value="0"
 
 
 }
+
 
 
 

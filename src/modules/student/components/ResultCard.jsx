@@ -4,7 +4,6 @@ import {
 } from "lucide-react";
 
 
-
 export default function ResultCard({
   analysis = {}
 }){
@@ -27,7 +26,6 @@ puntaje.maximo ?? 0;
 
 
 
-
 let estado = "Necesita mejorar";
 
 let color = "text-red-300";
@@ -40,26 +38,25 @@ let mensaje =
 
 if(porcentaje >= 90){
 
-estado = "Excelente";
+  estado = "Excelente";
 
-color = "text-green-300";
+  color = "text-green-300";
 
-mensaje =
-"Tu documento cumple correctamente los criterios evaluados.";
+  mensaje =
+  "Tu documento cumple correctamente los criterios evaluados.";
 
 }
 
 else if(porcentaje >= 70){
 
-estado = "Buen avance";
+  estado = "Buen avance";
 
-color = "text-blue-200";
+  color = "text-blue-200";
 
-mensaje =
-"El documento cumple la mayoría de criterios.";
+  mensaje =
+  "El documento cumple la mayoría de criterios.";
 
 }
-
 
 
 
@@ -76,9 +73,6 @@ p-8
 text-white
 shadow-xl
 ">
-
-
-
 
 
 
@@ -121,7 +115,7 @@ text-sm
 ">
 
 {
-analysis.nombre ??
+analysis.resumen?.nombre ??
 "Documento académico"
 }
 
@@ -132,8 +126,6 @@ analysis.nombre ??
 
 
 </div>
-
-
 
 
 

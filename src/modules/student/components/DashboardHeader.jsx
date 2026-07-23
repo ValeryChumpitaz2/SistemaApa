@@ -1,77 +1,120 @@
 import {
+  UserCircle,
   ArrowLeft,
-  UserCircle
+  Moon,
+  Sun
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+
+import {
+  useNavigate
+} from "react-router-dom";
 
 
-export default function DashboardHeader(){
+import {
+  useTheme
+} from "../../../context/ThemeContext.jsx";
+
+
+import NotificationsDropdown from "./NotificationsDropdown";
+
+
+
+
+export default function DashboardHeader({
+
+notificaciones=[]
+
+}){
 
 
 const navigate = useNavigate();
 
 
 
+const {
+ dark,
+ setDark
+}=useTheme();
+
+
+
+
+
 return (
 
-<header className="
+<header
+
+className="
 bg-gradient-to-r
 from-blue-950
 to-blue-800
 text-white
 shadow-lg
-">
+"
+
+>
 
 
-<div className="
+<div
+
+className="
 max-w-6xl
 mx-auto
 px-8
-py-6
+py-5
 flex
 justify-between
 items-center
-">
+"
+
+>
 
 
-{/* INFORMACIÓN DEL SISTEMA */}
 
-<div>
+<div
 
-
-<div className="
+className="
 flex
 items-center
 gap-3
-">
+"
+
+>
 
 
-<div className="
+<div
+
+className="
 bg-white/20
 p-3
 rounded-xl
-">
+"
 
+>
 
-<UserCircle size={32}/>
-
+<UserCircle size={35}/>
 
 </div>
 
 
 
+
 <div>
 
+<h1
 
-<h1 className="
+className="
 text-3xl
-font-bold
-">
+font-black
+"
+
+>
 
 VG Smart Review
 
 </h1>
+
 
 
 <p className="
@@ -89,13 +132,94 @@ Panel del estudiante
 </div>
 
 
-</div>
 
 
 
 
 
-{/* BOTÓN INICIO */}
+<div
+
+className="
+flex
+items-center
+gap-4
+"
+
+>
+
+
+
+<button
+
+onClick={()=>setDark(!dark)}
+
+className="
+bg-white/20
+hover:bg-white/30
+px-4
+py-3
+rounded-xl
+flex
+items-center
+gap-2
+transition
+"
+
+>
+
+
+{
+
+dark
+
+?
+
+<>
+
+<Sun size={22}/>
+
+<span>
+Claro
+</span>
+
+</>
+
+
+:
+
+<>
+
+<Moon size={22}/>
+
+<span>
+Oscuro
+</span>
+
+</>
+
+
+}
+
+
+</button>
+
+
+
+
+
+
+
+<NotificationsDropdown
+
+notificaciones={notificaciones}
+
+/>
+
+
+
+
+
+
 
 
 <button
@@ -104,7 +228,7 @@ onClick={()=>navigate("/")}
 
 className="
 bg-white
-text-blue-950
+text-blue-900
 px-5
 py-3
 rounded-xl
@@ -113,24 +237,28 @@ flex
 items-center
 gap-2
 hover:bg-blue-100
-transition
 "
-
 
 >
 
-
 <ArrowLeft size={18}/>
 
-
 Inicio
-
 
 </button>
 
 
 
 </div>
+
+
+
+
+
+</div>
+
+
+
 
 
 </header>

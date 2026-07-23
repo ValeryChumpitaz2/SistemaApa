@@ -1,81 +1,61 @@
 const API_URL =
-"https://script.google.com/macros/s/AKfycbwO9GLhJohwxCCp9PmdT-Gw2M1mw0wY-4T_R_tUIG7-zNh77sZCD8vyPGc7ed1C0V8ETA/exec";
+"https://script.google.com/macros/s/AKfycbx35aw5KPtZ84nFqeh-FDnHq-7QA9Nb3FPsC8Tp5HZ29Mhmy_BfsPV9FjN6qEiZFclznA/exec";
 
 
 export async function analyzeFolder(url){
 
 
-  const response = await fetch(API_URL,{
+const response =
+await fetch(
+API_URL,
+{
 
-    method:"POST",
-
-    headers:{
-      "Content-Type":"text/plain;charset=utf-8"
-    },
-
-    body:JSON.stringify({
-
-      accion:"analizarCarpeta",
-
-      url:url
-
-    })
-
-  });
+method:"POST",
 
 
+body:JSON.stringify({
 
-  const texto = await response.text();
+accion:"analizarCarpeta",
+
+url:url
+
+})
 
 
-  console.log(
-    "RESPUESTA BACK DOCENTE:",
-    texto
-  );
+}
+
+);
 
 
 
-  let json;
-
-
-  try{
-
-    json = JSON.parse(texto);
-
-  }
-  catch(error){
-
-    throw new Error(
-      "El servidor no devolvió JSON válido"
-    );
-
-  }
+const texto =
+await response.text();
 
 
 
-  if(!json.ok){
-
-    throw new Error(json.mensaje);
-
-  }
-
-
-
-  if(!Array.isArray(json.data)){
-
-    console.error(
-      "DATA RECIBIDA NO ES ARRAY:",
-      json.data
-    );
-
-
-    return [];
-
-  }
+console.log(
+"RESPUESTA BACK DOCENTE:",
+texto
+);
 
 
 
-  return json.data;
+const json =
+JSON.parse(texto);
+
+
+
+if(!json.ok){
+
+throw new Error(
+json.mensaje
+);
+
+}
+
+
+
+return json.data;
 
 
 }

@@ -1,6 +1,7 @@
 import {
   CheckCircle2,
-  XCircle
+  XCircle,
+  FileText
 } from "lucide-react";
 
 
@@ -17,7 +18,6 @@ return null;
 
 
 
-
 return (
 
 <div className="
@@ -25,9 +25,6 @@ bg-gray-50
 rounded-3xl
 p-6
 ">
-
-
-
 
 
 <h2 className="
@@ -45,9 +42,8 @@ Detalle de evaluación
 
 
 
-
 <div className="
-space-y-4
+space-y-6
 ">
 
 
@@ -58,82 +54,100 @@ criterios.map((item,index)=>(
 
 <div
 
-key={
-item.id ?? `${item.criterio}-${index}`
-}
-
+key={item.id ?? index}
 
 className="
 bg-white
+rounded-3xl
 border
-border-gray-100
-rounded-2xl
 p-6
-flex
-justify-between
-items-center
 shadow-sm
-hover:shadow-md
-transition
 "
 
-
 >
+
+
+{/* TITULO */}
+
+<div className="
+flex
+justify-between
+items-start
+"
+>
+
+
+<div className="
+flex
+gap-3
+items-center
+">
+
+
+<div className="
+bg-blue-100
+p-3
+rounded-xl
+">
+
+<FileText
+
+size={25}
+
+className="
+text-blue-700
+"
+
+/>
+
+</div>
+
 
 
 <div>
 
 
 <h3 className="
+text-xl
 font-bold
-text-lg
 text-gray-800
 ">
 
-{
-item.criterio ??
-"Sin criterio"
-}
+{item.criterio}
 
 </h3>
 
 
 
-
 <p className="
 text-gray-500
-mt-2
+mt-1
 ">
 
-
-Puntaje:
+Puntuación:
 
 {" "}
 
-
 <span className="
 font-bold
-text-gray-800
+text-gray-900
 ">
 
-{
-item.puntaje ?? 0
-}
+{item.puntaje}
 
 </span>
 
 
 /
 
+{item.maximo}
 
-{
-item.maximo ?? 0
-}
-
-
+puntos
 
 </p>
 
+
+</div>
 
 
 </div>
@@ -141,24 +155,14 @@ item.maximo ?? 0
 
 
 
-
-
 {
-
 item.cumple
 
 ?
 
-
-<div className="
-bg-green-100
-p-2
-rounded-full
-">
-
 <CheckCircle2
 
-size={30}
+size={32}
 
 className="
 text-green-600
@@ -166,22 +170,11 @@ text-green-600
 
 />
 
-</div>
-
-
-
 :
-
-
-<div className="
-bg-red-100
-p-2
-rounded-full
-">
 
 <XCircle
 
-size={30}
+size={32}
 
 className="
 text-red-600
@@ -189,20 +182,199 @@ text-red-600
 
 />
 
-</div>
-
-
-
 }
 
 
 
 </div>
 
+
+
+
+
+
+
+{/* DETALLES */}
+
+{
+
+item.detalles && (
+
+<div className="
+mt-6
+space-y-3
+">
+
+
+<h4 className="
+font-bold
+text-gray-700
+">
+
+Detalle del criterio
+
+</h4>
+
+
+
+{
+
+item.detalles.map((detalle,i)=>(
+
+
+<div
+
+key={i}
+
+className={`
+rounded-xl
+p-4
+flex
+gap-3
+${
+detalle.cumple
+
+?
+
+"bg-green-50"
+
+:
+
+"bg-red-50"
+
+}
+`}
+
+>
+
+
+{
+
+detalle.cumple
+
+?
+
+<CheckCircle2
+
+size={22}
+
+className="
+text-green-600
+mt-1
+"
+
+/>
+
+:
+
+<XCircle
+
+size={22}
+
+className="
+text-red-600
+mt-1
+"
+
+/>
+
+}
+
+
+
+<div>
+
+
+<p className="
+font-semibold
+text-gray-800
+">
+
+{detalle.titulo}
+
+</p>
+
+
+<p className="
+text-gray-600
+mt-1
+">
+
+{detalle.descripcion}
+
+</p>
+
+
+</div>
+
+
+</div>
 
 
 ))
 
+}
+
+
+
+</div>
+
+)
+
+}
+
+
+
+
+
+{/* RECOMENDACION */}
+
+{
+
+item.recomendacion && (
+
+<div className="
+mt-5
+bg-blue-50
+rounded-xl
+p-4
+">
+
+
+<p className="
+font-bold
+text-blue-800
+">
+
+Recomendación
+
+</p>
+
+
+<p className="
+text-blue-700
+mt-2
+">
+
+{item.recomendacion}
+
+</p>
+
+
+</div>
+
+)
+
+}
+
+
+
+
+
+</div>
+
+
+))
 
 }
 
@@ -211,10 +383,9 @@ text-red-600
 </div>
 
 
-
 </div>
-
 
 );
 
-} 
+
+}

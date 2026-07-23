@@ -1,24 +1,114 @@
-export default function DocumentStats({resumen}){
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  TrendingUp
+} from "lucide-react";
 
 
-const datos=[
+export default function StudentStats({
+  documentos = []
+}){
+
+
+const total =
+documentos.length;
+
+
+
+const revisados =
+documentos.filter(
+(item)=>
+item.puntaje
+).length;
+
+
+
+const pendientes =
+total - revisados;
+
+
+
+const promedio =
+revisados
+?
+(
+documentos.reduce(
+(total,item)=>
+total +
+Number(
+item.puntaje?.porcentaje ?? 0
+),
+0
+)
+/
+revisados
+).toFixed(1)
+
+:
+0;
+
+
+
+const cards=[
 
 
 {
-titulo:"Palabras",
-valor:resumen?.palabras ?? 0
+titulo:"Documentos enviados",
+
+valor:total,
+
+descripcion:"Total subidos",
+
+icon:<FileText size={30}/>,
+
+color:"from-blue-600 to-indigo-700"
+
 },
 
 
+
 {
-titulo:"Títulos",
-valor:resumen?.titulos ?? 0
+titulo:"Pendientes",
+
+valor:pendientes,
+
+descripcion:"Esperando revisión",
+
+icon:<Clock size={30}/>,
+
+color:"from-orange-500 to-red-600"
+
 },
 
 
+
 {
-titulo:"Párrafos",
-valor:resumen?.parrafos ?? 0
+titulo:"Revisados",
+
+valor:revisados,
+
+descripcion:"Documentos evaluados",
+
+icon:<CheckCircle size={30}/>,
+
+color:"from-green-500 to-emerald-700"
+
+},
+
+
+
+{
+titulo:"Promedio",
+
+valor:`${promedio}%`,
+
+descripcion:"Resultado general",
+
+icon:<TrendingUp size={30}/>,
+
+color:"from-purple-500 to-fuchsia-700"
+
 }
 
 
@@ -26,61 +116,138 @@ valor:resumen?.parrafos ?? 0
 
 
 
+
+
 return (
-
-<div className="
-grid
-md:grid-cols-3
-gap-5
-">
-
-
-{
-
-datos.map(item=>(
-
 
 <div
 
-key={item.titulo}
-
 className="
-bg-white
-rounded-2xl
-shadow-md
-border
-p-6
-hover:shadow-lg
-transition
+grid
+grid-cols-1
+md:grid-cols-2
+xl:grid-cols-4
+gap-6
 "
 
 >
 
 
-<p className="text-gray-500">
+{
 
-{item.titulo}
+cards.map(
+(card,index)=>(
+
+
+<div
+
+key={index}
+
+className={`
+bg-gradient-to-br
+${card.color}
+rounded-3xl
+p-6
+text-white
+shadow-xl
+hover:scale-[1.02]
+transition
+duration-300
+`}
+
+>
+
+
+<div
+
+className="
+flex
+justify-between
+items-start
+"
+
+>
+
+
+<div>
+
+
+<p
+
+className="
+text-white/80
+text-sm
+font-semibold
+"
+
+>
+
+{card.titulo}
 
 </p>
 
 
 
-<h3 className="
-text-4xl
-font-bold
-text-blue-950
-mt-3
-">
+<h3
 
-{item.valor}
+className="
+text-5xl
+font-black
+mt-3
+"
+
+>
+
+{card.valor}
 
 </h3>
+
+
+
+<p
+
+className="
+text-white/70
+text-sm
+mt-2
+"
+
+>
+
+{card.descripcion}
+
+</p>
 
 
 </div>
 
 
-))
+
+<div
+
+className="
+bg-white/20
+backdrop-blur
+rounded-2xl
+p-4
+"
+
+>
+
+{card.icon}
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+)
+
+)
 
 
 }
@@ -88,6 +255,7 @@ mt-3
 
 </div>
 
-)
+);
+
 
 }
