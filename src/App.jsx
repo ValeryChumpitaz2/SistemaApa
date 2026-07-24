@@ -1,18 +1,13 @@
 import {
-  BrowserRouter
-} from "react-router-dom";
-
-import {
   useEffect,
   useState
 } from "react";
-
 
 import AppRoutes from "./routes/AppRoutes";
 import LoadingScreen from "./components/common/LoadingScreen";
 
 
-export default function App() {
+export default function App(){
 
 
   const [loading,setLoading] = useState(true);
@@ -39,19 +34,15 @@ export default function App() {
 
   return (
 
-    <BrowserRouter>
+    loading
 
+    ?
 
-      {
-        loading
-        ?
-        <LoadingScreen/>
-        :
-        <AppRoutes/>
-      }
+    <LoadingScreen/>
 
+    :
 
-    </BrowserRouter>
+    <AppRoutes/>
 
   );
 

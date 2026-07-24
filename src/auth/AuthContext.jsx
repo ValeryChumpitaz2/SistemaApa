@@ -1,8 +1,10 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState
 } from "react";
+
 
 
 const AuthContext = createContext();
@@ -12,32 +14,54 @@ const AuthContext = createContext();
 export function AuthProvider({children}){
 
 
-const [user,setUser] = useState(null);
+const [user,setUser]=useState(null);
 
 
 
-function login(rol){
 
 
-const usuario = {
+// Cargar sesión guardada
 
-nombre:
-rol === "teacher"
-?
-"Docente Demo"
-:
-"Estudiante Demo",
+useEffect(()=>{
 
-rol
 
-};
+const guardado =
+localStorage.getItem("usuario");
+
+
+if(guardado){
+
+
+setUser(
+JSON.parse(guardado)
+);
+
+
+}
+
+
+},[]);
+
+
+
+
+
+
+
+// Login / actualizar perfil
+
+function login(usuario){
 
 
 setUser(usuario);
 
+
 localStorage.setItem(
-"user",
+
+"usuario",
+
 JSON.stringify(usuario)
+
 );
 
 
@@ -45,41 +69,90 @@ JSON.stringify(usuario)
 
 
 
+
+
+
+
+// Cerrar sesión
+
 function logout(){
+
 
 setUser(null);
 
-localStorage.removeItem("user");
+
+localStorage.removeItem(
+"usuario"
+);
+
 
 }
 
 
 
-return (
+
+
+
+
+return(
+
 
 <AuthContext.Provider
 
 value={{
+
 user,
+
 login,
+
 logout
+
 }}
 
 >
 
+
 {children}
 
+
 </AuthContext.Provider>
+
 
 );
 
 
 }
+
+
+
+
 
 
 
 export function useAuth(){
 
-return useContext(AuthContext);
+
+const context =
+useContext(AuthContext);
+
+
+
+if(!context){
+
+
+throw new Error(
+
+"useAuth debe usarse dentro de AuthProvider"
+
+);
+
+
+}
+
+
+
+return context;
+
+
 
 }

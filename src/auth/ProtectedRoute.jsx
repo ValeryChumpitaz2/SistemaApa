@@ -2,33 +2,45 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 
-export default function ProtectedRoute({
-children,
-rol
-}){
+export default function ProtectedRoute({children, rol}){
 
 
-const {user}=useAuth();
+  const { user } = useAuth();
 
 
-
-if(!user){
-
-return <Navigate to="/login"/>
-
-}
+  console.log("PROTECTED USER:", user);
 
 
 
-if(user.rol !== rol){
+  if(!user){
 
-return <Navigate to="/"/>
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
 
-}
+  }
 
 
 
-return children;
+  if(
+    rol &&
+    user.rol !== rol
+  ){
 
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+
+  }
+
+
+
+  return children;
 
 }

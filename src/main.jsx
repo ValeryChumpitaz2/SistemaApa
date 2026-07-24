@@ -1,39 +1,39 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-
-import App from './App.jsx'
-import './index.css'
-
+import React from "react";
+import ReactDOM from "react-dom/client";
 
 import {
-AuthProvider
-} from "./auth/AuthContext.jsx"
+  BrowserRouter
+} from "react-router-dom";
 
+import App from "./App.jsx";
 
 import {
-ThemeProvider
-} from "./context/ThemeContext.jsx"
+  ThemeProvider
+} from "./context/ThemeContext.jsx";
 
+import {
+  AuthProvider
+} from "./auth/AuthContext.jsx";
+
+import "./index.css";
 
 
 ReactDOM.createRoot(
-document.getElementById('root')
+  document.getElementById("root")
 ).render(
 
+  <BrowserRouter>
 
-<ThemeProvider>
+  <ThemeProvider>
 
+    <AuthProvider>
 
-<AuthProvider>
+      <App/>
 
+    </AuthProvider>
 
-<App />
+  </ThemeProvider>
 
+</BrowserRouter>
 
-</AuthProvider>
-
-
-</ThemeProvider>
-
-
-)
+);

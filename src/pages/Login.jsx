@@ -1,177 +1,237 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useState } from "react";
 
 import {
+  ShieldCheck,
   GraduationCap,
-  Presentation,
-  ArrowRight,
-  ShieldCheck
+  UserRound,
+  ArrowLeft,
+  Sparkles
 } from "lucide-react";
+
+
+import TeacherLogin from "../components/auth/TeacherLogin";
+import GoogleLogin from "../components/auth/GoogleLogin";
+
 
 
 export default function Login(){
 
 
-const navigate = useNavigate();
-
-const {login}=useAuth();
-
-
-
-function entrar(rol){
-
-login(rol);
-
-
-if(rol==="student"){
-
-navigate("/student/dashboard");
-
-}else{
-
-navigate("/teacher/dashboard");
-
-}
-
-}
-
+const [tipo,setTipo]=useState(null);
 
 
 
 return (
 
+
 <div className="
+
 min-h-screen
-bg-gradient-to-br
-from-slate-950
-via-blue-950
-to-indigo-900
+
 flex
+
 items-center
+
 justify-center
-p-6
-">
 
+relative
 
-<div className="
-w-full
-max-w-5xl
-grid
-md:grid-cols-2
-bg-white
-rounded-[2rem]
 overflow-hidden
-shadow-2xl
-">
 
-
-{/* lado izquierdo */}
-
-<div className="
-hidden
-md:flex
 bg-gradient-to-br
-from-blue-900
-to-indigo-700
-text-white
-p-12
-flex-col
-justify-between
+
+from-slate-950
+
+via-blue-950
+
+to-indigo-950
+
+p-6
+
 ">
 
 
-<div>
+{/* luces decorativas */}
+
+<div className="
+
+absolute
+
+w-96
+
+h-96
+
+bg-blue-500
+
+opacity-20
+
+rounded-full
+
+blur-3xl
+
+top-10
+
+left-10
+
+"/>
 
 
 <div className="
-bg-white/20
-w-fit
-p-4
-rounded-2xl
-mb-6
+
+absolute
+
+w-96
+
+h-96
+
+bg-indigo-500
+
+opacity-20
+
+rounded-full
+
+blur-3xl
+
+bottom-10
+
+right-10
+
+"/>
+
+
+
+
+<div className="
+
+relative
+
+w-full
+
+max-w-md
+
+bg-white/95
+
+backdrop-blur-xl
+
+rounded-[2rem]
+
+shadow-2xl
+
+p-10
+
+border
+
+border-white/20
+
+text-center
+
 ">
+
+
+
+<div className="
+
+mx-auto
+
+w-24
+
+h-24
+
+rounded-3xl
+
+bg-gradient-to-br
+
+from-blue-600
+
+to-indigo-700
+
+flex
+
+items-center
+
+justify-center
+
+shadow-lg
+
+shadow-blue-500/30
+
+">
+
 
 <ShieldCheck
-size={45}
+
+size={48}
+
+className="text-white"
+
 />
+
 
 </div>
 
 
 
 <h1 className="
-text-5xl
-font-bold
-leading-tight
+
+text-4xl
+
+font-black
+
+mt-6
+
+text-slate-800
+
+tracking-tight
+
 ">
 
-VG Smart
-Review
+VG Smart Review
 
 </h1>
 
 
 
-<p className="
-mt-6
-text-blue-100
-text-lg
-">
-
-Sistema inteligente para la revisión
-y evaluación automática de documentos
-académicos.
-
-</p>
-
-
-</div>
-
-
-
-<p className="
-text-blue-200
-">
-
-Análisis • Seguimiento • Evaluación
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-{/* lado derecho */}
-
-
 <div className="
-p-10
-md:p-14
+
+flex
+
+items-center
+
+justify-center
+
+gap-2
+
+mt-3
+
+text-blue-600
+
+font-medium
+
 ">
 
 
-<h2 className="
-text-3xl
-font-bold
-text-gray-800
-">
+<Sparkles size={16}/>
 
-Bienvenido
 
-</h2>
+Plataforma académica inteligente
+
+
+</div>
+
+
 
 
 <p className="
+
 text-gray-500
-mt-2
-mb-10
+
+mt-5
+
+mb-8
+
 ">
 
-Selecciona cómo deseas ingresar
+Selecciona tu tipo de acceso para continuar
 
 </p>
 
@@ -179,27 +239,57 @@ Selecciona cómo deseas ingresar
 
 
 
-<div className="space-y-6">
+{
+!tipo && (
+
+
+
+<div className="space-y-5">
 
 
 
 <button
 
-onClick={()=>entrar("student")}
+onClick={()=>setTipo("DOCENTE")}
 
 className="
+
 group
+
 w-full
+
+p-5
+
+rounded-2xl
+
 border-2
+
 border-blue-100
-hover:border-blue-900
-rounded-3xl
-p-6
+
+bg-gradient-to-r
+
+from-blue-600
+
+to-indigo-600
+
+text-white
+
 flex
+
 items-center
-gap-5
-transition
+
+gap-4
+
+transition-all
+
+duration-300
+
+hover:scale-[1.03]
+
 hover:shadow-xl
+
+hover:shadow-blue-500/30
+
 "
 
 
@@ -207,44 +297,40 @@ hover:shadow-xl
 
 
 <div className="
-bg-blue-100
-text-blue-900
-p-5
-rounded-2xl
-group-hover:bg-blue-900
-group-hover:text-white
+
+bg-white/20
+
+p-3
+
+rounded-xl
+
+group-hover:rotate-6
+
 transition
+
 ">
 
-<GraduationCap
-size={40}
-/>
+
+<UserRound size={28}/>
 
 
 </div>
 
 
 
-<div className="flex-1 text-left">
+<div className="text-left">
 
 
-<h3 className="
-text-xl
-font-bold
-text-gray-800
-">
+<p className="font-bold text-lg">
 
-Estudiante
+Soy Docente
 
-</h3>
+</p>
 
 
-<p className="
-text-gray-500
-text-sm
-">
+<p className="text-sm opacity-80">
 
-Sube documentos y recibe evaluación automática.
+Acceso administrativo
 
 </p>
 
@@ -252,18 +338,7 @@ Sube documentos y recibe evaluación automática.
 </div>
 
 
-
-<ArrowRight
-className="
-text-gray-400
-group-hover:text-blue-900
-"
-/>
-
-
 </button>
-
-
 
 
 
@@ -271,41 +346,68 @@ group-hover:text-blue-900
 
 <button
 
-onClick={()=>entrar("teacher")}
+onClick={()=>setTipo("ESTUDIANTE")}
+
 
 className="
-group
-w-full
-border-2
-border-green-100
-hover:border-green-700
-rounded-3xl
-p-6
-flex
-items-center
-gap-5
-transition
-hover:shadow-xl
-"
 
+group
+
+w-full
+
+p-5
+
+rounded-2xl
+
+border-2
+
+border-green-100
+
+bg-gradient-to-r
+
+from-emerald-500
+
+to-green-600
+
+text-white
+
+flex
+
+items-center
+
+gap-4
+
+transition-all
+
+duration-300
+
+hover:scale-[1.03]
+
+hover:shadow-xl
+
+hover:shadow-green-500/30
+
+"
 
 >
 
 
 <div className="
-bg-green-100
-text-green-700
-p-5
-rounded-2xl
-group-hover:bg-green-700
-group-hover:text-white
+
+bg-white/20
+
+p-3
+
+rounded-xl
+
+group-hover:rotate-6
+
 transition
+
 ">
 
 
-<Presentation
-size={40}
-/>
+<GraduationCap size={28}/>
 
 
 </div>
@@ -313,26 +415,19 @@ size={40}
 
 
 
-<div className="flex-1 text-left">
+<div className="text-left">
 
 
-<h3 className="
-text-xl
-font-bold
-text-gray-800
-">
+<p className="font-bold text-lg">
 
-Docente
+Soy Estudiante
 
-</h3>
+</p>
 
 
-<p className="
-text-gray-500
-text-sm
-">
+<p className="text-sm opacity-80">
 
-Analiza carpetas y supervisa entregas.
+Ingreso con Google institucional
 
 </p>
 
@@ -341,37 +436,105 @@ Analiza carpetas y supervisa entregas.
 
 
 
-
-<ArrowRight
-className="
-text-gray-400
-group-hover:text-green-700
-"
-/>
-
-
 </button>
-
 
 
 
 </div>
 
 
+)
+
+}
 
 
-<p className="
-text-center
-text-gray-400
+
+
+{
+tipo && (
+
+
+<>
+
+
+<button
+
+onClick={()=>setTipo(null)}
+
+className="
+
+flex
+
+items-center
+
+gap-2
+
 text-sm
-mt-10
+
+text-gray-500
+
+hover:text-blue-600
+
+mb-6
+
+transition
+
+"
+
+
+>
+
+
+<ArrowLeft size={16}/>
+
+Cambiar tipo de acceso
+
+
+</button>
+
+
+
+{
+
+tipo==="DOCENTE" &&
+
+<TeacherLogin/>
+
+}
+
+
+
+{
+
+tipo==="ESTUDIANTE" &&
+
+<GoogleLogin/>
+
+}
+
+
+
+</>
+
+
+)
+
+}
+
+
+
+<div className="
+
+mt-8
+
+text-xs
+
+text-gray-400
+
 ">
+
 
 © 2026 VG Smart Review
-
-</p>
-
-
 
 </div>
 
