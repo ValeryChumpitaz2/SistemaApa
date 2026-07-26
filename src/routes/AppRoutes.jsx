@@ -1,17 +1,34 @@
-import { Routes, Route } from "react-router-dom";
+import {
+  Routes,
+  Route
+} from "react-router-dom";
 
-import LandingPage from "../pages/Landing";
 import Login from "../pages/Login";
+
+import Landing from "../pages/Landing";
+
 import StudentDashboard from "../modules/student/pages/Dashboard";
 import TeacherDashboard from "../modules/teacher/pages/TeacherDashboard";
+
 import ProtectedRoute from "../auth/ProtectedRoute";
 
-export default function AppRoutes() {
-  return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
 
-      <Route path="/login" element={<Login />} />
+export default function AppRoutes() {
+
+  return (
+
+    <Routes>
+
+      <Route
+        path="/"
+        element={<Landing />}
+      />
+
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
 
       <Route
         path="/teacher/dashboard"
@@ -22,6 +39,7 @@ export default function AppRoutes() {
         }
       />
 
+
       <Route
         path="/student/dashboard"
         element={
@@ -30,6 +48,10 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+
     </Routes>
+
   );
+
 }
