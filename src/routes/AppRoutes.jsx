@@ -4,7 +4,7 @@ import {
   Navigate
 } from "react-router-dom";
 
-import LandingPage from "../pages/LandingPage";
+import LandingPage from "../pages/Landing";
 import Login from "../pages/Login";
 import StudentDashboard from "../modules/student/pages/Dashboard";
 import TeacherDashboard from "../modules/teacher/pages/TeacherDashboard";
