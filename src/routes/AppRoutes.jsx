@@ -1,8 +1,4 @@
-import {
-  Routes,
-  Route,
-  Navigate
-} from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import LandingPage from "../pages/Landing";
 import Login from "../pages/Login";
@@ -13,16 +9,9 @@ import ProtectedRoute from "../auth/ProtectedRoute";
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
 
-      <Route
-        path="/"
-        element={<LandingPage />}
-      />
-
-      <Route
-        path="/login"
-        element={<Login />}
-      />
+      <Route path="/login" element={<Login />} />
 
       <Route
         path="/teacher/dashboard"
@@ -41,7 +30,6 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
     </Routes>
   );
 }
