@@ -4,7 +4,9 @@ import {
 
 
 import {
-  Search
+  Search,
+  CheckCircle,
+  LoaderCircle
 } from "lucide-react";
 
 
@@ -13,188 +15,167 @@ import {
 } from "../services/studentService";
 
 
-import ResultCard from "../components/ResultCard";
-import CriteriaList from "../components/CriteriaList";
-import Recommendations from "../components/Recommendations";
-
-
 
 export default function SubmitDocument({
   setDocumentos
-}){
+}) {
 
 
-const [url,setUrl] = useState("");
+  const [
+    url,
+    setUrl
+  ] = useState("");
 
-const [loading,setLoading] = useState(false);
 
-const [analysis,setAnalysis] = useState(null);
 
+  const [
+    loading,
+    setLoading
+  ] = useState(false);
 
 
 
 
-async function handleSubmit(e){
+  const [
+    mensaje,
+    setMensaje
+  ] = useState("");
 
 
-e.preventDefault();
 
 
 
-if(!url.trim()){
 
-alert(
-"Ingrese el enlace del documento"
-);
+  async function enviar(e){
 
-return;
 
-}
+    e.preventDefault();
 
 
 
-try{
+    if(!url.trim()){
 
+      alert(
+        "Ingresa el enlace del documento"
+      );
 
-setLoading(true);
+      return;
 
+    }
 
 
-const data =
-await analyzeDocument(url);
 
 
+    try{
 
 
+      setLoading(true);
 
-console.log(
-"RESPUESTA COMPLETA BACKEND:",
-data
-);
+      setMensaje("");
 
 
 
+      const data =
+      await analyzeDocument(url);
 
 
 
-/*
-==============================
-GUARDAR RESULTADO DASHBOARD
-==============================
-*/
 
 
-const resultado = {
 
+      const documento = {
 
-nombre:
-data.resumen?.nombre ||
-"Documento sin nombre",
 
+        nombre:
+        data.resumen?.nombre ||
+        "Documento académico",
 
 
-resumen:
-data.resumen ||
-{},
 
-puntaje:
-data.puntaje ||
-{
-obtenido:0,
-maximo:2,
-porcentaje:0
-},
+        resumen:
+        data.resumen,
 
 
 
-criterios:
-data.criterios || [],
+        puntaje:
+        data.puntaje,
 
 
 
-fecha:
-new Date()
-.toLocaleDateString()
+        criterios:
+        data.criterios || [],
 
 
 
-};
+        fecha:
+        new Date()
+        .toLocaleDateString()
 
+      };
 
 
 
 
 
-setAnalysis(
-resultado
-);
 
 
 
+      setDocumentos(
 
+        prev => [
 
+          ...prev,
 
-/*
-==============================
-ACTUALIZAR STATS + HISTORIAL
-==============================
-*/
+          documento
 
+        ]
 
-setDocumentos(
-(prev)=>[
+      );
 
-...prev,
 
-resultado
 
-]
 
-);
 
+      setMensaje(
+        "Documento analizado correctamente"
+      );
 
 
 
+      setUrl("");
 
-console.log(
-"DOCUMENTO GUARDADO:",
-resultado
-);
 
 
+    }
 
 
-}
+    catch(error){
 
-catch(error){
 
+      console.error(error);
 
-console.error(
-"ERROR ANALIZANDO DOCUMENTO:",
-error
-);
 
 
+      alert(
+        "No se pudo analizar el documento"
+      );
 
-alert(
-"Error analizando documento"
-);
 
+    }
 
 
-}
+    finally{
 
-finally{
 
+      setLoading(false);
 
-setLoading(false);
 
+    }
 
-}
 
 
+  }
 
-}
 
 
 
@@ -202,284 +183,250 @@ setLoading(false);
 
 
 
+  return (
 
-return (
 
-<section
+    <div
 
-className="
-max-w-6xl
-mx-auto
-px-8
-mt-10
-"
+      className="
+      space-y-6
+      "
 
->
+    >
 
 
 
-<div
 
-className="
-bg-white
-rounded-3xl
-shadow-lg
-border
-p-8
-"
 
->
 
+      <div
 
+        className="
+        bg-white
+        dark:bg-slate-900
+        border
+        dark:border-slate-800
+        rounded-3xl
+        p-8
+        shadow
+        "
 
-<h2
+      >
 
-className="
-text-2xl
-font-bold
-"
 
->
 
-Nueva revisión
 
-</h2>
+        <h3
 
+          className="
+          text-xl
+          font-black
+          text-gray-800
+          dark:text-white
+          "
 
+        >
 
+          Evaluador institucional
 
+        </h3>
 
-<p
 
-className="
-text-gray-500
-mt-2
-"
 
->
 
-Ingresa el enlace del documento de Google Docs
+        <p
 
-</p>
+          className="
+          text-gray-500
+          mt-2
+          "
 
+        >
 
+          Ingresa el enlace de tu Google Docs
+          para analizar estructura y normas APA.
 
+        </p>
 
 
 
 
 
 
-<form
 
-onSubmit={handleSubmit}
 
-className="
-mt-6
-flex
-flex-col
-gap-4
-"
+        <form
 
->
+          onSubmit={enviar}
 
+          className="
+          mt-6
+          flex
+          flex-col
+          md:flex-row
+          gap-4
+          "
 
+        >
 
 
 
-<input
 
 
-type="url"
+          <input
 
 
-value={url}
+            type="url"
 
 
-disabled={loading}
+            value={url}
 
 
+            onChange={
+              e=>setUrl(e.target.value)
+            }
 
-onChange={
-(e)=>
-setUrl(
-e.target.value
-)
-}
 
+            placeholder="
+            https://docs.google.com/document/...
+            "
 
 
-placeholder="
-https://docs.google.com/document/...
-"
+            className="
+            flex-1
+            p-4
+            rounded-xl
+            border
+            dark:bg-slate-800
+            dark:text-white
+            outline-none
+            focus:ring-2
+            focus:ring-blue-600
+            "
 
 
+          />
 
-className="
-border
-rounded-xl
-p-4
-outline-none
-focus:ring-2
-focus:ring-blue-800
-disabled:bg-gray-100
-"
 
 
 
-/>
 
 
 
+          <button
 
 
+            disabled={loading}
 
 
+            className="
+            bg-[#1D3681]
+            text-white
+            px-8
+            py-3
+            rounded-xl
+            font-bold
+            flex
+            items-center
+            justify-center
+            gap-2
+            disabled:opacity-50
+            "
 
-<button
 
+          >
 
-type="submit"
 
+            {
+              loading
 
-disabled={loading}
+              ?
 
+              <>
 
+              <LoaderCircle
+                className="
+                animate-spin
+                "
+              />
 
-className="
-bg-blue-950
-text-white
-rounded-xl
-py-4
-font-bold
-flex
-justify-center
-items-center
-gap-2
-disabled:opacity-50
-"
+              Analizando...
 
->
+              </>
 
 
+              :
 
-<Search size={20}/>
+              <>
 
+              <Search size={20}/>
 
+              Analizar documento
 
-{
+              </>
 
-loading
+            }
 
-?
 
-"Analizando documento..."
+          </button>
 
-:
 
-"Analizar documento"
 
-}
 
 
 
-</button>
+        </form>
 
 
 
 
 
-</form>
 
 
+        {
+          mensaje &&
 
 
+          <div
 
+            className="
+            mt-6
+            bg-green-100
+            text-green-700
+            rounded-xl
+            p-4
+            flex
+            items-center
+            gap-3
+            font-semibold
+            "
 
+          >
 
+            <CheckCircle/>
 
+            {mensaje}
 
-{
 
-analysis && (
+          </div>
 
 
-<div
+        }
 
-className="
-mt-10
-space-y-6
-"
 
->
 
 
 
+      </div>
 
 
-<ResultCard
 
-analysis={analysis}
 
-/>
 
+    </div>
 
 
-
-
-
-
-<CriteriaList
-
-criterios={
-analysis.criterios ?? []
-}
-
-/>
-
-
-
-
-
-
-
-<Recommendations
-
-criterios={
-analysis.criterios ?? []
-}
-
-/>
-
-
-
-
-
-
-
-</div>
-
-
-)
-
+  );
 
 
 }
-
-
-
-
-
-</div>
-
-
-
-</section>
-
-
-);
-
-
-}
-
-

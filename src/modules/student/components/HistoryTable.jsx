@@ -1,234 +1,364 @@
 import {
   FileText,
   CheckCircle,
-  Clock
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 
 
 export default function HistoryTable({
   documentos = []
-}) {
+}){
 
 
-  return (
+function obtenerEstado(item){
 
-    <div className="
-      bg-white
-      rounded-2xl
-      shadow
-      p-8
-    ">
 
+  const porcentaje =
+  item.puntaje?.porcentaje ?? 0;
 
-      {
-        documentos.length === 0
 
-        ?
 
-        <div className="
-          text-center
-          py-8
-        ">
+  if(porcentaje >= 95){
 
-          <FileText
+    return {
+      texto:"Listo",
+      clase:"bg-green-100 text-green-700",
+      icono:<CheckCircle size={16}/>
+    };
 
-            className="
-              mx-auto
-              text-gray-400
-            "
+  }
 
-            size={45}
 
-          />
 
+  if(porcentaje >= 70){
 
-          <h3 className="
-            text-xl
-            font-bold
-            mt-4
-          ">
+    return {
+      texto:"En mejora",
+      clase:"bg-yellow-100 text-yellow-700",
+      icono:<Clock size={16}/>
+    };
 
-            Aún no tienes revisiones
+  }
 
-          </h3>
 
 
+  return {
 
-          <p className="
-            text-gray-500
-            mt-2
-          ">
+    texto:"Necesita revisión",
+    clase:"bg-red-100 text-red-700",
+    icono:<AlertTriangle size={16}/>
 
-            Cuando analices un documento aparecerá aquí.
+  };
 
-          </p>
 
+}
 
-        </div>
 
 
-        :
 
 
-        <div className="
-          space-y-4
-        ">
+return (
 
 
-          {
-            documentos.map(
+<div className="overflow-x-auto">
 
-              (documento,index)=>(
 
+<table className="w-full">
 
-                <div
 
-                  key={index}
+<thead>
 
-                  className="
-                    border
-                    rounded-2xl
-                    p-5
-                    flex
-                    justify-between
-                    items-center
-                    hover:bg-gray-50
-                    transition
-                  "
 
-                >
+<tr className="
+text-left
+text-sm
+text-gray-500
+border-b
+">
 
 
-                  <div>
+<th className="p-4">
+Documento
+</th>
 
 
-                    <h3 className="
-                      font-bold
-                      text-lg
-                      text-gray-800
-                    ">
+<th className="p-4">
+Fecha
+</th>
 
-                      {documento.nombre}
 
-                    </h3>
+<th className="p-4">
+Resultado
+</th>
 
 
-                    <p className="
-                      text-gray-500
-                      text-sm
-                      mt-1
-                    ">
+<th className="p-4">
+Estado
+</th>
 
-                      Fecha:
-                      {" "}
-                      {documento.fecha || "Hoy"}
 
-                    </p>
+</tr>
 
 
-                  </div>
+</thead>
 
 
 
+<tbody>
 
-                  <div className="
-                    flex
-                    items-center
-                    gap-6
-                  ">
 
 
+{
 
-                    <div className="
-                      text-center
-                    ">
+documentos.map((doc,index)=>{
 
 
-                      <p className="
-                        text-sm
-                        text-gray-500
-                      ">
+const estado =
+obtenerEstado(doc);
 
-                        Resultado
 
-                      </p>
 
+return (
 
 
-                      <p className="
-                        text-xl
-                        font-black
-                        text-blue-900
-                      ">
+<tr
 
-                        {
-                          documento.puntaje?.porcentaje ?? 0
-                        }%
+key={index}
 
-                      </p>
+className="
+border-b
+hover:bg-gray-50
+transition
+"
 
+>
 
-                    </div>
 
 
+<td className="p-4">
 
 
-                    {
+<div className="
+flex
+items-center
+gap-3
+">
 
-                      Number(
-                        documento.puntaje?.porcentaje ?? 0
-                      ) >= 70
 
-                      ?
+<div className="
+bg-blue-100
+text-blue-700
+p-2
+rounded-xl
+">
 
-                      <CheckCircle
 
-                        size={30}
+<FileText size={20}/>
 
-                        className="
-                          text-green-600
-                        "
 
-                      />
+</div>
 
 
-                      :
 
-                      <Clock
+<div>
 
-                        size={30}
 
-                        className="
-                          text-orange-500
-                        "
+<p className="
+font-semibold
+text-gray-800
+">
 
-                      />
 
-                    }
+{
+doc.nombre ||
+doc.resumen?.nombre ||
+"Documento académico"
+}
 
 
+</p>
 
-                  </div>
 
 
-                </div>
+<p className="
+text-xs
+text-gray-400
+">
 
 
-              )
+Evaluación automática
 
-            )
 
-          }
+</p>
 
 
-        </div>
+</div>
 
 
-      }
 
+</div>
 
-    </div>
 
-  );
+</td>
+
+
+
+
+
+
+<td className="p-4 text-gray-600">
+
+
+{
+doc.fecha ||
+"Hoy"
+}
+
+
+</td>
+
+
+
+
+
+
+
+<td className="p-4">
+
+
+<span className="
+font-bold
+text-blue-700
+">
+
+
+{
+doc.puntaje?.porcentaje ?? 0
+}%
+
+</span>
+
+
+</td>
+
+
+
+
+
+
+
+<td className="p-4">
+
+
+<span className={`
+
+inline-flex
+
+items-center
+
+gap-2
+
+px-3
+
+py-1
+
+rounded-full
+
+text-sm
+
+font-semibold
+
+${estado.clase}
+
+`}>
+
+
+
+{
+estado.icono
+}
+
+
+
+{
+estado.texto
+}
+
+
+
+</span>
+
+
+</td>
+
+
+
+
+
+
+</tr>
+
+
+);
+
+
+})
+
+
+}
+
+
+
+
+{
+documentos.length===0 && (
+
+
+<tr>
+
+
+<td
+
+colSpan="4"
+
+className="
+text-center
+py-10
+text-gray-400
+"
+
+
+>
+
+
+No existen evaluaciones todavía.
+
+
+</td>
+
+
+</tr>
+
+
+)
+
+
+}
+
+
+
+</tbody>
+
+
+
+</table>
+
+
+</div>
+
+
+);
+
 
 }

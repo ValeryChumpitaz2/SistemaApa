@@ -1,9 +1,7 @@
 import {
-  Lightbulb,
-  CheckCircle2,
-  AlertCircle
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react";
-
 
 
 export default function Recommendations({
@@ -11,143 +9,87 @@ export default function Recommendations({
 }){
 
 
-if(!Array.isArray(criterios) || criterios.length === 0){
-
-return null;
-
-}
-
-
-
-const pendientes = criterios.filter(
-(item)=> !item.cumple
+const pendientes =
+criterios.filter(
+(item)=>!item.cumple
 );
-
-
 
 
 
 return (
 
-<div className="
-bg-yellow-50
-border
-border-yellow-200
+<div
+className="
+bg-white
 rounded-3xl
+border
+shadow-sm
 p-6
-">
-
-
-
-
+"
+>
 
 
 <div className="
 flex
 items-center
 gap-3
-mb-6
+mb-5
 ">
 
-
-<div className="
-bg-yellow-200
+<div
+className="
+bg-yellow-100
 text-yellow-700
 p-3
 rounded-xl
-">
+"
+>
 
-
-<Lightbulb
-size={26}
-/>
-
+<AlertTriangle size={24}/>
 
 </div>
 
 
-
-<div>
-
-
-<h3 className="
+<h3
+className="
 text-xl
-font-bold
-text-yellow-900
-">
+font-black
+text-gray-800
+"
+>
 
 Recomendaciones para mejorar
 
 </h3>
 
 
-<p className="
-text-yellow-700
-text-sm
-mt-1
-">
-
-Criterios que requieren atención
-
-</p>
-
-
 </div>
-
-
-
-</div>
-
-
 
 
 
 
 
 {
-
-pendientes.length === 0
-
-?
+pendientes.length === 0 ?
 
 
-<div className="
-bg-green-50
-border
-border-green-200
-rounded-2xl
-p-5
+<div
+className="
 flex
 items-center
 gap-3
+bg-green-50
 text-green-700
-font-semibold
-">
+p-4
+rounded-xl
+"
+>
 
-
-<CheckCircle2 size={25}/>
-
-
-<div>
+<CheckCircle/>
 
 <p>
-
-¡Excelente trabajo!
-
+Excelente. Todos los criterios cumplen.
 </p>
-
-
-<span className="
-text-sm
-font-normal
-">
-
-El documento cumple todos los criterios evaluados.
-
-</span>
-
-
-</div>
 
 
 </div>
@@ -157,78 +99,46 @@ El documento cumple todos los criterios evaluados.
 :
 
 
-<ul className="
-space-y-4
-">
+<div className="space-y-3">
 
 
 {
-
 pendientes.map((item,index)=>(
 
 
-<li
+<div
 
-key={
-item.id ?? `${item.criterio}-${index}`
-}
-
+key={index}
 
 className="
-bg-white
-rounded-2xl
-p-5
-shadow-sm
+bg-gray-50
+rounded-xl
+p-4
 border
-border-yellow-100
 "
-
 
 >
 
 
-<div className="
-flex
-gap-3
-items-start
-">
-
-
-<AlertCircle
-
-size={20}
-
+<p
 className="
-text-yellow-600
-mt-1
-"
-
-/>
-
-
-
-<div>
-
-
-<p className="
 font-bold
 text-gray-800
-">
+"
+>
 
-{
-item.criterio ??
-"Revisar criterio APA"
-}
+{item.criterio}
 
 </p>
 
 
-
-<p className="
-text-gray-600
+<p
+className="
+text-gray-500
 text-sm
-mt-2
-">
+mt-1
+"
+>
 
 Debe corregirse este aspecto para mejorar el puntaje del documento.
 
@@ -238,14 +148,6 @@ Debe corregirse este aspecto para mejorar el puntaje del documento.
 </div>
 
 
-
-</div>
-
-
-</li>
-
-
-
 ))
 
 
@@ -253,13 +155,10 @@ Debe corregirse este aspecto para mejorar el puntaje del documento.
 
 
 
-</ul>
-
+</div>
 
 
 }
-
-
 
 
 

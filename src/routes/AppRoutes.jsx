@@ -1,89 +1,57 @@
 import {
-Routes,
-Route,
-Navigate
+  Routes,
+  Route
 } from "react-router-dom";
-
 
 import Login from "../pages/Login";
 
-import StudentDashboard from "../modules/student/pages/Dashboard";
+import Landing from "../pages/Landing";
 
+import StudentDashboard from "../modules/student/pages/Dashboard";
 import TeacherDashboard from "../modules/teacher/pages/TeacherDashboard";
 
 import ProtectedRoute from "../auth/ProtectedRoute";
 
 
+export default function AppRoutes() {
 
-export default function AppRoutes(){
+  return (
 
+    <Routes>
 
-return (
+      <Route
+        path="/"
+        element={<Landing />}
+      />
 
-<Routes>
-
-
-<Route
-
-path="/"
-
-element={
-<Navigate to="/login"/>
-}
-
-/>
+      <Route
+        path="/login"
+        element={<Login />}
+      />
 
 
-
-<Route
-
-path="/login"
-
-element={<Login/>}
-
-/>
-
-
-
-<Route
-
-path="/teacher/dashboard"
-
-element={
-
-<ProtectedRoute rol="DOCENTE">
-
-<TeacherDashboard/>
-
-</ProtectedRoute>
-
-}
-
-/>
+      <Route
+        path="/teacher/dashboard"
+        element={
+          <ProtectedRoute rol="DOCENTE">
+            <TeacherDashboard />
+          </ProtectedRoute>
+        }
+      />
 
 
-
-<Route
-
-path="/student/dashboard"
-
-element={
-
-<ProtectedRoute rol="ESTUDIANTE">
-
-<StudentDashboard/>
-
-</ProtectedRoute>
-
-}
-
-/>
+      <Route
+        path="/student/dashboard"
+        element={
+          <ProtectedRoute rol="ESTUDIANTE">
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
 
 
+    </Routes>
 
-</Routes>
-
-);
-
+  );
 
 }

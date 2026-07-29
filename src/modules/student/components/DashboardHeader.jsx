@@ -1,270 +1,366 @@
 import {
+  Bell,
   UserCircle,
-  ArrowLeft,
-  Moon,
-  Sun
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
 
 
 import {
-  useNavigate
-} from "react-router-dom";
-
-
-import {
-  useTheme
-} from "../../../context/ThemeContext.jsx";
-
-
-import NotificationsDropdown from "./NotificationsDropdown";
-
+  useAuth
+} from "../../../auth/AuthContext";
 
 
 
 export default function DashboardHeader({
+  notificaciones = []
+}) {
 
-notificaciones=[]
 
-}){
+  const {
+    user
+  } = useAuth();
 
 
-const navigate = useNavigate();
 
+  return (
 
 
-const {
- dark,
- setDark
-}=useTheme();
+    <section
 
+      className="
+      relative
+      overflow-hidden
+      bg-gradient-to-r
+      from-[#1D3681]
+      via-blue-700
+      to-blue-500
+      rounded-3xl
+      p-8
+      text-white
+      shadow-xl
+      "
 
+    >
 
 
 
-return (
+      {/* DECORACION */}
 
-<header
+      <div
+        className="
+        absolute
+        -right-10
+        -top-10
+        w-40
+        h-40
+        bg-white/10
+        rounded-full
+        "
+      />
 
-className="
-bg-gradient-to-r
-from-blue-950
-to-blue-800
-text-white
-shadow-lg
-"
+      <div
+        className="
+        absolute
+        right-20
+        bottom-0
+        w-24
+        h-24
+        bg-white/10
+        rounded-full
+        "
+      />
 
->
 
 
-<div
 
-className="
-max-w-6xl
-mx-auto
-px-8
-py-5
-flex
-justify-between
-items-center
-"
 
->
+      <div
+        className="
+        relative
+        flex
+        flex-col
+        lg:flex-row
+        lg:items-center
+        justify-between
+        gap-6
+        "
+      >
 
 
 
-<div
 
-className="
-flex
-items-center
-gap-3
-"
 
->
+        {/* TEXTO */}
 
+        <div>
 
-<div
 
-className="
-bg-white/20
-p-3
-rounded-xl
-"
+          <div
+            className="
+            flex
+            items-center
+            gap-2
+            mb-3
+            "
+          >
 
->
+            <Sparkles
+              size={22}
+            />
 
-<UserCircle size={35}/>
 
-</div>
+            <span
+              className="
+              text-blue-100
+              text-sm
+              font-semibold
+              "
+            >
 
+              Asistente académico inteligente
 
+            </span>
 
 
-<div>
+          </div>
 
-<h1
 
-className="
-text-3xl
-font-black
-"
 
->
 
-VG Smart Review
+          <h1
+            className="
+            text-3xl
+            md:text-4xl
+            font-black
+            "
+          >
 
-</h1>
+            Hola,{" "}
 
+            {
+              user?.usuario || "Estudiante"
+            }
 
+            👋
 
-<p className="
-text-blue-200
-">
 
-Panel del estudiante
+          </h1>
 
-</p>
 
 
-</div>
+          <p
+            className="
+            mt-3
+            text-blue-100
+            max-w-xl
+            "
+          >
 
+            Analiza tus documentos, mejora tus normas APA
+            y recibe recomendaciones para obtener mejores resultados.
 
-</div>
 
+          </p>
 
 
 
 
 
+          <button
 
-<div
+            className="
+            mt-6
+            bg-white
+            text-blue-700
+            px-6
+            py-3
+            rounded-2xl
+            font-bold
+            flex
+            items-center
+            gap-2
+            hover:bg-blue-50
+            transition
+            shadow-lg
+            "
 
-className="
-flex
-items-center
-gap-4
-"
+          >
 
->
+            Nueva evaluación
 
 
+            <ArrowRight
+              size={18}
+            />
 
-<button
+          </button>
 
-onClick={()=>setDark(!dark)}
 
-className="
-bg-white/20
-hover:bg-white/30
-px-4
-py-3
-rounded-xl
-flex
-items-center
-gap-2
-transition
-"
 
->
+        </div>
 
 
-{
 
-dark
 
-?
 
-<>
 
-<Sun size={22}/>
 
-<span>
-Claro
-</span>
 
-</>
+        {/* PANEL DERECHO */}
 
 
-:
+        <div
 
-<>
+          className="
+          bg-white/15
+          backdrop-blur-md
+          rounded-3xl
+          p-6
+          min-w-[240px]
+          "
 
-<Moon size={22}/>
+        >
 
-<span>
-Oscuro
-</span>
 
-</>
 
+          <div
+            className="
+            flex
+            items-center
+            justify-between
+            mb-5
+            "
+          >
 
-}
 
+            <div
+              className="
+              flex
+              items-center
+              gap-3
+              "
+            >
 
-</button>
+              <UserCircle
+                size={45}
+              />
 
 
+              <div>
 
+                <p
+                  className="
+                  font-bold
+                  "
+                >
 
+                  Perfil activo
 
+                </p>
 
 
-<NotificationsDropdown
+                <span
+                  className="
+                  text-xs
+                  text-blue-100
+                  "
+                >
 
-notificaciones={notificaciones}
+                  Estudiante
 
-/>
+                </span>
 
 
+              </div>
 
 
+            </div>
 
 
+          </div>
 
 
-<button
 
-onClick={()=>navigate("/")}
 
-className="
-bg-white
-text-blue-900
-px-5
-py-3
-rounded-xl
-font-bold
-flex
-items-center
-gap-2
-hover:bg-blue-100
-"
 
->
+          <div
+            className="
+            border-t
+            border-white/20
+            pt-4
+            flex
+            items-center
+            justify-between
+            "
+          >
 
-<ArrowLeft size={18}/>
 
-Inicio
+            <div
+              className="
+              flex
+              items-center
+              gap-2
+              "
+            >
 
-</button>
+              <Bell
+                size={20}
+              />
 
 
+              <span
+                className="
+                text-sm
+                "
+              >
 
-</div>
+                Alertas
 
+              </span>
 
 
+            </div>
 
 
-</div>
 
 
+            <span
 
+              className="
+              bg-red-500
+              px-3
+              py-1
+              rounded-full
+              text-xs
+              font-bold
+              "
 
+            >
 
-</header>
+              {
+                notificaciones.length
+              }
 
+            </span>
 
-);
 
+          </div>
+
+
+
+
+        </div>
+
+
+
+      </div>
+
+
+
+    </section>
+
+
+  );
 
 }

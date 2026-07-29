@@ -1,100 +1,56 @@
 import {
-  Award,
-  TrendingUp,
-  CheckCircle,
-  AlertCircle
+ Award,
+ CheckCircle,
+ AlertTriangle,
+ TrendingUp
 } from "lucide-react";
 
 
 
 export default function ResultCard({
-  analysis = {}
+ analysis={}
 }){
 
 
-
-const puntaje = analysis.puntaje ?? {};
-
-
-
 const porcentaje =
-puntaje.porcentaje ?? 0;
-
+analysis.puntaje?.porcentaje || 0;
 
 
 const obtenido =
-puntaje.obtenido ?? 0;
-
+analysis.puntaje?.obtenido || 0;
 
 
 const maximo =
-puntaje.maximo ?? 0;
+analysis.puntaje?.maximo || 0;
 
 
 
+let estado =
+"Necesita revisión";
+
+
+let descripcion =
+"El documento requiere algunas mejoras antes de la entrega.";
 
 
 
-let estado = "Necesita mejorar";
+if(porcentaje>=95){
 
-let color = "text-red-300";
+estado="Listo para entrega";
 
-let icono = (
-  <AlertCircle size={20}/>
-);
-
-
-let mensaje =
-"Revisa los criterios pendientes para mejorar tu resultado.";
-
-
-
-
-
-if(porcentaje >= 90){
-
-
-estado="Excelente";
-
-
-color="text-yellow-300";
-
-
-icono=(
-<CheckCircle size={20}/>
-);
-
-
-
-mensaje=
-"Tu documento cumple correctamente los criterios evaluados.";
+descripcion=
+"El documento cumple los criterios recomendados.";
 
 }
 
-
-
-else if(porcentaje >= 70){
-
-
+else if(porcentaje>=70){
 
 estado="Buen avance";
 
-
-color="text-blue-200";
-
-
-icono=(
-<TrendingUp size={20}/>
-);
-
-
-
-mensaje=
-"El documento cumple la mayoría de criterios evaluados.";
+descripcion=
+"El documento cumple la mayoría de criterios.";
 
 }
-
-
 
 
 
@@ -102,72 +58,33 @@ mensaje=
 
 return (
 
-
-
 <div className="
-
 bg-gradient-to-br
-
-from-[#0F1F4D]
-
-via-[#1D3681]
-
-to-blue-700
-
+from-[#1D3681]
+to-blue-600
 rounded-3xl
-
 p-8
-
 text-white
-
 shadow-xl
-
 ">
 
 
-
-
-
-
-
-
-{/* CABECERA */}
-
-
-
 <div className="
-
 flex
-
 items-center
-
 gap-4
-
 ">
-
-
-
 
 
 <div className="
-
-bg-white/10
-
+bg-white/20
 p-4
-
 rounded-2xl
-
 ">
 
-
-<Award size={38}/>
-
+<Award size={35}/>
 
 </div>
-
-
-
-
 
 
 
@@ -175,119 +92,73 @@ rounded-2xl
 
 
 <h2 className="
-
 text-2xl
-
 font-black
-
 ">
 
-
-Resultado de revisión
-
+Estado del documento
 
 </h2>
 
 
-
-
 <p className="
-
-text-blue-200
-
+text-blue-100
 text-sm
-
-mt-1
-
 ">
 
-
-{
-
-analysis.resumen?.nombre ??
-
-"Documento académico"
-
-}
-
+{analysis.resumen?.nombre}
 
 </p>
 
 
+</div>
+
 
 </div>
 
 
 
 
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* PORCENTAJE */}
 
 
 
 <div className="
-
 mt-8
-
 flex
-
 items-end
-
 gap-4
-
 ">
-
-
-
 
 
 <h1 className="
-
 text-7xl
-
 font-black
-
-tracking-tight
-
 ">
 
-
 {porcentaje}%
-
 
 </h1>
 
 
 
-
-
-
-<TrendingUp
-
-size={42}
-
-className="
-
+<div className="
 mb-4
+">
 
-text-blue-200
+{
+porcentaje>=95
 
-"
+?
 
-/>
+<CheckCircle size={40}/>
 
+:
 
+<TrendingUp size={40}/>
 
+}
+
+</div>
 
 
 </div>
@@ -298,52 +169,27 @@ text-blue-200
 
 
 
-
-
-{/* BARRA */}
-
-
-
 <div className="
-
-mt-6
-
 h-3
-
 bg-white/20
-
 rounded-full
-
 overflow-hidden
-
+mt-5
 ">
-
 
 
 <div
 
-
 className="
-
-h-full
-
 bg-white
-
+h-full
 rounded-full
-
 transition-all
-
-duration-700
-
 "
 
-
 style={{
-
 width:`${porcentaje}%`
-
 }}
-
 
 />
 
@@ -355,236 +201,37 @@ width:`${porcentaje}%`
 
 
 
-
-
-
-{/* PUNTAJE */}
-
-
-
 <div className="
-
-mt-6
-
-bg-white/10
-
-rounded-2xl
-
-p-5
-
-">
-
-
-<p className="
-
-text-blue-100
-
-">
-
-
-Puntaje obtenido
-
-
-</p>
-
-
-
-
-<p className="
-
-text-3xl
-
-font-black
-
-mt-1
-
-">
-
-
-{obtenido}
-
-
-<span className="
-
-text-blue-200
-
-text-xl
-
-">
-
-
-/
-
-{maximo}
-
-
-</span>
-
-
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* ESTADO */}
-
-
-
-<div className="
-
-mt-6
-
-inline-flex
-
-items-center
-
-gap-2
-
-bg-white/10
-
-px-5
-
-py-3
-
-rounded-full
-
-">
-
-
-{icono}
-
-
-
-<span className={`
-
-font-black
-
-text-lg
-
-${color}
-
-`}>
-
-
-
-{estado}
-
-
-
-</span>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* MENSAJE */}
-
-
-
-<p className="
-
-mt-5
-
-text-blue-100
-
-text-lg
-
-leading-relaxed
-
-">
-
-
-{mensaje}
-
-
-</p>
-
-
-
-
-
-
-
-
-
-{/* INFORMACION EXTRA */}
-
-
-
-<div className="
-
-mt-8
-
 grid
-
-grid-cols-3
-
-gap-3
-
+md:grid-cols-3
+gap-4
+mt-8
 ">
-
-
-
 
 
 <div className="
-
 bg-white/10
-
 rounded-2xl
-
 p-4
-
-text-center
-
 ">
 
-
 <p className="
+text-blue-100
+text-sm
+">
 
+Puntaje
+
+</p>
+
+
+<strong className="
 text-2xl
-
-font-black
-
 ">
 
+{obtenido}/{maximo}
 
-{maximo}
-
-</p>
-
-
-
-<p className="
-
-text-xs
-
-text-blue-200
-
-">
-
-
-Criterios
-
-
-</p>
-
+</strong>
 
 
 </div>
@@ -594,103 +241,65 @@ Criterios
 
 
 
-
 <div className="
-
 bg-white/10
-
 rounded-2xl
-
 p-4
-
-text-center
-
 ">
 
 
 <p className="
-
-text-2xl
-
-font-black
-
+text-blue-100
+text-sm
 ">
-
-
-{obtenido}
-
-</p>
-
-
-
-<p className="
-
-text-xs
-
-text-blue-200
-
-">
-
-
-Puntos
-
-
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-
-<div className="
-
-bg-white/10
-
-rounded-2xl
-
-p-4
-
-text-center
-
-">
-
-
-<p className="
-
-text-2xl
-
-font-black
-
-">
-
-
-{porcentaje >= 70 ? "✓" : "!"}
-
-
-</p>
-
-
-
-<p className="
-
-text-xs
-
-text-blue-200
-
-">
-
 
 Estado
 
+</p>
+
+
+<strong>
+
+{estado}
+
+</strong>
+
+
+</div>
+
+
+
+
+
+
+
+<div className="
+bg-white/10
+rounded-2xl
+p-4
+">
+
+
+<p className="
+text-blue-100
+text-sm
+">
+
+Meta
 
 </p>
 
 
+<strong>
+
+95%
+
+</strong>
+
+
+</div>
+
+
 
 </div>
 
@@ -699,17 +308,44 @@ Estado
 
 
 
+<div className="
+mt-6
+bg-white/10
+rounded-2xl
+p-5
+flex
+gap-3
+items-center
+">
+
+
+{
+porcentaje>=95
+
+?
+
+<CheckCircle/>
+
+:
+
+<AlertTriangle/>
+
+}
+
+
+
+<p>
+
+{descripcion}
+
+</p>
+
 
 </div>
 
 
 
-
-
-
-
 </div>
-
 
 
 );

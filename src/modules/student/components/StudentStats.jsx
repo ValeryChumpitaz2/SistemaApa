@@ -1,12 +1,13 @@
 import {
  FileText,
  Clock,
- CheckCircle
+ CheckCircle,
+ TrendingUp
 } from "lucide-react";
 
 
 export default function StudentStats({
- documentos = []
+ documentos=[]
 }){
 
 
@@ -16,17 +17,29 @@ documentos.length;
 
 const pendientes =
 documentos.filter(
-item =>
-item.estado === "pendiente"
+x=>!x.puntaje
 ).length;
 
 
-const revisados =
+const evaluados =
 documentos.filter(
-item =>
-item.estado === "revisado" ||
-item.puntaje
+x=>x.puntaje
 ).length;
+
+
+
+const promedio =
+evaluados
+?
+Math.round(
+documentos.reduce(
+(a,b)=>a+(b.puntaje?.porcentaje || 0),
+0
+)/evaluados
+)
+:
+0;
+
 
 
 
@@ -34,8 +47,8 @@ return (
 
 <div className="
 grid
-md:grid-cols-3
-gap-6
+md:grid-cols-4
+gap-5
 ">
 
 
@@ -43,7 +56,7 @@ gap-6
 
 icon={<FileText/>}
 
-title="Documentos enviados"
+title="Enviados"
 
 value={enviados}
 
@@ -67,9 +80,21 @@ value={pendientes}
 
 icon={<CheckCircle/>}
 
-title="Revisados"
+title="Evaluados"
 
-value={revisados}
+value={evaluados}
+
+/>
+
+
+
+<Card
+
+icon={<TrendingUp/>}
+
+title="Promedio"
+
+value={`${promedio}%`}
 
 />
 
@@ -77,10 +102,12 @@ value={revisados}
 
 </div>
 
+
 );
 
 
 }
+
 
 
 
@@ -96,8 +123,11 @@ return (
 
 <div className="
 bg-white
-rounded-2xl
-shadow
+dark:bg-slate-900
+rounded-3xl
+border
+dark:border-slate-800
+shadow-sm
 p-6
 flex
 items-center
@@ -107,9 +137,9 @@ gap-4
 
 <div className="
 bg-blue-100
-text-blue-900
+text-blue-700
 p-4
-rounded-xl
+rounded-2xl
 ">
 
 {icon}
@@ -120,21 +150,29 @@ rounded-xl
 
 <div>
 
-<p className="text-gray-500">
+
+<p className="
+text-gray-500
+text-sm
+">
 
 {title}
 
 </p>
 
 
+
 <h3 className="
 text-3xl
-font-bold
+font-black
+text-gray-900
+dark:text-white
 ">
 
 {value}
 
 </h3>
+
 
 
 </div>

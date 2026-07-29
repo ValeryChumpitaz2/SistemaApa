@@ -11,6 +11,7 @@ const AuthContext = createContext();
 
 
 
+
 export function AuthProvider({children}){
 
 
@@ -19,8 +20,6 @@ const [user,setUser]=useState(null);
 
 
 
-
-// Cargar sesión guardada
 
 useEffect(()=>{
 
@@ -31,11 +30,9 @@ localStorage.getItem("usuario");
 
 if(guardado){
 
-
 setUser(
 JSON.parse(guardado)
 );
-
 
 }
 
@@ -48,7 +45,6 @@ JSON.parse(guardado)
 
 
 
-// Login / actualizar perfil
 
 function login(usuario){
 
@@ -73,7 +69,45 @@ JSON.stringify(usuario)
 
 
 
-// Cerrar sesión
+
+// NUEVO: actualizar perfil
+
+function updateUser(datos){
+
+
+const nuevoUsuario = {
+
+
+...user,
+
+...datos
+
+
+};
+
+
+setUser(nuevoUsuario);
+
+
+
+localStorage.setItem(
+
+"usuario",
+
+JSON.stringify(nuevoUsuario)
+
+);
+
+
+}
+
+
+
+
+
+
+
+
 
 function logout(){
 
@@ -94,6 +128,7 @@ localStorage.removeItem(
 
 
 
+
 return(
 
 
@@ -104,6 +139,8 @@ value={{
 user,
 
 login,
+
+updateUser,
 
 logout
 
@@ -122,6 +159,7 @@ logout
 
 
 }
+
 
 
 

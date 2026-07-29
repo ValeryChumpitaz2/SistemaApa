@@ -1,25 +1,29 @@
 const API_URL =
-"https://script.google.com/macros/s/AKfycbxDfati_c9ErXHXfZLDFG14BTrr_PyhCotzenPFpouol7bdheLs--flyZFdC4sR8IyX-A/exec";
-
+"https://script.google.com/macros/s/AKfycbz5AyPjpVSICOsE958wCaPwqEiYksotNtiES8A8naglXL9EKu5PTNbdu0Ss-VDTtcqQkA/exec";
 
 export async function analyzeDocument(url){
 
 
-const response = await fetch(API_URL,{
+const response =
+await fetch(API_URL,{
 
 method:"POST",
 
 headers:{
-
 "Content-Type":
 "application/x-www-form-urlencoded;charset=UTF-8"
-
 },
 
 
 body:
-"accion=analizar&url="+
-encodeURIComponent(url)
+
+new URLSearchParams({
+
+accion:"analizar",
+
+url:url
+
+})
 
 
 });
@@ -31,7 +35,7 @@ await response.text();
 
 
 console.log(
-"Respuesta cruda:",
+"RESPUESTA:",
 texto
 );
 
@@ -44,7 +48,9 @@ JSON.parse(texto);
 
 if(!json.ok){
 
-throw new Error(json.mensaje);
+throw new Error(
+json.mensaje
+);
 
 }
 

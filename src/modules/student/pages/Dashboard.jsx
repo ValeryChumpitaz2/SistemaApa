@@ -1,48 +1,133 @@
 import {
-  useState
-} from "react";
-
-
-import {
   FileText,
   UploadCloud,
-  History,
-  Sparkles
+  Award,
+  CheckCircle,
+  BarChart3,
+  History as HistoryIcon
 } from "lucide-react";
 
 
+import {
+  useState,
+  useEffect
+} from "react";
+
+
+import StudentSidebar from "../components/StudentSidebar";
+import TopNavbar from "../components/TopNavbar";
 import DashboardHeader from "../components/DashboardHeader";
-import StudentStats from "../components/StudentStats";
-import SubmitDocument from "../components/SubmitDocument";
-import HistoryTable from "../components/HistoryTable";
-import StudentProfile from "../components/StudentProfile";
-import StudentLevelFloat from "../components/StudentLevelFloat";
+
+
+import Evaluation from "./Evaluation";
+import Results from "./Results";
+import History from "./History";
+import Reports from "./Reports";
+import Achievements from "./Achievements";
+import Settings from "./Settings";
+
+
 
 
 
 export default function Dashboard(){
 
 
-const [
- documentos,
- setDocumentos
-]=useState([]);
-
-
 
 const [
- notificaciones
-]=useState([
+pagina,
+setPagina
+]=useState("dashboard");
 
-{
-tipo:"pendiente",
-titulo:"Bienvenido",
-mensaje:
-"Sube tu primer documento para iniciar una evaluación.",
-fecha:"Hoy"
-}
 
-]);
+
+
+
+// DOCUMENTOS GUARDADOS
+
+const [
+documentos,
+setDocumentos
+]=useState(()=>{
+
+
+const guardados =
+localStorage.getItem("documentos");
+
+
+return guardados
+?
+JSON.parse(guardados)
+:
+[];
+
+
+});
+
+
+
+
+// GUARDAR CAMBIOS
+
+useEffect(()=>{
+
+
+localStorage.setItem(
+
+"documentos",
+
+JSON.stringify(documentos)
+
+);
+
+
+},[documentos]);
+
+
+
+
+
+
+const evaluados =
+
+documentos.filter(
+
+doc=>doc.puntaje
+
+);
+
+
+
+
+
+
+const promedio =
+
+evaluados.length
+
+?
+
+Math.round(
+
+evaluados.reduce(
+
+(total,item)=>
+
+total+(item.puntaje?.porcentaje || 0)
+
+,0)
+
+/
+
+evaluados.length
+
+)
+
+:
+
+0;
+
+
 
 
 
@@ -50,25 +135,23 @@ fecha:"Hoy"
 
 return (
 
-<div className="
 
+<div
+
+className="
 min-h-screen
-
 bg-slate-100
-
 dark:bg-slate-950
+"
 
-transition-colors
-
-">
-
+>
 
 
+<StudentSidebar
 
+pagina={pagina}
 
-<DashboardHeader
-
-notificaciones={notificaciones}
+setPagina={setPagina}
 
 />
 
@@ -78,465 +161,32 @@ notificaciones={notificaciones}
 
 
 
-<main className="
+<div
 
+className="
+xl:ml-72
+"
+
+>
+
+
+<TopNavbar/>
+
+
+
+
+
+
+<main
+
+className="
 max-w-7xl
-
 mx-auto
-
 p-6
-
 md:p-10
+"
 
-">
-
-
-
-
-
-
-
-{/* PERFIL */}
-
-<section className="mb-10">
-
-<StudentProfile/>
-
-</section>
-
-
-
-
-
-
-
-
-
-{/* BANNER */}
-
-<section className="
-
-bg-gradient-to-r
-
-from-[#1D3681]
-
-to-blue-700
-
-rounded-3xl
-
-p-8
-
-text-white
-
-shadow-xl
-
-mb-10
-
-">
-
-
-<div className="
-
-flex
-
-items-center
-
-gap-5
-
-">
-
-
-<div className="
-
-bg-white/20
-
-p-4
-
-rounded-2xl
-
-">
-
-
-<Sparkles size={40}/>
-
-
-</div>
-
-
-
-
-<div>
-
-
-<h1 className="
-
-text-4xl
-
-font-black
-
-">
-
-Tu espacio académico inteligente
-
-</h1>
-
-
-
-<p className="
-
-mt-3
-
-text-blue-100
-
-text-lg
-
-">
-
-Analiza tus documentos y recibe retroalimentación para mejorar tus entregas.
-
-</p>
-
-
-
-</div>
-
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-
-{/* ESTADISTICAS */}
-
-
-<section>
-
-
-<div className="
-
-flex
-
-items-center
-
-gap-3
-
-mb-5
-
-">
-
-
-<div className="
-
-bg-blue-100
-
-text-[#1D3681]
-
-p-3
-
-rounded-xl
-
-">
-
-
-<FileText size={24}/>
-
-
-</div>
-
-
-
-<h2 className="
-
-text-xl
-
-font-bold
-
-text-gray-800
-
-dark:text-white
-
-">
-
-Resumen académico
-
-</h2>
-
-
-</div>
-
-
-
-<StudentStats
-
-documentos={documentos}
-
-/>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-{/* SUBIR DOCUMENTO */}
-
-
-
-<section className="mt-10">
-
-
-<div className="
-
-flex
-
-items-center
-
-gap-3
-
-mb-5
-
-">
-
-
-<div className="
-
-bg-blue-100
-
-text-[#1D3681]
-
-p-3
-
-rounded-xl
-
-">
-
-
-<UploadCloud size={24}/>
-
-
-</div>
-
-
-
-<h2 className="
-
-text-xl
-
-font-bold
-
-text-gray-800
-
-dark:text-white
-
-">
-
-Nueva evaluación
-
-</h2>
-
-
-</div>
-
-
-
-
-
-<div className="
-
-bg-white
-
-dark:bg-slate-900
-
-rounded-3xl
-
-border
-
-dark:border-slate-800
-
-shadow-sm
-
-p-8
-
-">
-
-
-<SubmitDocument
-
-setDocumentos={setDocumentos}
-
-/>
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-{/* HISTORIAL */}
-
-
-
-<section className="mt-10">
-
-
-<div className="
-
-flex
-
-items-center
-
-gap-3
-
-mb-5
-
-">
-
-
-<div className="
-
-bg-blue-100
-
-text-[#1D3681]
-
-p-3
-
-rounded-xl
-
-">
-
-
-<History size={24}/>
-
-
-</div>
-
-
-
-<h2 className="
-
-text-xl
-
-font-bold
-
-text-gray-800
-
-dark:text-white
-
-">
-
-Mis evaluaciones
-
-</h2>
-
-
-</div>
-
-
-
-
-
-
-
-<div className="
-
-bg-white
-
-dark:bg-slate-900
-
-rounded-3xl
-
-border
-
-dark:border-slate-800
-
-shadow-sm
-
-p-8
-
-">
-
-
-
-
-
-<div className="
-
-flex
-
-justify-between
-
-items-center
-
-mb-6
-
-">
-
-
-<h3 className="
-
-text-2xl
-
-font-bold
-
-text-gray-800
-
-dark:text-white
-
-">
-
-Documentos enviados
-
-</h3>
-
-
-
-<span className="
-
-bg-blue-100
-
-text-[#1D3681]
-
-px-4
-
-py-2
-
-rounded-full
-
-font-bold
-
-">
-
-{documentos.length}
-
-</span>
-
-
-
-</div>
+>
 
 
 
@@ -545,56 +195,433 @@ font-bold
 
 
 {
-documentos.length > 0 ?
+pagina==="dashboard"
+
+&&
 
 
-<HistoryTable
 
-documentos={documentos}
+<div className="space-y-8">
+
+
+
+
+
+<DashboardHeader/>
+
+
+
+
+
+
+
+
+
+<section
+
+className="
+grid
+md:grid-cols-4
+gap-6
+"
+
+>
+
+
+
+<Card
+
+icon={<FileText/>}
+
+titulo="Documentos"
+
+valor={documentos.length}
 
 />
 
 
+
+
+
+<Card
+
+icon={<Award/>}
+
+titulo="Promedio APA"
+
+valor={`${promedio}%`}
+
+/>
+
+
+
+
+
+<Card
+
+icon={<CheckCircle/>}
+
+titulo="Estado"
+
+valor={
+promedio>=95
+?
+"Excelente"
 :
-
-
-<div className="
-
-text-center
-
-py-12
-
-text-gray-400
-
-">
-
-
-<FileText
-
-size={55}
-
-className="mx-auto mb-4 opacity-40"
+promedio>=70
+?
+"Buen avance"
+:
+"En mejora"
+}
 
 />
 
 
-<p className="font-semibold">
 
-Aún no tienes evaluaciones.
+
+
+<Card
+
+icon={<BarChart3/>}
+
+titulo="Evaluados"
+
+valor={evaluados.length}
+
+/>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<section
+
+className="
+grid
+md:grid-cols-2
+gap-6
+"
+
+>
+
+
+
+
+
+
+
+<div
+
+className="
+bg-white
+dark:bg-slate-900
+rounded-3xl
+p-8
+border
+dark:border-slate-800
+"
+
+>
+
+
+<h2
+
+className="
+text-2xl
+font-black
+dark:text-white
+"
+
+>
+
+Tu progreso APA
+
+</h2>
+
+
+
+<p
+
+className="
+mt-3
+text-gray-500
+"
+
+>
+
+Mejora tus documentos para alcanzar
+el estándar institucional.
 
 </p>
 
 
-<p className="text-sm mt-2">
 
-Cuando envíes un documento aparecerá aquí.
 
-</p>
+
+
+<div
+
+className="
+mt-6
+h-4
+bg-gray-200
+dark:bg-slate-700
+rounded-full
+overflow-hidden
+"
+
+>
+
+
+<div
+
+className="
+bg-[#1D3681]
+h-full
+rounded-full
+transition-all
+"
+
+style={{
+
+width:`${promedio}%`
+
+}}
+
+/>
 
 
 </div>
 
+
+
+
+
+<div
+
+className="
+mt-3
+flex
+justify-between
+text-sm
+text-gray-500
+"
+
+>
+
+<span>
+
+Progreso APA
+
+</span>
+
+
+<strong>
+
+{promedio}%
+
+</strong>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+bg-white
+dark:bg-slate-900
+rounded-3xl
+p-8
+border
+dark:border-slate-800
+"
+
+>
+
+
+<h2
+
+className="
+text-2xl
+font-black
+dark:text-white
+"
+
+>
+
+🤖 Recomendación IA
+
+</h2>
+
+
+
+
+<p
+
+className="
+mt-4
+text-gray-600
+dark:text-gray-300
+"
+
+>
+
+
+{
+
+promedio>=90
+
+?
+
+"Excelente trabajo. Tu documento cumple los criterios institucionales."
+
+:
+
+"Mejora referencias bibliográficas, conclusiones y glosario para aumentar tu puntuación."
+
 }
+
+
+</p>
+
+
+
+</div>
+
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<section
+
+className="
+bg-white
+dark:bg-slate-900
+rounded-3xl
+p-8
+border
+dark:border-slate-800
+"
+
+>
+
+
+<h2
+
+className="
+text-2xl
+font-black
+dark:text-white
+"
+
+>
+
+Acciones rápidas
+
+</h2>
+
+
+
+
+
+<div
+
+className="
+grid
+md:grid-cols-2
+gap-4
+mt-5
+"
+
+>
+
+
+
+
+<Action
+
+icon={<UploadCloud/>}
+
+texto="Analizar documento"
+
+click={()=>setPagina("evaluation")}
+
+/>
+
+
+
+
+
+<Action
+
+icon={<CheckCircle/>}
+
+texto="Ver resultados"
+
+click={()=>setPagina("results")}
+
+/>
+
+
+
+
+
+<Action
+
+icon={<BarChart3/>}
+
+texto="Ver reportes"
+
+click={()=>setPagina("reports")}
+
+/>
+
+
+
+
+
+
+<Action
+
+icon={<HistoryIcon/>}
+
+texto="Historial"
+
+click={()=>setPagina("history")}
+
+/>
+
+
 
 
 
@@ -603,6 +630,124 @@ Cuando envíes un documento aparecerá aquí.
 
 
 </section>
+
+
+
+
+
+
+
+</div>
+
+
+}
+
+
+
+
+
+
+
+{
+pagina==="evaluation"
+
+&&
+
+<Evaluation
+
+setDocumentos={setDocumentos}
+
+/>
+
+}
+
+
+
+
+
+{
+pagina==="results"
+
+&&
+
+<Results
+
+documentos={documentos}
+
+/>
+
+}
+
+
+
+
+
+
+
+{
+pagina==="history"
+
+&&
+
+<History
+
+documentos={documentos}
+
+/>
+
+}
+
+
+
+
+
+
+
+{
+pagina==="reports"
+
+&&
+
+<Reports
+
+documentos={documentos}
+
+/>
+
+}
+
+
+
+
+
+
+
+{
+pagina==="achievements"
+
+&&
+
+<Achievements
+
+documentos={documentos}
+
+/>
+
+}
+
+
+
+
+
+
+{
+pagina==="settings"
+
+&&
+
+<Settings/>
+
+}
 
 
 
@@ -614,23 +759,161 @@ Cuando envíes un documento aparecerá aquí.
 
 
 
-
-
-
-{/* GAMIFICACION FLOTANTE */}
-
-<StudentLevelFloat
-
-documentos={documentos}
-
-/>
-
-
+</div>
 
 
 
 </div>
 
+
 );
+
+
+}
+
+
+
+
+
+
+
+
+
+function Card({
+
+icon,
+
+titulo,
+
+valor
+
+}){
+
+
+return (
+
+
+<div
+
+className="
+bg-white
+dark:bg-slate-900
+rounded-3xl
+p-6
+border
+dark:border-slate-800
+shadow-sm
+"
+
+>
+
+
+<div
+
+className="
+text-[#1D3681]
+"
+
+>
+
+{icon}
+
+</div>
+
+
+
+
+<p
+
+className="
+mt-4
+text-gray-500
+"
+
+>
+
+{titulo}
+
+</p>
+
+
+
+
+
+<h3
+
+className="
+text-3xl
+font-black
+dark:text-white
+"
+
+>
+
+{valor}
+
+</h3>
+
+
+
+</div>
+
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+function Action({
+
+icon,
+
+texto,
+
+click
+
+}){
+
+
+return (
+
+<button
+
+onClick={click}
+
+className="
+flex
+items-center
+gap-3
+p-4
+rounded-xl
+bg-blue-50
+text-[#1D3681]
+font-bold
+hover:bg-blue-100
+transition
+"
+
+>
+
+
+{icon}
+
+
+{texto}
+
+
+</button>
+
+
+);
+
 
 }

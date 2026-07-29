@@ -1,25 +1,21 @@
 import { X } from "lucide-react";
 
-import ResultCard from "../../student/components/ResultCard";
-import CriteriaList from "../../student/components/CriteriaList";
-import Recommendations from "../../student/components/Recommendations";
+
+import ResultCard from "../../student/components/ResultCard.jsx";
+import CriteriaList from "../../student/components/CriteriaList.jsx";
+import Recommendations from "../../student/components/Recommendations.jsx";
+
 
 
 export default function DetailModal({
-  analysis,
-  onClose
-}) {
+    analysis,
+    onClose
+}){
 
 
-if(!analysis)
-return null;
-
-
-
-console.log(
-"DATOS QUE LLEGAN AL MODAL:",
-analysis
-);
+if(!analysis){
+    return null;
+}
 
 
 
@@ -30,12 +26,11 @@ className="
 fixed
 inset-0
 bg-black/50
-backdrop-blur-sm
 z-50
 flex
 items-center
 justify-center
-p-6
+p-5
 "
 >
 
@@ -53,18 +48,17 @@ shadow-2xl
 >
 
 
+
 <div
 className="
 sticky
 top-0
 bg-white
 border-b
-px-8
-py-6
+p-6
 flex
 justify-between
 items-center
-z-10
 "
 >
 
@@ -74,12 +68,15 @@ z-10
 <h2
 className="
 text-2xl
-font-bold
+font-black
 text-gray-800
 "
 >
-Detalle del documento
+
+Detalle de evaluación
+
 </h2>
+
 
 
 <p
@@ -88,11 +85,18 @@ text-gray-500
 mt-1
 "
 >
-{analysis.nombre}
+
+{
+analysis.nombre ||
+analysis.resumen?.nombre ||
+"Documento académico"
+}
+
 </p>
 
 
 </div>
+
 
 
 
@@ -108,12 +112,14 @@ hover:bg-gray-100
 
 >
 
-<X size={24}/>
+<X/>
 
 </button>
 
 
+
 </div>
+
 
 
 
@@ -126,26 +132,33 @@ space-y-8
 >
 
 
+
 <ResultCard
+
 analysis={analysis}
+
 />
+
+
 
 
 
 <CriteriaList
 
 criterios={
-analysis.criterios || []
+analysis.criterios ?? []
 }
 
 />
+
+
 
 
 
 <Recommendations
 
 criterios={
-analysis.criterios || []
+analysis.criterios ?? []
 }
 
 />
@@ -160,6 +173,8 @@ analysis.criterios || []
 
 </div>
 
+
 );
+
 
 }
