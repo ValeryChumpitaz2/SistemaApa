@@ -1,20 +1,20 @@
 import {
-CheckCircle,
-XCircle
+  CheckCircle,
+  XCircle,
+  AlertTriangle
 } from "lucide-react";
 
 
-
 export default function CriteriaList({
-criterios=[]
-}){
+
+  criterios = []
+
+}) {
 
 
 return (
 
-<div className="
-space-y-5
-">
+<div className="space-y-5">
 
 
 <h2 className="
@@ -30,10 +30,88 @@ Detalle de evaluación
 
 
 
-
 {
-criterios.map((criterio,index)=>(
+criterios.map((criterio,index)=>{
 
+
+const cumpleTotal =
+criterio.puntaje >= criterio.maximo;
+
+
+
+const noCumple =
+criterio.puntaje === 0;
+
+
+
+const estadoColor =
+
+cumpleTotal
+
+?
+
+"bg-green-100 text-green-700"
+
+:
+
+noCumple
+
+?
+
+"bg-red-100 text-red-700"
+
+:
+
+"bg-yellow-100 text-yellow-700";
+
+
+
+const EstadoIcono =
+
+cumpleTotal
+
+?
+
+CheckCircle
+
+:
+
+noCumple
+
+?
+
+XCircle
+
+:
+
+AlertTriangle;
+
+
+
+const estadoTexto =
+
+cumpleTotal
+
+?
+
+"Cumple"
+
+:
+
+noCumple
+
+?
+
+"No cumple"
+
+:
+
+"Cumple parcialmente";
+
+
+
+
+return (
 
 <div
 
@@ -49,10 +127,11 @@ p-6
 shadow-sm
 "
 
-
 >
 
 
+
+{/* CABECERA */}
 
 <div className="
 flex
@@ -80,22 +159,20 @@ dark:text-white
 <p className="
 text-gray-500
 text-sm
-mt-1
+mt-2
 ">
 
 Puntuación:
 
 <strong>
-
 {" "}
 {criterio.puntaje}
-
 </strong>
 
-/{criterio.maximo}
+/
+{criterio.maximo}
 
 </p>
-
 
 
 </div>
@@ -104,7 +181,10 @@ Puntuación:
 
 
 
+{/* ESTADO */}
+
 <div className={`
+
 px-4
 py-2
 rounded-full
@@ -114,45 +194,13 @@ flex
 items-center
 gap-2
 
-${criterio.cumple
-
-?
-"bg-green-100 text-green-700"
-
-:
-
-"bg-red-100 text-red-700"
-
-}
+${estadoColor}
 
 `}>
 
+<EstadoIcono size={18}/>
 
-
-{
-criterio.cumple
-
-?
-
-<CheckCircle size={18}/>
-
-:
-
-<XCircle size={18}/>
-
-}
-
-
-
-{
-criterio.cumple
-?
-"Cumple"
-:
-"Pendiente"
-}
-
-
+{estadoTexto}
 
 </div>
 
@@ -165,8 +213,7 @@ criterio.cumple
 
 
 
-
-
+{/* DETALLES */}
 
 <div className="
 mt-5
@@ -175,20 +222,35 @@ space-y-3
 
 
 {
-criterio.detalles?.map((d,i)=>(
+
+criterio.detalles?.map((detalle,i)=>(
 
 
 <div
 
 key={i}
 
-className="
+className={`
+
 border
-dark:border-slate-700
 rounded-2xl
 p-4
-"
 
+
+${
+detalle.cumple
+
+?
+
+"border-green-200 bg-green-50 dark:bg-green-900/20"
+
+:
+
+"border-red-200 bg-red-50 dark:bg-red-900/20"
+
+}
+
+`}
 
 >
 
@@ -203,39 +265,129 @@ dark:text-white
 
 
 {
-d.cumple
+
+detalle.cumple
 
 ?
 
 <CheckCircle
+
 size={18}
+
 className="text-green-500"
+
 />
+
 
 :
 
 <XCircle
+
 size={18}
+
 className="text-red-500"
+
 />
 
 }
 
 
-{d.titulo}
+
+{detalle.titulo}
 
 
 </div>
 
 
 
+
 <p className="
 text-sm
-text-gray-500
+text-gray-600
+dark:text-gray-300
 mt-2
 ">
 
-{d.descripcion}
+{detalle.descripcion}
+
+</p>
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+</div>
+
+
+
+
+
+
+{/* RECOMENDACION */}
+
+{
+
+!criterio.cumple &&
+
+
+<div className="
+mt-5
+bg-yellow-50
+dark:bg-yellow-900/20
+border
+border-yellow-200
+rounded-2xl
+p-4
+flex
+gap-3
+items-start
+">
+
+
+<AlertTriangle
+
+size={20}
+
+className="text-yellow-600"
+
+/>
+
+
+
+<div>
+
+
+<p className="
+font-bold
+text-yellow-700
+">
+
+Recomendación
+
+</p>
+
+
+
+<p className="
+text-sm
+text-yellow-700
+mt-1
+">
+
+{
+
+criterio.recomendacion ||
+
+"Revisar los puntos pendientes."
+
+}
 
 </p>
 
@@ -243,32 +395,28 @@ mt-2
 </div>
 
 
-))
-
-}
-
-
-
 </div>
-
-
-
-
-
-</div>
-
-
-))
 
 
 }
 
 
 
+
+
 </div>
 
+)
+
+
+})
+
+}
+
+
+
+</div>
 
 );
-
 
 }

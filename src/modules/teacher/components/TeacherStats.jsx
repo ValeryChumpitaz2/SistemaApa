@@ -3,368 +3,454 @@ import {
   CheckCircle,
   AlertTriangle,
   TrendingUp,
-  Users,
   Award
 } from "lucide-react";
 
 
 export default function TeacherStats({
-  resultados = []
-}) {
+  resultados=[]
+}){
 
 
-
-console.log(
-  "STATS RECIBE:",
-  resultados
-);
-
-
-
-// TOTAL DOCUMENTOS
-
-const total =
-Array.isArray(resultados)
-?
-resultados.length
-:
-0;
-
-
-
-
-// EXTRAER PORCENTAJE SEGURO
-
-function obtenerPorcentaje(item){
-
+function porcentaje(item){
 
 return Number(
-
-item?.puntaje?.porcentaje
-??
-item?.puntaje?.porcentajeFinal
-??
-item?.porcentaje
-??
+item?.puntaje?.porcentaje ??
+item?.puntaje?.porcentajeFinal ??
 0
-
 );
-
 
 }
 
+
+
+const total = resultados.length;
 
 
 
 const aprobados =
-
 resultados.filter(
-
-item =>
-
-obtenerPorcentaje(item) >= 70
-
+x=>porcentaje(x)>=70
 ).length;
 
 
 
-
-
-const revisar =
-
-total - aprobados;
-
-
-
-
-
-const promedio =
-
-total
-
-?
-
-(
-
-resultados.reduce(
-
-(suma,item)=>
-
-suma +
-
-obtenerPorcentaje(item),
-
-0
-
-)
-
-/
-
-total
-
-).toFixed(1)
-
-:
-
-0;
-
-
-
-
-
-
-const porcentajeAprobacion =
-
-total
-
-?
-
-Math.round(
-
-(aprobados / total) * 100
-
-)
-
-:
-
-0;
-
-
-
+const criticos =
+resultados.filter(
+x=>porcentaje(x)<50
+).length;
 
 
 
 const excelentes =
-
 resultados.filter(
-
-item =>
-
-obtenerPorcentaje(item)>=90
-
+x=>porcentaje(x)>=90
 ).length;
 
 
 
+const promedio =
+total
+?
+(
+resultados.reduce(
+(a,b)=>a+porcentaje(b),
+0
+)/total
+).toFixed(1)
+:
+0;
 
 
 
-const cards=[
-
-
-{
-
-titulo:"Documentos analizados",
-
-valor:total,
-
-descripcion:"Total enviados",
-
-icon:<FileText size={30}/>,
-
-color:"from-blue-600 to-indigo-700"
-
-},
-
-
-
-{
-
-titulo:"Aprobados",
-
-valor:aprobados,
-
-descripcion:`${porcentajeAprobacion}% del grupo`,
-
-icon:<CheckCircle size={30}/>,
-
-color:"from-green-500 to-emerald-700"
-
-},
-
-
-
-{
-
-titulo:"Pendientes revisión",
-
-valor:revisar,
-
-descripcion:"Requieren mejoras",
-
-icon:<AlertTriangle size={30}/>,
-
-color:"from-red-500 to-rose-700"
-
-},
-
-
-
-{
-
-titulo:"Promedio general",
-
-valor:`${promedio}%`,
-
-descripcion:"Rendimiento del grupo",
-
-icon:<TrendingUp size={30}/>,
-
-color:"from-purple-500 to-fuchsia-700"
-
-},
-
-
-
-{
-
-titulo:"Excelentes",
-
-valor:excelentes,
-
-descripcion:"90% o más",
-
-icon:<Award size={30}/>,
-
-color:"from-yellow-500 to-orange-600"
-
-},
-
-
-
-{
-
-titulo:"Estudiantes evaluados",
-
-valor:total,
-
-descripcion:"Participantes",
-
-icon:<Users size={30}/>,
-
-color:"from-cyan-500 to-blue-700"
-
-}
-
-
-];
-
-
-
+const rendimiento =
+total
+?
+Math.round(
+(aprobados/total)*100
+)
+:
+0;
 
 
 
 return (
 
+<section
+className="
+space-y-6
+"
+>
+
+
+{/* RESUMEN PRINCIPAL */}
+
+<div
+
+className="
+bg-gradient-to-r
+from-blue-950
+via-indigo-900
+to-blue-700
+rounded-3xl
+p-8
+text-white
+shadow-xl
+"
+
+>
+
+
+<div
+className="
+flex
+justify-between
+items-center
+flex-wrap
+gap-6
+"
+>
+
+
+<div>
+
+<p
+className="
+text-blue-200
+font-semibold
+"
+>
+
+Resumen del aula
+
+</p>
+
+
+<h2
+className="
+text-4xl
+font-black
+mt-2
+"
+>
+
+{total}
+
+<span className="
+text-2xl
+ml-2
+"
+>
+evaluaciones
+</span>
+
+</h2>
+
+
+<p
+className="
+mt-2
+text-blue-100
+"
+>
+
+Seguimiento automático del rendimiento APA
+
+</p>
+
+
+</div>
+
+
+
+
+<div
+className="
+bg-white/10
+rounded-3xl
+p-6
+min-w-[250px]
+"
+>
+
+
+<div
+className="
+flex
+items-center
+gap-3
+"
+>
+
+<TrendingUp/>
+
+<div>
+
+<p
+className="
+text-sm
+text-blue-200
+"
+>
+Promedio general
+</p>
+
+
+<h3
+className="
+text-3xl
+font-black
+"
+>
+
+{promedio}%
+
+</h3>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+{/* TARJETAS */}
 
 <div
 
 className="
 grid
-grid-cols-1
-md:grid-cols-2
-xl:grid-cols-3
+md:grid-cols-3
 gap-6
 "
 
 >
 
 
-{
+<Card
 
-cards.map(
+icon={<CheckCircle/>}
 
-(card,index)=>(
+titulo="Aprobados"
+
+valor={aprobados}
+
+color="green"
+
+/>
+
+
+
+<Card
+
+icon={<AlertTriangle/>}
+
+titulo="Críticos"
+
+valor={criticos}
+
+color="red"
+
+/>
+
+
+
+<Card
+
+icon={<Award/>}
+
+titulo="Excelentes"
+
+valor={excelentes}
+
+color="yellow"
+
+/>
+
+
+</div>
+
+
+
+
+
+
+{/* BARRA */}
+
+<div
+
+className="
+bg-white
+rounded-3xl
+border
+p-6
+shadow-sm
+"
+
+>
+
+
+<div
+className="
+flex
+justify-between
+mb-3
+"
+
+>
+
+<span
+className="
+font-bold
+"
+>
+Nivel de aprobación
+</span>
+
+
+<span
+className="
+font-black
+text-blue-700
+"
+>
+
+{rendimiento}%
+
+</span>
+
+
+</div>
+
+
+
+<div
+className="
+h-4
+bg-gray-100
+rounded-full
+overflow-hidden
+"
+
+>
 
 
 <div
 
-key={index}
+style={{
+width:`${rendimiento}%`
+}}
+
+className="
+h-full
+bg-gradient-to-r
+from-blue-600
+to-cyan-400
+rounded-full
+"
+
+/>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+</section>
+
+
+);
+
+}
+
+
+
+
+
+
+
+function Card({
+icon,
+titulo,
+valor,
+color
+}){
+
+
+const colores={
+
+green:"from-green-500 to-emerald-700",
+
+red:"from-red-500 to-rose-700",
+
+yellow:"from-yellow-500 to-orange-600"
+
+};
+
+
+
+return (
+
+<div
 
 className={`
-
 bg-gradient-to-br
-
-${card.color}
-
+${colores[color]}
 rounded-3xl
-
 p-6
-
 text-white
-
-shadow-xl
-
-hover:scale-[1.02]
-
-transition
-
-duration-300
-
+shadow-lg
 `}
 
 >
 
 
 <div
-
 className="
 flex
 justify-between
-items-start
 "
-
 >
 
 
 <div>
 
-
 <p
-
 className="
 text-white/80
-text-sm
-font-semibold
 "
-
 >
-
-{card.titulo}
-
+{titulo}
 </p>
-
 
 
 <h3
-
 className="
-text-5xl
+text-4xl
 font-black
 mt-3
 "
-
 >
-
-{card.valor}
-
+{valor}
 </h3>
-
-
-
-<p
-
-className="
-text-white/70
-text-sm
-mt-2
-"
-
->
-
-{card.descripcion}
-
-</p>
 
 
 </div>
@@ -372,17 +458,14 @@ mt-2
 
 
 <div
-
 className="
 bg-white/20
-backdrop-blur
-rounded-2xl
-p-4
+p-3
+rounded-xl
 "
-
 >
 
-{card.icon}
+{icon}
 
 </div>
 
@@ -391,21 +474,7 @@ p-4
 
 
 </div>
-
-
-)
-
-
-)
-
-
-}
-
-
-</div>
-
 
 );
-
 
 }

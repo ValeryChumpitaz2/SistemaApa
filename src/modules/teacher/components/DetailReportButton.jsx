@@ -1,7 +1,12 @@
 import {
+  SearchCheck,
   FileDown,
-  SearchCheck
+  Loader2
 } from "lucide-react";
+
+import {
+  useState
+} from "react";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -12,13 +17,39 @@ export default function DetailReportButton({
 }) {
 
 
-const generarDetalle =()=>{
+const [
+generando,
+setGenerando
+]=useState(false);
+
+
+
+
+
+
+
+function generarDetalle(){
+
 
 
 if(!resultados.length){
- alert("No hay datos");
- return;
+
+alert(
+"No hay evaluaciones para exportar"
+);
+
+return;
+
 }
+
+
+
+
+try{
+
+
+setGenerando(true);
+
 
 
 const doc =
@@ -26,25 +57,48 @@ new jsPDF();
 
 
 
-const morado=[
+
+const colorPrincipal=[
+
 109,
 40,
 217
+
 ];
 
 
 
+
+const fecha =
+new Date().toLocaleDateString(
+"es-PE"
+);
+
+
+
+
+
 resultados.forEach(
+
 (item,index)=>{
 
 
-if(index>0)
+
+if(index>0){
+
 doc.addPage();
 
+}
+
+
+
+
+
+// ENCABEZADO
 
 
 doc.setFillColor(
-...morado
+...colorPrincipal
 );
 
 
@@ -52,9 +106,10 @@ doc.rect(
 0,
 0,
 210,
-35,
+45,
 "F"
 );
+
 
 
 
@@ -65,86 +120,179 @@ doc.setTextColor(
 );
 
 
-doc.setFontSize(18);
+
+doc.setFontSize(
+22
+);
+
 
 
 doc.text(
-"Detalle de Evaluación",
+
+"VG Smart Review",
+
 105,
-20,
+
+18,
+
 {
 align:"center"
 }
+
 );
+
+
+
+doc.setFontSize(
+14
+);
+
+
+
+doc.text(
+
+"Reporte Detallado APA",
+
+105,
+
+32,
+
+{
+align:"center"
+}
+
+);
+
+
+
+
 
 
 
 doc.setTextColor(
-0
+40,
+40,
+40
 );
 
 
 
-doc.setFontSize(12);
+doc.setFontSize(
+12
+);
+
 
 
 
 doc.text(
-`Documento: ${item.nombre}`,
+
+`Documento: ${item.nombre ?? "Sin nombre"}`,
+
 15,
-55
+
+65
+
 );
 
 
 
+
 doc.text(
-`Puntaje: ${
+
+`Fecha evaluación: ${fecha}`,
+
+15,
+
+75
+
+);
+
+
+
+
+doc.text(
+
+`Puntaje obtenido: ${
 item.puntaje?.obtenido ?? 0
 }/${
 item.puntaje?.maximo ?? 0
 }`,
+
 15,
-65
+
+85
+
 );
+
 
 
 
 doc.text(
-`Cumplimiento: ${
+
+`Cumplimiento APA: ${
 item.puntaje?.porcentaje ?? 0
 }%`,
+
 15,
-75
+
+95
+
 );
 
 
 
-const criterios =
-item.criterios?.map(
-c=>[
 
-c.nombre ??
-c.criterio ??
+
+
+
+// CRITERIOS
+
+
+const criterios =
+
+item.criterios?.map(
+
+criterio=>[
+
+criterio.nombre ??
+
+criterio.criterio ??
+
 "Criterio",
 
 
-c.puntaje ??
-c.resultado ??
+
+criterio.puntaje ??
+
+criterio.resultado ??
+
 "-",
 
 
-c.observacion ??
-c.descripcion ??
+
+criterio.observacion ??
+
+criterio.descripcion ??
+
 "Sin observación"
 
 ]
-) || [];
+
+
+)
+
+??
+
+[];
+
+
+
 
 
 
 autoTable(doc,{
 
-startY:90,
+startY:110,
 
 
 head:[
@@ -161,17 +309,39 @@ head:[
 body:criterios,
 
 
+
 theme:"grid",
 
 
+
 headStyles:{
-fillColor:morado,
+
+fillColor:colorPrincipal,
+
 textColor:255
+
 },
 
 
+
+alternateRowStyles:{
+
+fillColor:[
+
+245,
+240,
+255
+
+]
+
+},
+
+
+
 styles:{
+
 fontSize:9
+
 }
 
 
@@ -179,53 +349,139 @@ fontSize:9
 
 
 
-});
+
+
+
+// RESUMEN FINAL
+
+
+let posicion =
+
+doc.lastAutoTable?.finalY
+
+??
+
+150;
+
+
+
+
+doc.setFillColor(
+
+240,
+230,
+255
+
+);
+
+
+
+doc.roundedRect(
+
+15,
+
+posicion + 15,
+
+180,
+
+35,
+
+5,
+
+5,
+
+"F"
+
+);
+
+
+
+
+doc.setTextColor(
+
+80,
+30,
+120
+
+);
+
+
+
+doc.text(
+
+"Evaluación generada automáticamente por VG Smart Review",
+
+25,
+
+posicion + 37
+
+);
+
+
+
+
+}
+
+
+
+);
+
+
+
+
 
 
 doc.save(
-"Reporte_Detallado.pdf"
+
+"Reporte_Detallado_APA.pdf"
+
 );
 
 
-};
+
+}
+
+catch(error){
+
+
+console.error(
+error
+);
+
+
+alert(
+"Error generando reporte"
+);
+
+
+}
+
+finally{
+
+
+setGenerando(false);
+
+
+}
+
+
+}
 
 
 
-return(
+
+
+
+
+return (
 
 <button
 onClick={generarDetalle}
-className="
-group
-flex
-items-center
-gap-3
-px-6
-py-3
-rounded-2xl
-bg-gradient-to-r
-from-purple-700
-via-purple-600
-to-fuchsia-500
-text-white
-font-bold
-shadow-xl
-hover:scale-105
-transition
-"
 >
-
-<SearchCheck
-size={22}
-/>
-
-
+<SearchCheck size={22}/>
 Reporte Detallado PDF
-
-
 </button>
 
 );
-
 
 }

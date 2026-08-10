@@ -1,13 +1,24 @@
 import {
-  ArrowLeft,
+  Bell,
+  Moon,
+  Sun,
   GraduationCap,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from "lucide-react";
+
+import {
+  useEffect,
+  useState
+} from "react";
 
 import {
   useNavigate
 } from "react-router-dom";
 
+import {
+  useAuth
+} from "../../../auth/AuthContext";
 
 
 export default function TeacherHeader(){
@@ -16,69 +27,134 @@ export default function TeacherHeader(){
 const navigate = useNavigate();
 
 
+const {
+ user
+}=useAuth();
+
+
+
+const [
+ dark,
+ setDark
+]=useState(
+ localStorage.getItem("theme")==="dark"
+);
+
+
+
+
+
+useEffect(()=>{
+
+
+if(dark){
+
+document.documentElement.classList.add("dark");
+
+localStorage.setItem(
+"theme",
+"dark"
+);
+
+
+}else{
+
+document.documentElement.classList.remove("dark");
+
+localStorage.setItem(
+"theme",
+"light"
+);
+
+}
+
+
+},[dark]);
+
+
+
+
+
+
 
 return (
 
+
 <header
+
 className="
-bg-gradient-to-r
-from-blue-950
-via-indigo-900
-to-blue-700
-text-white
-shadow-lg
+h-20
+bg-white
+dark:bg-slate-900
+border-b
+dark:border-slate-800
+shadow-sm
+sticky
+top-0
+z-50
 "
+
 >
 
 
 <div
+
 className="
-max-w-7xl
-mx-auto
-px-6
-lg:px-8
-py-5
+h-full
+px-8
 flex
-flex-col
-md:flex-row
-justify-between
 items-center
-gap-5
+justify-between
 "
+
 >
 
 
 
-{/* Marca */}
+
+
+
+{/* MARCA */}
+
 
 
 <div
+
 className="
 flex
 items-center
 gap-4
 "
+
 >
 
 
 <div
+
 className="
 relative
-bg-white/10
-backdrop-blur
-p-4
+bg-[#1D3681]
+text-white
+w-12
+h-12
 rounded-2xl
+flex
+items-center
+justify-center
+shadow
 "
+
 >
 
 
 <GraduationCap
-size={38}
+size={28}
 />
 
 
 
 <div
+
 className="
 absolute
 -top-1
@@ -88,17 +164,20 @@ text-blue-950
 rounded-full
 p-1
 "
+
 >
 
 <Sparkles
-size={12}
+size={11}
 />
 
+
+</div>
+
+
 </div>
 
 
-
-</div>
 
 
 
@@ -107,11 +186,14 @@ size={12}
 
 
 <h1
+
 className="
-text-2xl
-md:text-3xl
-font-bold
+font-black
+text-xl
+text-gray-800
+dark:text-white
 "
+
 >
 
 VG Smart Review
@@ -121,36 +203,46 @@ VG Smart Review
 
 
 <div
+
 className="
 flex
 items-center
 gap-2
-mt-1
 "
+
 >
 
 
 <span
+
 className="
-text-blue-200
 text-sm
+text-gray-500
+dark:text-gray-400
 "
+
 >
 
-Panel del docente
+Panel Docente
 
 </span>
 
 
 
 <span
+
 className="
-bg-white/10
+bg-blue-100
+text-blue-700
+dark:bg-blue-900
+dark:text-blue-200
 px-3
 py-1
 rounded-full
 text-xs
+font-bold
 "
+
 >
 
 Evaluación APA
@@ -165,6 +257,7 @@ Evaluación APA
 </div>
 
 
+
 </div>
 
 
@@ -173,50 +266,258 @@ Evaluación APA
 
 
 
-{/* Botón regresar */}
+
+{/* ACCIONES */}
+
+
+
+<div
+
+className="
+flex
+items-center
+gap-3
+"
+
+>
+
+
+
+
+
+
+
+{/* USUARIO */}
+
+
+<div
+
+className="
+hidden
+md:flex
+items-center
+gap-3
+mr-3
+"
+
+>
+
+
+<div
+
+className="
+bg-blue-100
+text-blue-700
+w-10
+h-10
+rounded-full
+flex
+items-center
+justify-center
+font-bold
+"
+
+>
+
+{
+user?.usuario?.charAt(0) || "D"
+}
+
+
+</div>
+
+
+
+<div>
+
+
+<p
+
+className="
+font-bold
+text-sm
+text-gray-800
+dark:text-white
+"
+
+>
+
+{
+user?.usuario || "Docente"
+}
+
+
+</p>
+
+
+<p
+
+className="
+text-xs
+text-gray-500
+"
+
+>
+
+Profesor
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+{/* DARK MODE */}
+
+
+
+<button
+
+onClick={()=>setDark(!dark)}
+
+className="
+p-3
+rounded-xl
+hover:bg-gray-100
+dark:hover:bg-slate-800
+transition
+"
+
+>
+
+{
+
+dark
+
+?
+
+<Sun size={20}/>
+
+:
+
+<Moon size={20}/>
+
+}
+
+
+</button>
+
+
+
+
+
+
+
+
+
+
+{/* NOTIFICACIONES */}
+
+
+
+<button
+
+className="
+relative
+p-3
+rounded-xl
+hover:bg-gray-100
+dark:hover:bg-slate-800
+transition
+"
+
+>
+
+
+<Bell size={20}/>
+
+
+
+<span
+
+className="
+absolute
+top-1
+right-1
+bg-red-500
+text-white
+text-xs
+w-5
+h-5
+rounded-full
+flex
+items-center
+justify-center
+font-bold
+"
+
+>
+
+2
+
+</span>
+
+
+</button>
+
+
+
+
+
+
+
+{/* VOLVER */}
+
 
 
 <button
 
 onClick={()=>navigate("/")}
 
-
 className="
-group
-bg-white
-text-blue-950
+hidden
+lg:flex
+items-center
+gap-2
+bg-[#1D3681]
+text-white
 px-5
 py-3
 rounded-xl
 font-bold
-flex
-items-center
-gap-2
-shadow
-hover:bg-blue-50
+hover:bg-blue-900
 transition
 "
-
 
 >
 
 
-<ArrowLeft
-
-size={18}
-
-className="
-group-hover:-translate-x-1
-transition
-"
-
-/>
+<ArrowLeft size={18}/>
 
 
 Inicio
 
 
 </button>
+
+
+
+
+
+
+</div>
+
+
+
 
 
 

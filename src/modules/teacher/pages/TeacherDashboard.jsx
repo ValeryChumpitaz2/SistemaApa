@@ -1,532 +1,863 @@
-import { useState } from "react";
-
 import {
-  FileSearch,
+  ClipboardList,
+  FileDown,
+  SearchCheck,
+  FileText,
   BarChart3,
-  ClipboardList
+  Sparkles
 } from "lucide-react";
 
+import {
+  useEffect,
+  useState
+} from "react";
 
-import TeacherHeader from "../components/TeacherHeader";
-import FolderAnalyzer from "../components/FolderAnalyzer";
-import TeacherStats from "../components/TeacherStats";
-import ResultsTable from "../components/ResultsTable";
-import DetailModal from "../components/DetailModal";
+import TeacherSidebar
+  from "../components/TeacherSidebar";
+
+import TeacherHeader
+  from "../components/TeacherHeader";
+
+import TeacherFooter
+  from "../components/TeacherFooter";
+
+import DashboardOverview
+  from "../components/DashboardOverview";
+
+import FolderAnalyzer
+  from "../components/FolderAnalyzer";
+
+import ResultsTable
+  from "../components/ResultsTable";
+
+import DetailModal
+  from "../components/DetailModal";
+
+import GeneralReportButton
+  from "../components/GeneralReportButton";
+
+import DetailReportButton
+  from "../components/DetailReportButton";
+
+import RankingTable
+  from "../components/RankingTable";
+
+import AlertsPanel
+  from "../components/AlertsPanel";
+
+import MaintenanceModal
+  from "../components/MaintenanceModal";
+
+import TeacherSettings
+  from "../components/TeacherSettings";
+
+import TeacherAnalytics
+  from "../components/TeacherAnalytics";
+
+import PerformanceChart
+  from "../components/PerformanceChart";
+
+import ConsolidacionPage
+  from "./ConsolidacionPage";
+
+
+export default function TeacherDashboard() {
+
+
+  const [
+    resultados,
+    setResultados
+  ] = useState([]);
+
+
+  const [
+    selected,
+    setSelected
+  ] = useState(null);
+
+
+  const [
+    active,
+    setActive
+  ] = useState("dashboard");
+
+
+  const [
+    maintenance,
+    setMaintenance
+  ] = useState(false);
+
+
+  useEffect(() => {
+
+    const guardado =
+      localStorage.getItem(
+        "resultadosDocente"
+      );
+
+
+    if (guardado) {
+
+      setResultados(
+        JSON.parse(guardado)
+      );
+
+    }
+
+  }, []);
 
 
 
-export default function TeacherDashboard(){
+  function actualizarResultados(data) {
+
+    setResultados(data);
+
+    localStorage.setItem(
+
+      "resultadosDocente",
+
+      JSON.stringify(data)
+
+    );
+
+  }
 
 
 
-const [resultados,setResultados]=useState([]);
+  function renderContenido() {
 
-const [selected,setSelected]=useState(null);
-
-
+    switch (active) {
 
 
-return (
+      // =================================
+      // INICIO
+      // =================================
+
+      case "dashboard":
+
+        return (
+
+          <section>
+
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
+
+              Inicio
+
+            </h1>
 
 
-<div className="min-h-screen bg-slate-100">
+            <div className="
+              grid
+              md:grid-cols-3
+              gap-6
+            ">
+
+
+              {/* ANALIZAR DOCUMENTOS */}
+
+              <div className="
+                bg-white
+                rounded-3xl
+                border
+                shadow-sm
+                p-6
+                hover:shadow-lg
+                transition
+              ">
+
+                <h2 className="
+                  text-xl
+                  font-black
+                ">
+
+                  📂 Analizar documentos
+
+                </h2>
+
+
+                <p className="
+                  mt-2
+                  text-gray-500
+                ">
+
+                  Evalúa entregas académicas automáticamente.
+
+                </p>
+
+
+                <button
+
+                  onClick={() =>
+                    setActive("analyzer")
+                  }
+
+                  className="
+                    mt-5
+                    bg-blue-900
+                    text-white
+                    px-5
+                    py-3
+                    rounded-xl
+                    font-bold
+                  "
+
+                >
+
+                  Abrir
+
+                </button>
+
+              </div>
 
 
 
-<TeacherHeader/>
+              {/* ANALÍTICA */}
+
+              <div className="
+                bg-white
+                rounded-3xl
+                border
+                shadow-sm
+                p-6
+                hover:shadow-lg
+                transition
+              ">
+
+                <h2 className="
+                  text-xl
+                  font-black
+                ">
+
+                  📊 Analítica académica
+
+                </h2>
+
+
+                <p className="
+                  mt-2
+                  text-gray-500
+                ">
+
+                  Gráficos y rendimiento APA.
+
+                </p>
+
+
+                <button
+
+                  onClick={() =>
+                    setActive("analytics")
+                  }
+
+                  className="
+                    mt-5
+                    bg-purple-700
+                    text-white
+                    px-5
+                    py-3
+                    rounded-xl
+                    font-bold
+                  "
+
+                >
+
+                  Ver
+
+                </button>
+
+              </div>
 
 
 
+              {/* REPORTES */}
 
-<main className="max-w-7xl mx-auto p-6 md:p-10">
+              <div className="
+                bg-white
+                rounded-3xl
+                border
+                shadow-sm
+                p-6
+                hover:shadow-lg
+                transition
+              ">
+
+                <h2 className="
+                  text-xl
+                  font-black
+                ">
+
+                  📄 Reportes
+
+                </h2>
+
+
+                <p className="
+                  mt-2
+                  text-gray-500
+                ">
+
+                  Genera informes académicos.
+
+                </p>
+
+
+                <button
+
+                  onClick={() =>
+                    setActive("reports")
+                  }
+
+                  className="
+                    mt-5
+                    bg-green-700
+                    text-white
+                    px-5
+                    py-3
+                    rounded-xl
+                    font-bold
+                  "
+
+                >
+
+                  Abrir
+
+                </button>
+
+              </div>
+
+
+            </div>
 
 
 
+            <PerformanceChart
+              resultados={resultados}
+            />
 
 
-{/* CABECERA */}
+          </section>
+
+        );
 
 
 
-<div className="
+      // =================================
+      // ANALIZADOR
+      // =================================
 
-bg-gradient-to-r
+      case "analyzer":
 
-from-blue-700
+        return (
 
-to-indigo-800
+          <section>
 
-rounded-3xl
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
 
-p-8
+              Analizar carpeta
 
-text-white
+            </h1>
 
-shadow-xl
 
-mb-10
+            <FolderAnalyzer
 
+              setResultados={
+                actualizarResultados
+              }
+
+            />
+
+          </section>
+
+        );
+
+
+
+      // =================================
+      // RESULTADOS
+      // =================================
+
+      case "results":
+
+        return (
+
+          <section>
+
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
+
+              Resultados APA
+
+            </h1>
+
+
+            <div className="
+              bg-white
+              rounded-3xl
+              border
+              p-8
+            ">
+
+
+              {
+
+                resultados.length > 0 ?
+
+                  <ResultsTable
+
+                    resultados={
+                      resultados
+                    }
+
+                    onSelect={
+                      setSelected
+                    }
+
+                  />
+
+                  :
+
+                  <div className="
+                    text-center
+                    py-16
+                    text-gray-500
+                  ">
+
+                    <ClipboardList
+
+                      size={50}
+
+                      className="
+                        mx-auto
+                        mb-4
+                      "
+
+                    />
+
+                    <p className="
+                      font-bold
+                    ">
+
+                      No existen resultados
+
+                    </p>
+
+                  </div>
+
+              }
+
+
+            </div>
+
+          </section>
+
+        );
+
+
+
+      // =================================
+      // ANALITICA
+      // =================================
+
+      case "analytics":
+
+        return (
+
+          <TeacherAnalytics
+
+            resultados={
+              resultados
+            }
+
+          />
+
+        );
+
+
+
+      // =================================
+      // RANKING
+      // =================================
+
+      case "ranking":
+
+        return (
+
+          <section>
+
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
+
+              Ranking académico
+
+            </h1>
+
+
+            <div className="
+              bg-white
+              rounded-3xl
+              border
+              p-8
+            ">
+
+
+              <RankingTable
+
+                resultados={
+                  resultados
+                }
+
+              />
+
+
+            </div>
+
+          </section>
+
+        );
+
+
+
+      // =================================
+      // CONSOLIDACIÓN
+      // =================================
+
+      case "consolidacion":
+
+        return (
+
+          <section>
+
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
+
+              Consolidación
+
+            </h1>
+
+
+            <div className="
+              bg-white
+              rounded-3xl
+              border
+              p-8
+            ">
+
+
+              <ConsolidacionPage />
+
+
+            </div>
+
+          </section>
+
+        );
+
+
+
+      // =================================
+      // REPORTES
+      // =================================
+
+      case "reports":
+
+        return (
+
+          <section>
+
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
+
+              Reportes académicos
+
+            </h1>
+
+
+            <p className="
+              text-gray-500
+              mb-8
+            ">
+
+              Genera informes profesionales
+              de evaluación APA.
+
+            </p>
+
+
+
+            {/* REPORTE GENERAL */}
+
+            <div className="
+              bg-white
+              rounded-3xl
+              border
+              p-8
+              mb-6
+            ">
+
+              <h2 className="
+                text-xl
+                font-black
+                mb-2
+              ">
+
+                Reporte general
+
+              </h2>
+
+
+              <p className="
+                text-gray-500
+                mb-5
+              ">
+
+                Resumen completo del rendimiento
+                académico del aula.
+
+              </p>
+
+
+              <GeneralReportButton
+
+                resultados={
+                  resultados
+                }
+
+              />
+
+            </div>
+
+
+
+            {/* REPORTE DETALLADO */}
+
+            <div className="
+              bg-white
+              rounded-3xl
+              border
+              p-8
+            ">
+
+              <h2 className="
+                text-xl
+                font-black
+                mb-2
+              ">
+
+                Reporte detallado
+
+              </h2>
+
+
+              <p className="
+                text-gray-500
+                mb-5
+              ">
+
+                Análisis individual de cada
+                evaluación APA.
+
+              </p>
+
+
+              <DetailReportButton
+
+                resultados={
+                  resultados
+                }
+
+              />
+
+            </div>
+
+
+          </section>
+
+        );
+
+
+
+      // =================================
+      // COMUNICACION
+      // =================================
+
+      case "communications":
+
+        return (
+
+          <section>
+
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
+
+              Centro de comunicaciones
+
+            </h1>
+
+
+            <button
+
+              onClick={() =>
+                setMaintenance(true)
+              }
+
+              className="
+                mt-6
+                bg-blue-900
+                text-white
+                px-6
+                py-3
+                rounded-xl
+                font-bold
+              "
+
+            >
+
+              Estado
+
+            </button>
+
+
+            <MaintenanceModal
+
+              open={
+                maintenance
+              }
+
+              onClose={() =>
+                setMaintenance(false)
+              }
+
+            />
+
+          </section>
+
+        );
+
+
+
+      // =================================
+      // CONFIGURACIÓN
+      // =================================
+
+      case "settings":
+
+        return (
+
+          <section>
+
+            <h1 className="
+              text-3xl
+              font-black
+              mb-8
+            ">
+
+              Configuración
+
+            </h1>
+
+
+            <TeacherSettings />
+
+          </section>
+
+        );
+
+
+
+      // =================================
+      // DEFAULT
+      // =================================
+
+      default:
+
+        return null;
+
+    }
+
+  }
+
+
+
+  return (
+
+    <div className="
+      min-h-screen
+      bg-gray-50
+    ">
+
+
+      <TeacherSidebar
+
+        active={
+          active
+        }
+
+        setActive={
+          setActive
+        }
+
+      />
+
+<main className="
+  min-h-screen
+  p-6
+  xl:ml-72
 ">
 
+        {
 
-<div className="flex items-center gap-4">
+          renderContenido()
 
+        }
 
-<div className="
 
-bg-white/20
+        {
 
-p-4
+          selected &&
 
-rounded-2xl
+          <DetailModal
 
-">
+            analysis={
+              selected
+            }
 
+            onClose={() =>
+              setSelected(null)
+            }
 
-<BarChart3 size={40}/>
+          />
 
+        }
 
-</div>
 
+      </main>
 
 
-<div>
+    </div>
 
-
-<h1 className="text-3xl font-black">
-
-Panel del docente 👨‍🏫
-
-</h1>
-
-
-
-<p className="
-
-text-blue-100
-
-mt-2
-
-">
-
-Gestiona evaluaciones y analiza entregas automáticamente.
-
-</p>
-
-
-</div>
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-{/* ESTADISTICAS */}
-
-
-
-<section>
-
-
-<div className="flex items-center gap-3 mb-4">
-
-
-<div className="
-
-bg-blue-100
-
-text-blue-700
-
-p-2
-
-rounded-xl
-
-">
-
-
-<BarChart3 size={22}/>
-
-
-</div>
-
-
-
-<h2 className="text-xl font-bold text-gray-800">
-
-Resumen académico
-
-</h2>
-
-
-</div>
-
-
-
-<TeacherStats
-
-resultados={resultados}
-
-/>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-{/* ANALIZADOR */}
-
-
-
-<section className="mt-10">
-
-
-
-<div className="flex items-center gap-3 mb-4">
-
-
-<div className="
-
-bg-indigo-100
-
-text-indigo-700
-
-p-2
-
-rounded-xl
-
-">
-
-
-<FileSearch size={22}/>
-
-
-</div>
-
-
-
-<h2 className="text-xl font-bold text-gray-800">
-
-Analizar entregas
-
-</h2>
-
-
-
-</div>
-
-
-
-
-
-<div className="
-
-bg-white
-
-rounded-3xl
-
-shadow-sm
-
-border
-
-p-6
-
-">
-
-
-<FolderAnalyzer
-
-setResultados={setResultados}
-
-/>
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-{/* RESULTADOS */}
-
-
-
-<section className="mt-10">
-
-
-
-<div className="flex items-center gap-3 mb-5">
-
-
-<div className="
-
-bg-green-100
-
-text-green-700
-
-p-2
-
-rounded-xl
-
-">
-
-
-<ClipboardList size={22}/>
-
-
-</div>
-
-
-<h2 className="text-xl font-bold text-gray-800">
-
-Resultados
-
-</h2>
-
-
-</div>
-
-
-
-
-
-{
-
-resultados.length > 0 ?
-
-
-(
-
-
-
-<div className="
-
-bg-white
-
-rounded-3xl
-
-shadow-sm
-
-border
-
-p-6
-
-animate-in
-
-fade-in
-
-">
-
-
-<div className="
-
-flex
-
-justify-between
-
-items-center
-
-mb-6
-
-">
-
-
-<h3 className="text-2xl font-bold">
-
-
-Evaluaciones realizadas
-
-
-</h3>
-
-
-
-
-<span className="
-
-bg-blue-100
-
-text-blue-700
-
-px-4
-
-py-2
-
-rounded-full
-
-font-bold
-
-">
-
-
-{resultados.length}
-
-documentos
-
-
-</span>
-
-
-
-</div>
-
-
-
-
-
-<ResultsTable
-
-
-resultados={resultados}
-
-
-onSelect={
-
-item=>setSelected(item)
-
-}
-
-
-/>
-
-
-
-</div>
-
-
-
-)
-
-
-:
-
-
-
-(
-
-
-
-<div className="
-
-bg-white
-
-rounded-3xl
-
-border
-
-border-dashed
-
-p-10
-
-text-center
-
-text-gray-400
-
-">
-
-
-<FileSearch
-
-size={45}
-
-className="mx-auto mb-4 opacity-40"
-
-/>
-
-
-
-<p className="font-medium">
-
-Aún no hay documentos analizados
-
-</p>
-
-
-<p className="text-sm mt-2">
-
-Sube una carpeta para comenzar la evaluación automática.
-
-</p>
-
-
-
-</div>
-
-
-
-)
-
-
-
-}
-
-
-
-</section>
-
-
-
-
-
-
-
-</main>
-
-
-
-
-
-
-
-{
-
-selected && (
-
-
-<DetailModal
-
-
-analysis={selected}
-
-
-onClose={()=>setSelected(null)}
-
-
-/>
-
-
-)
-
-
-}
-
-
-
-</div>
-
-
-);
-
+  );
 
 }

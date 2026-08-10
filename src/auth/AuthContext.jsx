@@ -6,9 +6,7 @@ import {
 } from "react";
 
 
-
 const AuthContext = createContext();
-
 
 
 
@@ -19,6 +17,11 @@ const [user,setUser]=useState(null);
 
 
 
+/*
+===========================
+CARGAR SESION
+===========================
+*/
 
 
 useEffect(()=>{
@@ -44,49 +47,99 @@ JSON.parse(guardado)
 
 
 
+/*
+===========================
+REGISTRAR USUARIO
+===========================
+*/
+
+
+function registrarUsuario(usuario){
+
+
+
+const usuarios =
+JSON.parse(
+localStorage.getItem("usuarios")
+)
+||
+[];
+
+
+
+
+const existe =
+usuarios.find(
+u=>u.correo===usuario.correo
+);
+
+
+
+
+if(!existe){
+
+
+usuarios.push({
+
+...usuario,
+
+fechaRegistro:
+new Date().toISOString()
+
+});
+
+
+
+localStorage.setItem(
+"usuarios",
+JSON.stringify(usuarios)
+);
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+===========================
+LOGIN
+===========================
+*/
 
 
 function login(usuario){
 
 
-setUser(usuario);
+
+const nuevoUsuario={
 
 
-localStorage.setItem(
-
-"usuario",
-
-JSON.stringify(usuario)
-
-);
+...usuario,
 
 
-}
-
-
-
-
-
-
-
-
-// NUEVO: actualizar perfil
-
-function updateUser(datos){
-
-
-const nuevoUsuario = {
-
-
-...user,
-
-...datos
+rol:
+usuario.rol?.toUpperCase()
+||
+"ESTUDIANTE"
 
 
 };
 
 
-setUser(nuevoUsuario);
+
+setUser(
+nuevoUsuario
+);
 
 
 
@@ -94,7 +147,132 @@ localStorage.setItem(
 
 "usuario",
 
-JSON.stringify(nuevoUsuario)
+JSON.stringify(
+nuevoUsuario
+)
+
+);
+
+
+
+registrarUsuario(
+nuevoUsuario
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+===========================
+ACTUALIZAR PERFIL
+===========================
+*/
+
+
+function updateUser(datos){
+
+
+
+const actualizado={
+
+...user,
+
+...datos
+
+};
+
+
+
+setUser(
+actualizado
+);
+
+
+
+localStorage.setItem(
+"usuario",
+JSON.stringify(actualizado)
+);
+
+
+
+
+
+const usuarios =
+obtenerUsuarios();
+
+
+
+
+const listaNueva =
+
+usuarios.map(u=>
+
+u.correo===actualizado.correo
+
+?
+
+actualizado
+
+:
+
+u
+
+);
+
+
+
+localStorage.setItem(
+
+"usuarios",
+
+JSON.stringify(listaNueva)
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+===========================
+OBTENER USUARIOS
+===========================
+*/
+
+
+function obtenerUsuarios(){
+
+
+return (
+
+JSON.parse(
+
+localStorage.getItem("usuarios")
+
+)
+
+||
+
+[]
+
 
 );
 
@@ -107,6 +285,160 @@ JSON.stringify(nuevoUsuario)
 
 
 
+
+
+
+/*
+===========================
+OBTENER ESTUDIANTES
+===========================
+*/
+
+
+function obtenerEstudiantes(){
+
+
+return obtenerUsuarios()
+
+.filter(
+
+u=>
+
+u.rol==="ESTUDIANTE"
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+
+/*
+===========================
+GUARDAR COMUNICACION
+===========================
+*/
+
+
+function guardarComunicacion(data){
+
+
+
+const historial =
+
+JSON.parse(
+
+localStorage.getItem(
+"comunicaciones"
+)
+
+)
+
+||
+
+[];
+
+
+
+
+
+historial.push({
+
+
+id:
+Date.now(),
+
+
+docente:
+user?.correo,
+
+
+fecha:
+new Date().toISOString(),
+
+
+...data
+
+
+});
+
+
+
+
+
+
+localStorage.setItem(
+
+"comunicaciones",
+
+JSON.stringify(historial)
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+===========================
+OBTENER COMUNICACIONES
+===========================
+*/
+
+
+function obtenerComunicaciones(){
+
+
+
+return (
+
+JSON.parse(
+
+localStorage.getItem(
+"comunicaciones"
+)
+
+)
+
+||
+
+[]
+
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+===========================
+LOGOUT
+===========================
+*/
 
 
 function logout(){
@@ -129,22 +461,42 @@ localStorage.removeItem(
 
 
 
+
 return(
 
 
 <AuthContext.Provider
 
+
 value={{
+
 
 user,
 
+
 login,
+
+
+logout,
+
 
 updateUser,
 
-logout
+
+obtenerUsuarios,
+
+
+obtenerEstudiantes,
+
+
+guardarComunicacion,
+
+
+obtenerComunicaciones
+
 
 }}
+
 
 >
 
@@ -156,6 +508,7 @@ logout
 
 
 );
+
 
 
 }
@@ -190,7 +543,6 @@ throw new Error(
 
 
 return context;
-
 
 
 }

@@ -1,56 +1,104 @@
 import {
- Award,
- CheckCircle,
- AlertTriangle,
- TrendingUp
+  CheckCircle,
+  AlertTriangle
 } from "lucide-react";
 
 
-
 export default function ResultCard({
- analysis={}
-}){
 
+  analysis = {}
 
-const porcentaje =
-analysis.puntaje?.porcentaje || 0;
-
-
-const obtenido =
-analysis.puntaje?.obtenido || 0;
-
-
-const maximo =
-analysis.puntaje?.maximo || 0;
+}) {
 
 
 
-let estado =
-"Necesita revisión";
+const obtenidoRaw =
+
+  analysis?.puntaje?.obtenido ??
+
+  analysis?.puntaje ??
+
+  analysis?.resumen?.obtenido ??
+
+  analysis?.resumen?.puntaje ??
+
+  analysis?.resultado?.obtenido ??
+
+  0;
 
 
-let descripcion =
-"El documento requiere algunas mejoras antes de la entrega.";
+
+const maximoRaw =
+
+  analysis?.puntaje?.maximo ??
+
+  analysis?.resumen?.maximo ??
+
+  analysis?.resultado?.maximo ??
+
+  2;
 
 
 
-if(porcentaje>=95){
+const porcentajeRaw =
 
-estado="Listo para entrega";
+  analysis?.puntaje?.porcentaje ??
 
-descripcion=
-"El documento cumple los criterios recomendados.";
+  analysis?.resumen?.porcentaje ??
 
-}
+  analysis?.resultado?.porcentaje ??
 
-else if(porcentaje>=70){
+  null;
 
-estado="Buen avance";
 
-descripcion=
-"El documento cumple la mayoría de criterios.";
 
-}
+const obtenido = Number(obtenidoRaw);
+
+const maximo = Number(maximoRaw);
+
+
+
+const puntajeFinal = isNaN(obtenido)
+  ? 0
+  : obtenido;
+
+
+
+const maximoFinal = isNaN(maximo)
+  ? 2
+  : maximo;
+
+
+
+const porcentaje = porcentajeRaw !== null
+
+?
+Number(porcentajeRaw)
+
+:
+
+Math.round(
+  (puntajeFinal / maximoFinal) * 100
+);
+
+
+
+const descuento = Number(
+
+  (
+    maximoFinal -
+    puntajeFinal
+
+  ).toFixed(2)
+
+);
+
+
+
+const cumple =
+
+puntajeFinal >= maximoFinal;
+
 
 
 
@@ -59,41 +107,37 @@ descripcion=
 return (
 
 <div className="
-bg-gradient-to-br
-from-[#1D3681]
-to-blue-600
+bg-white
+dark:bg-slate-900
 rounded-3xl
-p-8
-text-white
-shadow-xl
+border
+dark:border-slate-800
+p-6
+shadow-sm
 ">
 
+
+
+
+
+{/* TITULO */}
 
 <div className="
 flex
-items-center
+justify-between
+items-start
 gap-4
 ">
-
-
-<div className="
-bg-white/20
-p-4
-rounded-2xl
-">
-
-<Award size={35}/>
-
-</div>
-
 
 
 <div>
 
 
 <h2 className="
-text-2xl
+text-xl
 font-black
+text-gray-800
+dark:text-white
 ">
 
 Estado del documento
@@ -101,12 +145,17 @@ Estado del documento
 </h2>
 
 
+
 <p className="
-text-blue-100
+text-gray-500
 text-sm
+mt-1
 ">
 
-{analysis.resumen?.nombre}
+{
+analysis.nombre ||
+"Documento analizado"
+}
 
 </p>
 
@@ -114,53 +163,73 @@ text-sm
 </div>
 
 
-</div>
 
 
 
+<div className={`
 
-
-
-
-<div className="
-mt-8
+px-4
+py-2
+rounded-full
+font-bold
+text-sm
 flex
-items-end
-gap-4
-">
+items-center
+gap-2
 
-
-<h1 className="
-text-7xl
-font-black
-">
-
-{porcentaje}%
-
-</h1>
-
-
-
-<div className="
-mb-4
-">
-
-{
-porcentaje>=95
+${
+cumple
 
 ?
 
-<CheckCircle size={40}/>
+"bg-green-100 text-green-700"
 
 :
 
-<TrendingUp size={40}/>
+"bg-yellow-100 text-yellow-700"
 
 }
 
+`}>
+
+
+
+{
+
+cumple
+
+?
+
+<CheckCircle size={18}/>
+
+:
+
+<AlertTriangle size={18}/>
+
+}
+
+
+
+{
+
+cumple
+
+?
+
+"Listo para entrega"
+
+:
+
+"Pendiente"
+
+}
+
+
+
 </div>
 
 
+
 </div>
 
 
@@ -168,56 +237,36 @@ porcentaje>=95
 
 
 
+
+
+{/* TARJETAS */}
 
 <div className="
-h-3
-bg-white/20
-rounded-full
-overflow-hidden
-mt-5
-">
-
-
-<div
-
-className="
-bg-white
-h-full
-rounded-full
-transition-all
-"
-
-style={{
-width:`${porcentaje}%`
-}}
-
-/>
-
-
-</div>
-
-
-
-
-
-
-<div className="
+mt-6
 grid
+grid-cols-1
 md:grid-cols-3
 gap-4
-mt-8
 ">
 
+
+
+
+
+
+{/* PUNTAJE */}
 
 <div className="
-bg-white/10
+bg-blue-50
+dark:bg-blue-900/20
 rounded-2xl
-p-4
+p-5
 ">
 
+
 <p className="
-text-blue-100
 text-sm
+text-gray-500
 ">
 
 Puntaje
@@ -225,130 +274,237 @@ Puntaje
 </p>
 
 
-<strong className="
-text-2xl
-">
-
-{obtenido}/{maximo}
-
-</strong>
-
-
-</div>
-
-
-
-
-
-
-<div className="
-bg-white/10
-rounded-2xl
-p-4
-">
-
 
 <p className="
-text-blue-100
-text-sm
+text-3xl
+font-black
+text-blue-700
+dark:text-blue-300
 ">
 
-Estado
+{puntajeFinal}/{maximoFinal}
 
 </p>
 
 
-<strong>
-
-{estado}
-
-</strong>
-
-
-</div>
-
-
-
-
-
-
-
-<div className="
-bg-white/10
-rounded-2xl
-p-4
-">
-
 
 <p className="
-text-blue-100
 text-sm
-">
-
-Meta
-
-</p>
-
-
-<strong>
-
-95%
-
-</strong>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-<div className="
-mt-6
-bg-white/10
-rounded-2xl
-p-5
-flex
-gap-3
-items-center
+font-bold
+mt-2
 ">
 
 
 {
-porcentaje>=95
+
+descuento <= 0
 
 ?
 
-<CheckCircle/>
+"✓ No se descontaron puntos"
 
 :
 
-<AlertTriangle/>
+"⚠ Se descontaron " +
+
+descuento +
+
+" puntos"
+
+}
+
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* PORCENTAJE */}
+
+<div className="
+bg-indigo-50
+dark:bg-indigo-900/20
+rounded-2xl
+p-5
+">
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+Cumplimiento
+
+</p>
+
+
+
+<p className="
+text-3xl
+font-black
+text-indigo-700
+dark:text-indigo-300
+">
+
+{porcentaje}%
+
+</p>
+
+
+
+<p className="
+text-sm
+font-bold
+mt-2
+">
+
+Meta
+
+<br/>
+
+95%
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* RESULTADO */}
+
+<div className="
+bg-green-50
+dark:bg-green-900/20
+rounded-2xl
+p-5
+">
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+Resultado
+
+</p>
+
+
+
+<div className="
+flex
+items-center
+gap-2
+mt-3
+font-black
+text-lg
+text-green-700
+">
+
+
+{
+
+cumple
+
+?
+
+<CheckCircle size={22}/>
+
+:
+
+<AlertTriangle size={22}/>
 
 }
 
 
 
-<p>
+{
 
-{descripcion}
+cumple
 
-</p>
+?
+
+"Cumple"
+
+:
+
+"Con observaciones"
+
+}
+
+
+
+</div>
 
 
 </div>
 
 
 
+
+
 </div>
 
+
+
+
+
+
+
+
+<div className="
+mt-5
+bg-slate-50
+dark:bg-slate-800
+rounded-2xl
+p-4
+text-sm
+font-semibold
+text-gray-700
+dark:text-gray-200
+">
+
+
+{
+
+cumple
+
+?
+
+"El documento cumple todos los criterios y conserva el puntaje completo."
+
+:
+
+"El documento tiene criterios pendientes que generan descuentos."
+
+}
+
+
+
+</div>
+
+
+
+
+
+</div>
 
 );
-
 
 }

@@ -1,8 +1,9 @@
-import { 
-  useState, 
-  useMemo, 
-  useEffect 
+import {
+  useState,
+  useMemo,
+  useEffect
 } from "react";
+
 
 import {
   CheckCircle2,
@@ -12,894 +13,1437 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  Filter
+  Filter,
+  BarChart3,
+  TrendingUp
 } from "lucide-react";
 
-import GeneralReportButton from "./GeneralReportButton";
-import DetailReportButton from "./DetailReportButton";
 
 
 export default function ResultsTable({
+
   resultados = [],
-  onSelect,
+
+  onSelect
+
 }) {
 
 
-  const ITEMS_POR_PAGINA = 10;
 
+const ITEMS_POR_PAGINA = 10;
 
-  const [paginaActual, setPaginaActual] = useState(1);
 
 
-  const [busqueda, setBusqueda] = useState("");
+const [
+paginaActual,
+setPaginaActual
+]=useState(1);
 
 
-  const [estadoFiltro, setEstadoFiltro] = useState("todos");
 
+const [
+busqueda,
+setBusqueda
+]=useState("");
 
-  const [nivelFiltro, setNivelFiltro] = useState("todos");
 
 
+const [
+estadoFiltro,
+setEstadoFiltro
+]=useState("todos");
 
-  useEffect(() => {
 
-    setPaginaActual(1);
 
-  }, [
-    resultados,
-    busqueda,
-    estadoFiltro,
-    nivelFiltro
-  ]);
+const [
+nivelFiltro,
+setNivelFiltro
+]=useState("todos");
 
 
 
-  /*
-  ==========================
-  FILTROS
-  ==========================
-  */
 
 
-  const resultadosFiltrados = useMemo(()=>{
+useEffect(()=>{
 
+setPaginaActual(1);
 
-    return resultados.filter(item=>{
+},[
+busqueda,
+estadoFiltro,
+nivelFiltro,
+resultados
+]);
 
 
-      const nombre =
-      (
-        item.nombre ||
-        ""
-      )
-      .toLowerCase();
 
 
 
-      const texto =
-      busqueda.toLowerCase();
 
 
+// ==========================
+// FILTROS
+// ==========================
 
-      const porcentaje =
-      Number(
-        item.puntaje?.porcentaje ?? 0
-      );
 
+const resultadosFiltrados = useMemo(()=>{
 
 
-      const cumpleBusqueda =
-      nombre.includes(texto);
+return resultados.filter(item=>{
 
 
+const nombre =
 
-      let cumpleEstado = true;
+(
+item.nombre || ""
+)
 
+.toLowerCase();
 
 
-      if(
-        estadoFiltro === "aprobado"
-      ){
 
-        cumpleEstado =
-        porcentaje >=70;
+const texto =
 
-      }
+busqueda.toLowerCase();
 
 
-      if(
-        estadoFiltro === "revisar"
-      ){
 
-        cumpleEstado =
-        porcentaje <70;
+const porcentaje =
 
-      }
+Number(
+item.puntaje?.porcentaje ?? 0
+);
 
 
 
-      let cumpleNivel=true;
+const coincideBusqueda =
 
+nombre.includes(texto);
 
 
-      if(
-        nivelFiltro==="excelente"
-      ){
 
-        cumpleNivel =
-        porcentaje>=90;
 
-      }
 
 
-      if(
-        nivelFiltro==="bueno"
-      ){
+let coincideEstado=true;
 
-        cumpleNivel =
-        porcentaje>=70 &&
-        porcentaje<90;
 
-      }
 
+if(
+estadoFiltro==="aprobado"
+){
 
-      if(
-        nivelFiltro==="regular"
-      ){
+coincideEstado =
+porcentaje>=70;
 
-        cumpleNivel =
-        porcentaje>=50 &&
-        porcentaje<70;
+}
 
-      }
 
 
-      if(
-        nivelFiltro==="critico"
-      ){
+if(
+estadoFiltro==="critico"
+){
 
-        cumpleNivel =
-        porcentaje<50;
+coincideEstado =
+porcentaje<50;
 
-      }
+}
 
 
 
-      return (
-        cumpleBusqueda &&
-        cumpleEstado &&
-        cumpleNivel
-      );
 
 
-    });
 
 
-  },[
-    resultados,
-    busqueda,
-    estadoFiltro,
-    nivelFiltro
-  ]);
+let coincideNivel=true;
 
 
 
+if(
+nivelFiltro==="excelente"
+){
 
-  /*
-  ==========================
-  PAGINACION
-  ==========================
-  */
+coincideNivel =
+porcentaje>=90;
 
+}
 
-  const totalPaginas =
-  Math.max(
-    1,
-    Math.ceil(
-      resultadosFiltrados.length /
-      ITEMS_POR_PAGINA
-    )
-  );
 
+if(
+nivelFiltro==="bueno"
+){
 
+coincideNivel =
+porcentaje>=70 &&
+porcentaje<90;
 
-  const resultadosPaginados =
-  useMemo(()=>{
+}
 
 
-    const inicio =
-    (
-      paginaActual-1
-    )
-    *
-    ITEMS_POR_PAGINA;
 
+if(
+nivelFiltro==="regular"
+){
 
+coincideNivel =
+porcentaje>=50 &&
+porcentaje<70;
 
-    return resultadosFiltrados.slice(
-      inicio,
-      inicio+ITEMS_POR_PAGINA
-    );
+}
 
 
-  },[
-    resultadosFiltrados,
-    paginaActual
-  ]);
 
+if(
+nivelFiltro==="critico"
+){
 
+coincideNivel =
+porcentaje<50;
 
+}
 
-  if(!resultados.length){
 
-    return (
 
-      <div className="
-        bg-white
-        rounded-3xl
-        border
-        p-10
-        text-center
-        text-gray-500
-      ">
 
-        <FileText
-          size={40}
-          className="
-            mx-auto
-            text-gray-400
-          "
-        />
 
-        <p className="mt-4">
-          No hay resultados para mostrar.
-        </p>
+return (
 
+coincideBusqueda &&
 
-      </div>
+coincideEstado &&
 
-    );
+coincideNivel
 
-  }
+);
 
 
 
-  return (
+});
 
-    <>
 
+},[
+resultados,
+busqueda,
+estadoFiltro,
+nivelFiltro
+]);
 
-      {/* BOTONES REPORTES */}
 
-      <div className="
-        flex
-        justify-end
-        gap-3
-        mb-5
-        flex-wrap
-      ">
 
-        <GeneralReportButton
-          resultados={resultados}
-        />
 
 
-        <DetailReportButton
-          resultados={resultados}
-        />
 
-      </div>
 
 
 
+// ==========================
+// PAGINACION
+// ==========================
 
-      {/* FILTROS */}
 
+const totalPaginas =
 
-      <div className="
-        bg-white
-        rounded-3xl
-        border
-        shadow-sm
-        p-5
-        mb-6
-      ">
+Math.max(
 
+1,
 
-        <div className="
-          flex
-          items-center
-          gap-2
-          mb-4
-          text-blue-900
-          font-bold
-        ">
+Math.ceil(
 
-          <Filter size={20}/>
+resultadosFiltrados.length /
 
-          Filtros de búsqueda
+ITEMS_POR_PAGINA
 
-        </div>
+)
 
+);
 
 
-        <div className="
-          grid
-          grid-cols-1
-          md:grid-cols-3
-          gap-4
-        ">
 
+const resultadosPaginados = useMemo(()=>{
 
 
-          {/* BUSCAR */}
+const inicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
 
-          <div className="
-            relative
-          ">
 
-            <Search
-              size={20}
-              className="
-                absolute
-                left-4
-                top-3
-                text-gray-400
-              "
-            />
+return resultadosFiltrados.slice(
 
+inicio,
 
-            <input
+inicio + ITEMS_POR_PAGINA
 
-              value={busqueda}
+);
 
-              onChange={
-                e=>setBusqueda(
-                  e.target.value
-                )
-              }
 
 
-              placeholder="
-                Buscar documento...
-              "
+},[
+resultadosFiltrados,
+paginaActual
+]);
 
-              className="
-                w-full
-                pl-12
-                py-3
-                rounded-xl
-                border
-                outline-none
-                focus:ring-2
-                focus:ring-blue-500
-              "
 
-            />
 
 
-          </div>
 
 
 
 
-          {/* ESTADO */}
 
-          <select
 
-            value={estadoFiltro}
+if(!resultados.length){
 
-            onChange={
-              e=>setEstadoFiltro(
-                e.target.value
-              )
-            }
 
+return (
 
-            className="
-              rounded-xl
-              border
-              px-4
-              py-3
-              font-semibold
-            "
+<div
 
-          >
+className="
+bg-white
+rounded-3xl
+border
+p-12
+text-center
+text-gray-400
+"
 
-            <option value="todos">
-              Todos los estados
-            </option>
+>
 
-            <option value="aprobado">
-              🟢 Aprobados
-            </option>
 
+<FileText
 
-            <option value="revisar">
-              🔴 Revisar
-            </option>
+size={50}
 
+className="
+mx-auto
+mb-4
+"
 
-          </select>
+/>
 
 
 
+<h3
 
-          {/* NIVEL */}
+className="
+text-xl
+font-bold
+"
 
-          <select
+>
 
-            value={nivelFiltro}
+Aún no existen evaluaciones
 
-            onChange={
-              e=>setNivelFiltro(
-                e.target.value
-              )
-            }
+</h3>
 
 
-            className="
-              rounded-xl
-              border
-              px-4
-              py-3
-              font-semibold
-            "
 
-          >
+<p className="mt-2">
 
-            <option value="todos">
-              Todos los niveles
-            </option>
+Analiza una carpeta para comenzar.
 
+</p>
 
-            <option value="excelente">
-              🟢 Excelente 90+
-            </option>
 
+</div>
 
-            <option value="bueno">
-              🔵 Bueno 70-89
-            </option>
 
+);
 
-            <option value="regular">
-              🟡 Regular 50-69
-            </option>
 
+}
 
-            <option value="critico">
-              🔴 Crítico 0-49
-            </option>
 
 
-          </select>
 
 
-        </div>
 
 
+// ==========================
+// ESTADISTICAS
+// ==========================
 
-      </div>
 
 
+const promedio = Math.round(
 
 
+resultados.reduce(
 
-      {/* TABLA */}
+(total,item)=>
 
+total +
 
-      <div className="
-        rounded-3xl
-        border
-        bg-white
-        overflow-hidden
-        shadow-sm
-      ">
+Number(
+item.puntaje?.porcentaje || 0
+),
 
 
-      <div className="overflow-x-auto">
+0
 
+)
 
-      <table className="
-        w-full
-        min-w-[850px]
-      ">
+/
 
+resultados.length
 
-      <thead className="
-        bg-gradient-to-r
-        from-blue-950
-        to-indigo-700
-        text-white
-      ">
 
-      <tr>
+);
 
-      <th className="p-5 text-left">
-        Documento
-      </th>
 
 
-      <th className="p-5 text-center">
-        Puntaje
-      </th>
+const aprobados = resultados.filter(
 
+item =>
 
-      <th className="p-5 text-center">
-        Cumplimiento
-      </th>
+Number(
+item.puntaje?.porcentaje || 0
+)>=70
 
+).length;
 
-      <th className="p-5 text-center">
-        Estado
-      </th>
 
 
-      <th className="p-5 text-center">
-        Acción
-      </th>
 
+const criticos = resultados.filter(
 
-      </tr>
+item =>
 
-      </thead>
+Number(
+item.puntaje?.porcentaje || 0
+)<50
 
+).length;
 
 
 
-      <tbody>
 
 
-      {
-        resultadosPaginados.map(
-          (item,index)=>{
 
 
-          const porcentaje =
-          Number(
-            item.puntaje?.porcentaje ?? 0
-          );
 
 
+return (
 
-          let estadoVisual;
+<>
 
 
 
-          if(porcentaje>=90){
 
-            estadoVisual={
-              texto:"Excelente",
-              clase:
-              "bg-green-100 text-green-700"
-            };
 
-          }
-          else if(porcentaje>=70){
+{/* RESUMEN */}
 
-            estadoVisual={
-              texto:"Bueno",
-              clase:
-              "bg-blue-100 text-blue-700"
-            };
 
-          }
-          else if(porcentaje>=50){
 
-            estadoVisual={
-              texto:"Regular",
-              clase:
-              "bg-yellow-100 text-yellow-700"
-            };
+<div
 
-          }
-          else{
+className="
+grid
+md:grid-cols-4
+gap-5
+mb-8
+"
 
-            estadoVisual={
-              texto:"Crítico",
-              clase:
-              "bg-red-100 text-red-700"
-            };
+>
 
-          }
 
+<div className="
+bg-white
+rounded-3xl
+border
+p-6
+shadow-sm
+"
 
+>
 
-          return (
+<div className="
+flex
+items-center
+gap-2
+text-blue-700
+font-bold
+"
 
-          <tr
+>
 
-          key={
-            `${item.nombre}-${index}`
-          }
+<BarChart3 size={22}/>
 
-          className="
-            border-t
-            hover:bg-slate-50
-            transition
-          "
+Evaluados
 
-          >
+</div>
 
 
-          <td className="p-5">
+<p className="
+text-3xl
+font-black
+mt-3
+">
 
-          <div className="
-            flex
-            items-center
-            gap-3
-          ">
+{resultados.length}
 
+</p>
 
-          <div className="
-            bg-blue-100
-            text-blue-900
-            p-2
-            rounded-xl
-          ">
 
-          <FileText size={18}/>
+</div>
 
-          </div>
 
 
-          <span className="
-            font-semibold
-            truncate
-            max-w-sm
-          ">
 
-          {item.nombre}
 
-          </span>
 
+<div className="
+bg-white
+rounded-3xl
+border
+p-6
+shadow-sm
+"
 
-          </div>
+>
 
+<div className="
+flex
+items-center
+gap-2
+text-green-700
+font-bold
+"
 
-          </td>
+>
 
+<TrendingUp size={22}/>
 
+Promedio
 
+</div>
 
-          <td className="
-            p-5
-            text-center
-            font-bold
-          ">
 
-          {
-          item.puntaje?.obtenido ?? 0
-          }
-          /
-          {
-          item.puntaje?.maximo ?? 0
-          }
+<p className="
+text-3xl
+font-black
+mt-3
+">
 
+{promedio}%
 
-          </td>
+</p>
 
 
+</div>
 
 
-          <td className="p-5 text-center">
 
 
-          <span className="
-            bg-blue-100
-            text-blue-900
-            px-4
-            py-2
-            rounded-full
-            font-bold
-          ">
 
-          {porcentaje}%
 
-          </span>
 
+<div className="
+bg-white
+rounded-3xl
+border
+p-6
+shadow-sm
+"
 
-          </td>
+>
 
 
+<p className="
+font-bold
+text-green-700
+"
 
+>
 
-          <td className="p-5 text-center">
+Aprobados
 
+</p>
 
-          <span className={`
-            inline-flex
-            items-center
-            gap-2
-            px-4
-            py-2
-            rounded-full
-            font-bold
-            ${estadoVisual.clase}
-          `}>
 
+<p className="
+text-3xl
+font-black
+mt-3
+"
 
-          {
-            porcentaje>=70
-            ?
-            <CheckCircle2 size={18}/>
-            :
-            <AlertTriangle size={18}/>
-          }
+>
 
+{aprobados}
 
-          {estadoVisual.texto}
+</p>
 
 
-          </span>
+</div>
 
 
-          </td>
 
 
 
 
 
-          <td className="p-5 text-center">
+<div className="
+bg-white
+rounded-3xl
+border
+p-6
+shadow-sm
+"
 
+>
 
-          <button
 
-          onClick={
-            ()=>onSelect(item)
-          }
+<p className="
+font-bold
+text-red-700
+"
 
-          className="
-            bg-blue-900
-            hover:bg-blue-800
-            text-white
-            px-4
-            py-2
-            rounded-xl
-            inline-flex
-            gap-2
-            items-center
-          "
+>
 
-          >
+Críticos
 
-          <Eye size={18}/>
+</p>
 
-          Ver detalle
 
+<p className="
+text-3xl
+font-black
+mt-3
+"
 
-          </button>
+>
 
+{criticos}
 
-          </td>
+</p>
 
 
+</div>
 
-          </tr>
 
 
-          );
 
 
-        })
+</div>
 
-      }
 
 
-      </tbody>
 
 
-      </table>
 
 
-      </div>
 
 
+{/* FILTROS */}
 
 
 
-      {/* PAGINACION */}
+<div
 
-      <div className="
-        flex
-        justify-between
-        items-center
-        p-5
-        bg-gray-50
-        border-t
-      ">
+className="
+bg-white
+rounded-3xl
+border
+shadow-sm
+p-6
+mb-8
+"
 
+>
 
-      <span className="text-sm text-gray-600">
 
-      {resultadosFiltrados.length}
-      resultados encontrados
+<div
 
-      </span>
+className="
+flex
+items-center
+gap-2
+font-black
+text-blue-900
+mb-5
+"
 
+>
 
+<Filter/>
 
+Filtros de búsqueda
 
-      <div className="flex gap-2">
+</div>
 
 
-      <button
 
-      disabled={paginaActual===1}
 
-      onClick={()=>
-        setPaginaActual(
-          p=>p-1
-        )
-      }
+<div
 
-      className="
-        px-3
-        py-2
-        border
-        rounded-lg
-      "
+className="
+grid
+md:grid-cols-3
+gap-4
+"
 
-      >
+>
 
-      <ChevronLeft/>
 
-      </button>
 
+<div className="
+relative
+"
 
+>
 
-      <span className="
-        px-4
-        py-2
-        font-bold
-      ">
 
-      {paginaActual}/{totalPaginas}
+<Search
 
-      </span>
+size={20}
 
+className="
+absolute
+left-4
+top-3.5
+text-gray-400
+"
 
+/>
 
-      <button
 
-      disabled={
-        paginaActual===totalPaginas
-      }
 
-      onClick={()=>
-        setPaginaActual(
-          p=>p+1
-        )
-      }
+<input
 
-      className="
-        px-3
-        py-2
-        border
-        rounded-lg
-      "
 
-      >
+value={busqueda}
 
-      <ChevronRight/>
 
-      </button>
+onChange={
 
+e=>
 
+setBusqueda(
+e.target.value
+)
 
-      </div>
+}
 
 
-      </div>
+placeholder="Buscar documento..."
 
 
+className="
+w-full
+pl-12
+py-3
+rounded-xl
+border
+focus:ring-2
+focus:ring-blue-500
+outline-none
+"
 
-      </div>
+/>
 
 
-    </>
+</div>
 
-  );
+
+
+
+
+
+<select
+
+value={estadoFiltro}
+
+onChange={
+
+e=>
+
+setEstadoFiltro(
+e.target.value
+)
+
+}
+
+
+className="
+rounded-xl
+border
+px-4
+py-3
+font-semibold
+"
+
+>
+
+
+<option value="todos">
+
+Todos los estados
+
+</option>
+
+
+<option value="aprobado">
+
+🟢 Aprobados
+
+</option>
+
+
+<option value="critico">
+
+🔴 Críticos
+
+</option>
+
+
+
+</select>
+
+
+
+
+
+
+
+
+<select
+
+value={nivelFiltro}
+
+onChange={
+
+e=>
+
+setNivelFiltro(
+e.target.value
+)
+
+}
+
+
+className="
+rounded-xl
+border
+px-4
+py-3
+font-semibold
+"
+
+>
+
+
+<option value="todos">
+
+Todos los niveles
+
+</option>
+
+
+<option value="excelente">
+
+Excelente 90+
+
+</option>
+
+
+<option value="bueno">
+
+Bueno 70-89
+
+</option>
+
+
+<option value="regular">
+
+Regular 50-69
+
+</option>
+
+
+<option value="critico">
+
+Crítico 0-49
+
+</option>
+
+
+
+</select>
+
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* TABLA */}
+
+
+
+
+<div
+
+className="
+bg-white
+rounded-3xl
+border
+shadow-sm
+overflow-hidden
+"
+
+>
+
+
+<div className="overflow-x-auto">
+
+
+<table className="
+w-full
+min-w-[900px]
+">
+
+
+<thead
+
+className="
+bg-gradient-to-r
+from-blue-950
+to-indigo-700
+text-white
+"
+
+>
+
+
+<tr>
+
+
+<th className="p-5 text-left">
+
+Documento
+
+</th>
+
+
+<th className="p-5 text-center">
+
+Puntaje
+
+</th>
+
+
+<th className="p-5 text-center">
+
+Cumplimiento
+
+</th>
+
+
+<th className="p-5 text-center">
+
+Nivel
+
+</th>
+
+
+<th className="p-5 text-center">
+
+Acción
+
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+<tbody>
+
+
+{
+
+resultadosPaginados.map(
+
+(item,index)=>{
+
+
+const porcentaje =
+
+Number(
+item.puntaje?.porcentaje ?? 0
+);
+
+
+
+let nivel;
+
+
+if(porcentaje>=90)
+
+nivel={
+texto:"Excelente",
+color:"bg-green-100 text-green-700"
+};
+
+
+else if(porcentaje>=70)
+
+nivel={
+texto:"Bueno",
+color:"bg-blue-100 text-blue-700"
+};
+
+
+else if(porcentaje>=50)
+
+nivel={
+texto:"Regular",
+color:"bg-yellow-100 text-yellow-700"
+};
+
+
+else
+
+nivel={
+texto:"Crítico",
+color:"bg-red-100 text-red-700"
+};
+
+
+
+
+
+return (
+
+<tr
+
+key={`${item.nombre}-${index}`}
+
+className="
+border-t
+hover:bg-slate-50
+transition
+"
+
+>
+
+
+<td className="p-5">
+
+
+<div className="
+flex
+items-center
+gap-3
+">
+
+
+<div className="
+bg-blue-100
+text-blue-700
+p-2
+rounded-xl
+">
+
+<FileText size={18}/>
+
+</div>
+
+
+
+<span className="
+font-bold
+">
+
+{item.nombre}
+
+</span>
+
+
+
+</div>
+
+
+</td>
+
+
+
+
+
+
+<td className="
+p-5
+text-center
+font-black
+">
+
+
+{
+item.puntaje?.obtenido ?? 0
+}
+
+/
+
+{
+item.puntaje?.maximo ?? 0
+}
+
+
+</td>
+
+
+
+
+
+
+
+
+<td className="p-5">
+
+
+<div className="
+w-32
+mx-auto
+">
+
+
+<div className="
+flex
+justify-between
+text-xs
+font-bold
+mb-1
+">
+
+
+{porcentaje}%
+
+
+</div>
+
+
+
+<div className="
+h-2
+bg-gray-200
+rounded-full
+overflow-hidden
+">
+
+
+<div
+
+className={`
+h-full
+rounded-full
+
+${
+porcentaje>=70
+?
+"bg-green-500"
+:
+porcentaje>=50
+?
+"bg-yellow-500"
+:
+"bg-red-500"
+}
+
+`}
+
+style={{
+width:`${porcentaje}%`
+}}
+
+
+/>
+
+
+</div>
+
+
+</div>
+
+
+</td>
+
+
+
+
+
+
+
+
+
+<td className="p-5 text-center">
+
+
+<span
+
+className={`
+inline-flex
+items-center
+gap-2
+px-4
+py-2
+rounded-full
+font-bold
+${nivel.color}
+`}
+
+>
+
+
+{
+
+porcentaje>=70
+
+?
+
+<CheckCircle2 size={17}/>
+
+:
+
+<AlertTriangle size={17}/>
+
+}
+
+
+{nivel.texto}
+
+
+</span>
+
+
+</td>
+
+
+
+
+
+
+
+
+<td className="
+p-5
+text-center
+">
+
+
+<button
+
+onClick={()=>onSelect(item)}
+
+className="
+bg-[#1D3681]
+hover:bg-blue-900
+text-white
+px-4
+py-2
+rounded-xl
+flex
+items-center
+gap-2
+mx-auto
+font-bold
+"
+
+>
+
+
+<Eye size={18}/>
+
+
+Detalle
+
+
+</button>
+
+
+
+</td>
+
+
+
+
+
+
+</tr>
+
+
+);
+
+
+}
+
+)
+
+
+}
+
+
+
+</tbody>
+
+
+
+</table>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* PAGINACION */}
+
+
+
+<div
+
+className="
+flex
+justify-between
+items-center
+p-5
+bg-gray-50
+border-t
+"
+
+>
+
+
+<span className="
+text-sm
+text-gray-500
+"
+
+>
+
+{
+
+resultadosFiltrados.length
+
+}
+
+resultados encontrados
+
+</span>
+
+
+
+
+
+<div className="
+flex
+items-center
+gap-3
+">
+
+
+<button
+
+disabled={paginaActual===1}
+
+onClick={
+
+()=>setPaginaActual(
+p=>p-1
+)
+
+}
+
+className="
+p-2
+border
+rounded-lg
+"
+
+>
+
+<ChevronLeft/>
+
+</button>
+
+
+
+
+<span className="
+font-bold
+"
+
+>
+
+{paginaActual}/{totalPaginas}
+
+</span>
+
+
+
+
+
+<button
+
+disabled={
+paginaActual===totalPaginas
+}
+
+onClick={
+
+()=>setPaginaActual(
+p=>p+1
+)
+
+}
+
+className="
+p-2
+border
+rounded-lg
+"
+
+>
+
+<ChevronRight/>
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+</>
+
+);
+
 
 }

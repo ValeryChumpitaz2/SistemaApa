@@ -1,299 +1,755 @@
-import { FileDown, BarChart3 } from "lucide-react";
+import {
+  FileDown,
+  BarChart3
+} from "lucide-react";
+
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 
+
 export default function GeneralReportButton({
-  resultados = [],
+
+resultados=[]
+
 }) {
 
 
-  const generarReporte = () => {
 
-    if (!resultados.length) {
-      alert("No hay datos para exportar");
-      return;
-    }
+function obtenerPorcentaje(item){
 
 
-    const doc = new jsPDF();
+return Number(
 
+item?.puntaje?.porcentaje ??
 
-    const azul = [15,45,100];
+item?.puntaje?.porcentajeFinal ??
 
+item?.porcentaje ??
 
-    const fecha =
-      new Date().toLocaleDateString(
-        "es-PE"
-      );
+0
 
+);
 
-    const aprobados =
-      resultados.filter(
-        x =>
-          Number(
-            x.puntaje?.porcentaje ?? 0
-          ) >= 70
-      ).length;
 
+}
 
-    const revisar =
-      resultados.length -
-      aprobados;
 
 
-    const promedio =
-      resultados.reduce(
-        (a,b)=>
-          a+
-          Number(
-            b.puntaje?.porcentaje ?? 0
-          ),
-        0
-      ) /
-      resultados.length;
 
 
+function obtenerEstado(p){
 
-    // PORTADA
 
-    doc.setFillColor(
-      ...azul
-    );
+if(p>=90)
+return "Excelente";
 
-    doc.rect(
-      0,
-      0,
-      210,
-      45,
-      "F"
-    );
 
+if(p>=70)
+return "Bueno";
 
-    doc.setTextColor(
-      255,
-      255,
-      255
-    );
 
+if(p>=60)
+return "Regular";
 
-    doc.setFontSize(24);
 
+return "Riesgo";
 
-    doc.text(
-      "Reporte General",
-      105,
-      25,
-      {
-        align:"center"
-      }
-    );
 
+}
 
 
-    doc.setTextColor(
-      30,
-      30,
-      30
-    );
 
 
-    doc.setFontSize(12);
 
 
-    doc.text(
-      `Fecha: ${fecha}`,
-      20,
-      65
-    );
+const generarReporte=()=>{
 
 
-    doc.text(
-      `Total evaluaciones: ${resultados.length}`,
-      20,
-      75
-    );
+if(!resultados.length){
 
+alert(
+"No hay datos para generar reporte"
+);
 
+return;
 
-    autoTable(doc,{
+}
 
-      startY:90,
 
 
-      head:[
-        [
-          "Indicador",
-          "Resultado"
-        ]
-      ],
 
 
-      body:[
-        [
-          "Aprobados",
-          aprobados
-        ],
-        [
-          "Requieren revisión",
-          revisar
-        ],
-        [
-          "Promedio general",
-          `${promedio.toFixed(2)}%`
-        ]
-      ],
+const doc=new jsPDF();
 
 
-      theme:"grid",
 
+const azul=[
+29,
+54,
+129
+];
 
-      headStyles:{
-        fillColor:azul
-      }
 
-    });
 
+const fecha=
+new Date()
+.toLocaleDateString(
+"es-PE"
+);
 
 
-    // TABLA GENERAL
 
 
-    doc.addPage();
 
 
+// ================================
+// ESTADISTICAS
+// ================================
 
-    doc.setFontSize(18);
 
-    doc.setTextColor(
-      ...azul
-    );
+const porcentajes=
 
+resultados.map(
+obtenerPorcentaje
+);
 
-    doc.text(
-      "Resultados Generales",
-      20,
-      25
-    );
 
 
+const promedio=
 
-    const filas =
-      resultados.map(
-        item=>[
+porcentajes.reduce(
+(a,b)=>a+b,
+0
+)
+/
+resultados.length;
 
-          item.nombre ??
-          "Sin nombre",
 
-          `${item.puntaje?.obtenido ?? 0}/${
-            item.puntaje?.maximo ?? 0
-          }`,
 
-          `${item.puntaje?.porcentaje ?? 0}%`,
+const aprobados=
 
+porcentajes.filter(
+p=>p>=70
+)
+.length;
 
-          Number(
-            item.puntaje?.porcentaje ?? 0
-          ) >=70
-          ?
-          "APROBADO"
-          :
-          "REVISAR"
 
-        ]
-      );
 
+const riesgo=
 
+porcentajes.filter(
+p=>p<60
+)
+.length;
 
-    autoTable(doc,{
 
-      startY:35,
 
+const excelentes=
 
-      head:[[
-        "Documento",
-        "Puntaje",
-        "%",
-        "Estado"
-      ]],
+porcentajes.filter(
+p=>p>=90
+)
+.length;
 
 
-      body:filas,
 
+const buenos=
 
-      styles:{
-        fontSize:8
-      },
+porcentajes.filter(
+p=>p>=70 && p<90
+)
+.length;
 
 
-      headStyles:{
-        fillColor:[
-          15,
-          45,
-          100
-        ],
-        textColor:255
-      },
 
+const regulares=
 
-      alternateRowStyles:{
-        fillColor:[
-          235,
-          242,
-          255
-        ]
-      }
+porcentajes.filter(
+p=>p>=60 && p<70
+)
+.length;
 
-    });
 
 
+// ================================
+// PORTADA
+// ================================
 
-    doc.save(
-      "Reporte_General.pdf"
-    );
 
-  };
+doc.setFillColor(
+...azul
+);
 
 
+doc.rect(
+0,
+0,
+210,
+55,
+"F"
+);
 
-  return (
 
-    <button
-      onClick={generarReporte}
-      className="
-        group
-        relative
-        overflow-hidden
-        flex
-        items-center
-        gap-3
-        px-6
-        py-3
-        rounded-2xl
-        bg-gradient-to-r
-        from-blue-900
-        via-blue-700
-        to-indigo-600
-        text-white
-        font-bold
-        shadow-xl
-        hover:scale-105
-        transition
-      "
-    >
 
-      <BarChart3
-        size={22}
-        className="
-          group-hover:rotate-12
-          transition
-        "
-      />
+doc.setTextColor(
+255,
+255,
+255
+);
 
-      Reporte General PDF
 
 
-    </button>
+doc.setFontSize(26);
 
-  );
+
+doc.text(
+
+"VG SMART REVIEW",
+
+105,
+25,
+{
+align:"center"
+}
+
+);
+
+
+
+doc.setFontSize(15);
+
+
+doc.text(
+
+"Reporte General de Evaluación APA",
+
+105,
+40,
+{
+align:"center"
+}
+
+);
+
+
+
+
+
+doc.setTextColor(
+40,
+40,
+40
+);
+
+
+
+doc.setFontSize(12);
+
+
+
+doc.text(
+
+`Fecha de generación: ${fecha}`,
+
+20,
+
+75
+
+);
+
+
+
+doc.text(
+
+"Panel Docente",
+
+20,
+
+85
+
+);
+
+
+
+
+
+// ================================
+// RESUMEN
+// ================================
+
+
+
+doc.setFontSize(18);
+
+
+doc.setTextColor(
+...azul
+);
+
+
+
+doc.text(
+
+"Resumen académico",
+
+20,
+
+110
+
+);
+
+
+
+
+
+autoTable(doc,{
+
+
+startY:120,
+
+
+head:[
+
+[
+"Indicador",
+"Resultado"
+
+]
+
+],
+
+
+
+body:[
+
+[
+"Evaluaciones analizadas",
+resultados.length
+],
+
+
+[
+"Promedio general",
+`${promedio.toFixed(1)}%`
+],
+
+
+[
+"Aprobados",
+aprobados
+],
+
+
+[
+"Estudiantes en riesgo",
+riesgo
+],
+
+
+[
+"Excelente desempeño",
+excelentes
+]
+
+
+],
+
+
+
+theme:"grid",
+
+
+
+headStyles:{
+
+fillColor:azul,
+
+textColor:255
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+// ================================
+// DISTRIBUCION
+// ================================
+
+
+doc.addPage();
+
+
+
+doc.setFontSize(18);
+
+
+doc.setTextColor(
+...azul
+);
+
+
+
+doc.text(
+
+"Distribución académica",
+
+20,
+
+25
+
+);
+
+
+
+
+
+autoTable(doc,{
+
+startY:35,
+
+
+head:[
+
+[
+"Nivel",
+"Cantidad"
+]
+
+],
+
+
+
+body:[
+
+[
+"Excelente",
+excelentes
+],
+
+[
+"Bueno",
+buenos
+],
+
+[
+"Regular",
+regulares
+],
+
+[
+"Riesgo",
+riesgo
+]
+
+],
+
+
+theme:"grid",
+
+
+headStyles:{
+
+fillColor:azul,
+
+textColor:255
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+// ================================
+// RANKING
+// ================================
+
+
+
+const ranking=[
+
+...resultados
+
+]
+
+.sort(
+
+(a,b)=>
+
+obtenerPorcentaje(b)
+
+-
+
+obtenerPorcentaje(a)
+
+);
+
+
+
+
+
+doc.setFontSize(18);
+
+
+
+doc.text(
+
+"Ranking académico",
+
+20,
+
+130
+
+);
+
+
+
+
+
+
+
+autoTable(doc,{
+
+
+startY:140,
+
+
+head:[
+
+[
+"#",
+"Documento",
+"Puntaje",
+"Estado"
+
+]
+
+],
+
+
+
+body:
+
+ranking.map(
+
+(item,index)=>[
+
+
+index+1,
+
+
+item.nombre ??
+
+"Sin nombre",
+
+
+`${obtenerPorcentaje(item)}%`,
+
+
+obtenerEstado(
+obtenerPorcentaje(item)
+)
+
+
+]
+
+),
+
+
+
+theme:"striped",
+
+
+
+headStyles:{
+
+fillColor:azul,
+
+textColor:255
+
+},
+
+
+
+styles:{
+
+fontSize:9
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+// ================================
+// PIE
+// ================================
+
+
+const paginas=
+
+doc.internal.getNumberOfPages();
+
+
+
+for(
+let i=1;
+i<=paginas;
+i++
+){
+
+
+doc.setPage(i);
+
+
+
+doc.setFontSize(9);
+
+
+doc.setTextColor(
+120
+);
+
+
+
+doc.text(
+
+`VG Smart Review • Reporte académico • Página ${i}/${paginas}`,
+
+105,
+
+290,
+
+{
+align:"center"
+}
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+doc.save(
+
+"Reporte_General_VG_Smart_Review.pdf"
+
+);
+
+
+
+};
+
+
+
+
+
+
+
+
+return (
+
+
+<button
+
+
+onClick={generarReporte}
+
+
+className="
+
+group
+
+flex
+
+items-center
+
+gap-3
+
+px-6
+
+py-4
+
+rounded-2xl
+
+bg-gradient-to-r
+
+from-blue-900
+
+via-blue-700
+
+to-indigo-600
+
+text-white
+
+font-black
+
+shadow-xl
+
+hover:scale-105
+
+transition
+
+"
+
+
+>
+
+
+<BarChart3
+
+size={24}
+
+className="
+
+group-hover:rotate-12
+
+transition
+
+"
+
+/>
+
+
+Generar informe académico
+
+
+
+</button>
+
+
+
+);
+
+
 }
