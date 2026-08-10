@@ -3348,7 +3348,7 @@ export default function ConsolidacionPage() {
               )}
 
             </div>
-
+ 
           )}
 
         </div>
