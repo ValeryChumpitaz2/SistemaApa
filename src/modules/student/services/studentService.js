@@ -1,5 +1,5 @@
 const API_URL =
-"https://script.google.com/macros/s/AKfycbzMaqztPOM7juLb03r5cYaIGBkKuKNXGu4oqwrY8U59b09kTBn-36oD2mrzA9fwFxArgw/exec";
+"https://script.google.com/macros/s/AKfycbyApy8CSKLc4iO_iO-7USgszRQY7nDNvaGlZ97O1Ua9YbcZIAQ3rHjNJ2BKhX5zcrZyPw/exec";
 export async function analyzeDocument(url){
 
 

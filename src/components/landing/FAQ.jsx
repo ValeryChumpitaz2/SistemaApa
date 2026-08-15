@@ -1,177 +1,160 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import {
+  useState
+} from "react";
+
+import {
+  ChevronDown
+} from "lucide-react";
 
 
-const preguntas=[
+const preguntas = [
 
+  {
+    q: "¿Qué es VG Smart Review?",
+    a: "Es una plataforma institucional que analiza documentos académicos y genera resultados según criterios definidos."
+  },
 
-{
-q:"¿Qué es VG Smart Review?",
-a:"Es una plataforma que analiza documentos académicos y genera resultados según criterios definidos."
-},
+  {
+    q: "¿Quién puede utilizar la plataforma?",
+    a: "Los estudiantes pueden revisar sus trabajos antes de entregarlos y los docentes pueden analizar múltiples entregas."
+  },
 
+  {
+    q: "¿El docente debe revisar documento por documento?",
+    a: "No necesariamente. La plataforma permite procesar múltiples documentos para facilitar la revisión y el seguimiento académico."
+  },
 
-{
-q:"¿Quién puede utilizar la plataforma?",
-a:"Estudiantes para revisar sus trabajos y docentes para analizar múltiples entregas."
-},
+  {
+    q: "¿Qué criterios evalúa?",
+    a: "La evaluación puede considerar formato APA, estructura, conclusiones, referencias bibliográficas, glosario y otros criterios institucionales."
+  },
 
+  {
+    q: "¿La plataforma reemplaza la revisión del docente?",
+    a: "No. VG Smart Review funciona como una herramienta de apoyo para facilitar el análisis y la retroalimentación."
+  },
 
-{
-q:"¿El docente debe revisar documento por documento?",
-a:"No. Puede cargar una carpeta de Drive y obtener resultados de varios estudiantes."
-},
-
-
-{
-q:"¿Qué criterios evalúa?",
-a:"Formato, estructura, conclusiones, referencias bibliográficas y glosario."
-}
-
+  {
+    q: "¿Los resultados se generan automáticamente?",
+    a: "Sí. El sistema procesa el documento y genera un resultado de evaluación junto con los criterios y observaciones correspondientes."
+  }
 
 ];
 
 
+export default function FAQ() {
 
-export default function FAQ(){
+  const [open, setOpen] = useState(null);
 
 
-const [open,setOpen]=useState(null);
+  return (
 
+    <section className="py-24 bg-slate-50">
 
+      <div className="max-w-4xl mx-auto px-6">
 
-return (
+        <div className="text-center">
 
-<section className="
-py-20
-px-6
-bg-gray-50
-">
+          <span className="inline-flex rounded-full bg-blue-100 text-blue-700 px-4 py-2 text-sm font-semibold">
 
+            Preguntas frecuentes
 
-<div className="
-max-w-4xl
-mx-auto
-">
+          </span>
 
 
-<h2 className="
-text-4xl
-font-bold
-text-center
-mb-12
-">
+          <h2 className="mt-5 text-4xl md:text-5xl font-black text-slate-900">
 
-Preguntas frecuentes
+            Todo lo que necesitas saber
 
-</h2>
+          </h2>
 
 
+          <p className="mt-5 text-lg text-slate-600">
 
+            Resolvemos las preguntas más frecuentes sobre
+            VG Smart Review y su funcionamiento.
 
-<div className="space-y-4">
+          </p>
 
+        </div>
 
-{
 
-preguntas.map((item,index)=>(
+        <div className="mt-12 space-y-4">
 
+          {preguntas.map((item, index) => (
 
-<div
+            <div
+              key={index}
+              className="
+                bg-white
+                rounded-2xl
+                border
+                border-slate-200
+                overflow-hidden
+              "
+            >
 
-key={index}
+              <button
+                onClick={() =>
+                  setOpen(
+                    open === index
+                      ? null
+                      : index
+                  )
+                }
+                className="
+                  w-full
+                  px-6
+                  py-5
+                  flex
+                  justify-between
+                  items-center
+                  text-left
+                  font-bold
+                  text-slate-900
+                "
+              >
 
-className="
-bg-white
-rounded-2xl
-shadow-sm
-border
-overflow-hidden
-"
+                <span>
+                  {item.q}
+                </span>
 
 
->
+                <ChevronDown
+                  size={20}
+                  className={`
+                    transition
+                    ${
+                      open === index
+                        ? "rotate-180 text-blue-600"
+                        : ""
+                    }
+                  `}
+                />
 
+              </button>
 
-<button
 
-onClick={()=>setOpen(
-open===index ? null : index
-)}
+              {open === index && (
 
-className="
-w-full
-p-6
-flex
-justify-between
-items-center
-text-left
-font-bold
-"
+                <div className="px-6 pb-6 text-slate-600 leading-7">
 
+                  {item.a}
 
->
+                </div>
 
+              )}
 
-{item.q}
+            </div>
 
+          ))}
 
-<ChevronDown
+        </div>
 
-className={`
-transition
-${open===index ? "rotate-180":""}
-`}
+      </div>
 
-/>
+    </section>
 
-
-</button>
-
-
-
-
-
-{
-
-open===index && (
-
-<p className="
-px-6
-pb-6
-text-gray-600
-">
-
-{item.a}
-
-</p>
-
-)
-
-
-}
-
-
-
-</div>
-
-
-))
-
-
-}
-
-
-</div>
-
-
-</div>
-
-
-</section>
-
-
-);
-
+  );
 
 }

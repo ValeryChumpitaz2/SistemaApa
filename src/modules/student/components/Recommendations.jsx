@@ -1,171 +1,376 @@
 import {
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 
 
 export default function Recommendations({
+
   criterios = []
-}){
 
+}) {
 
-const pendientes =
-criterios.filter(
-(item)=>!item.cumple
-);
 
+  // ==================================================
+  // CRITERIOS QUE NECESITAN ATENCIÓN
+  // ==================================================
 
+  const pendientes = criterios.filter(
+    item => !item.cumple
+  );
 
-return (
 
-<div
-className="
-bg-white
-rounded-3xl
-border
-shadow-sm
-p-6
-"
->
+  // ==================================================
+  // TODOS CUMPLEN
+  // ==================================================
 
+  const todoCorrecto =
+    pendientes.length === 0;
 
-<div className="
-flex
-items-center
-gap-3
-mb-5
-">
 
-<div
-className="
-bg-yellow-100
-text-yellow-700
-p-3
-rounded-xl
-"
->
+  // ==================================================
+  // RENDER
+  // ==================================================
 
-<AlertTriangle size={24}/>
+  return (
 
-</div>
+    <div className="
+      bg-white
+      dark:bg-slate-900
+      rounded-3xl
+      border
+      border-gray-200
+      dark:border-slate-800
+      shadow-sm
+      p-6
+    ">
 
 
-<h3
-className="
-text-xl
-font-black
-text-gray-800
-"
->
+      {/* ==================================================
+          CABECERA
+      ================================================== */}
 
-Recomendaciones para mejorar
+      <div className="
+        flex
+        items-center
+        gap-3
+        mb-5
+      ">
 
-</h3>
 
+        <div className="
+          bg-yellow-100
+          dark:bg-yellow-900/30
+          text-yellow-700
+          dark:text-yellow-400
+          p-3
+          rounded-xl
+        ">
 
-</div>
+          <AlertTriangle size={24}/>
 
+        </div>
 
 
+        <div>
 
+          <h3 className="
+            text-xl
+            font-black
+            text-gray-800
+            dark:text-white
+          ">
 
-{
-pendientes.length === 0 ?
+            Recomendaciones para mejorar
 
+          </h3>
 
-<div
-className="
-flex
-items-center
-gap-3
-bg-green-50
-text-green-700
-p-4
-rounded-xl
-"
->
 
-<CheckCircle/>
+          <p className="
+            text-sm
+            text-gray-500
+            dark:text-gray-400
+            mt-1
+          ">
 
-<p>
-Excelente. Todos los criterios cumplen.
-</p>
+            Aspectos que requieren atención en el documento.
 
+          </p>
 
-</div>
+        </div>
 
 
+      </div>
 
-:
 
 
-<div className="space-y-3">
+      {/* ==================================================
+          TODO CORRECTO
+      ================================================== */}
 
+      {
 
-{
-pendientes.map((item,index)=>(
+        todoCorrecto
 
+          ?
 
-<div
+          (
 
-key={index}
+            <div className="
+              flex
+              items-center
+              gap-3
+              bg-green-50
+              dark:bg-green-900/20
+              text-green-700
+              dark:text-green-400
+              border
+              border-green-200
+              dark:border-green-900
+              p-4
+              rounded-2xl
+            ">
 
-className="
-bg-gray-50
-rounded-xl
-p-4
-border
-"
 
->
+              <CheckCircle
+                size={22}
+                className="shrink-0"
+              />
 
 
-<p
-className="
-font-bold
-text-gray-800
-"
->
+              <div>
 
-{item.criterio}
+                <p className="
+                  font-bold
+                ">
 
-</p>
+                  ¡Excelente!
 
+                </p>
 
-<p
-className="
-text-gray-500
-text-sm
-mt-1
-"
->
 
-Debe corregirse este aspecto para mejorar el puntaje del documento.
+                <p className="
+                  text-sm
+                  mt-1
+                ">
 
-</p>
+                  Todos los criterios cumplen
+                  correctamente.
 
+                </p>
 
-</div>
+              </div>
 
 
-))
+            </div>
 
+          )
 
-}
 
+          :
 
+          (
 
-</div>
+            <div className="space-y-3">
 
 
-}
+              {
 
+                pendientes.map(
+                  (item, index) => {
 
 
-</div>
+                    const puntaje =
+                      Number(
+                        item.puntaje || 0
+                      );
 
 
-);
+                    const maximo =
+                      Number(
+                        item.maximo || 0
+                      );
 
+
+                    const noCumple =
+                      puntaje === 0;
+
+
+                    return (
+
+                      <div
+
+                        key={index}
+
+                        className={`
+                          rounded-2xl
+                          p-4
+                          border
+
+                          ${
+                            noCumple
+
+                              ?
+
+                              `
+                                bg-red-50
+                                dark:bg-red-900/20
+                                border-red-200
+                                dark:border-red-900
+                              `
+
+                              :
+
+                              `
+                                bg-yellow-50
+                                dark:bg-yellow-900/20
+                                border-yellow-200
+                                dark:border-yellow-900
+                              `
+                          }
+
+                        `}
+
+                      >
+
+
+                        {/* ==================================================
+                            CABECERA DE RECOMENDACIÓN
+                        ================================================== */}
+
+                        <div className="
+                          flex
+                          items-start
+                          gap-3
+                        ">
+
+
+                          {
+
+                            noCumple
+
+                              ?
+
+                              (
+
+                                <XCircle
+                                  size={20}
+                                  className="
+                                    text-red-500
+                                    shrink-0
+                                    mt-0.5
+                                  "
+                                />
+
+                              )
+
+                              :
+
+                              (
+
+                                <AlertTriangle
+                                  size={20}
+                                  className="
+                                    text-yellow-600
+                                    shrink-0
+                                    mt-0.5
+                                  "
+                                />
+
+                              )
+
+                          }
+
+
+                          <div className="flex-1">
+
+
+                            <div className="
+                              flex
+                              justify-between
+                              items-start
+                              gap-3
+                            ">
+
+
+                              <p className="
+                                font-bold
+                                text-gray-800
+                                dark:text-white
+                              ">
+
+                                {item.criterio}
+
+                              </p>
+
+
+                              <span className="
+                                text-xs
+                                font-bold
+                                text-gray-500
+                                dark:text-gray-400
+                                whitespace-nowrap
+                              ">
+
+                                {puntaje} / {maximo}
+
+                              </span>
+
+
+                            </div>
+
+
+
+                            {/* ==================================================
+                                RECOMENDACIÓN REAL
+                            ================================================== */}
+
+                            <p className="
+                              text-sm
+                              text-gray-600
+                              dark:text-gray-300
+                              mt-2
+                              leading-relaxed
+                            ">
+
+                              {
+
+                                item.recomendacion ||
+
+                                "Revisar los puntos pendientes de este criterio."
+
+                              }
+
+                            </p>
+
+
+                          </div>
+
+
+                        </div>
+
+
+                      </div>
+
+                    );
+
+                  }
+
+                )
+
+              }
+
+
+            </div>
+
+          )
+
+      }
+
+
+    </div>
+
+  );
 
 }

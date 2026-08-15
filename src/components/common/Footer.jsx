@@ -1,91 +1,41 @@
-import { FileCheck } from "lucide-react";
+export default function Footer() {
 
+  return (
 
-export default function Footer(){
+    <footer className="bg-slate-950 text-white">
 
-  return(
+      <div className="max-w-7xl mx-auto px-6 py-12">
 
-    <footer className="
-      bg-slate-950
-      text-white
-      py-10
-    ">
-
-      <div className="
-        max-w-7xl
-        mx-auto
-        px-6
-        flex
-        flex-col
-        md:flex-row
-        justify-between
-        items-center
-        gap-6
-      ">
-
-
-        {/* Marca */}
-
-        <div className="
-          flex
-          items-center
-          gap-3
-        ">
-
-          <div className="
-            bg-blue-600
-            p-2
-            rounded-xl
-          ">
-
-            <FileCheck size={22}/>
-
-          </div>
-
+        <div className="flex flex-col md:flex-row justify-between gap-8">
 
           <div>
 
-            <h3 className="
-              font-bold
-              text-lg
-            ">
-              APA Reviewer
-            </h3>
+            <h2 className="text-xl font-black">
+              VG Smart Review
+            </h2>
 
-
-            <p className="
-              text-sm
-              text-slate-400
-            ">
-              Sistema institucional de revisión académica
+            <p className="mt-2 text-slate-400 text-sm">
+              Sistema institucional de revisión académica.
             </p>
 
           </div>
 
 
+          <div className="text-sm text-slate-400">
+
+            <p>
+              © 2026 Valle Grande.
+            </p>
+
+            <p className="mt-1">
+              Plataforma académica.
+            </p>
+
+          </div>
+
         </div>
 
-
-
-
-        {/* Copyright */}
-
-        <p className="
-          text-sm
-          text-slate-400
-          text-center
-        ">
-
-          © 2026 APA Reviewer.
-          Todos los derechos reservados.
-          <br className="md:hidden"/>
-          {" "}Valery Chumpitaz
-
-        </p>
-
-
       </div>
-
 
     </footer>
 

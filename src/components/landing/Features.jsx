@@ -1,141 +1,165 @@
 import {
- FileText,
- BookOpen,
- BarChart3,
- Layers
+  FileText,
+  BookOpen,
+  BarChart3,
+  Layers
 } from "lucide-react";
 
 
-const data=[
+const data = [
 
-{
-icon:<FileText/>,
-title:"Análisis documental",
-text:"Procesa archivos Word, PDF y enlaces institucionales."
-},
+  {
+    icon: <FileText />,
+    title: "Análisis documental",
+    text: "Procesa archivos Word, PDF y enlaces institucionales."
+  },
 
-{
-icon:<BookOpen/>,
-title:"Validación APA",
-text:"Comprueba criterios definidos por el instituto."
-},
+  {
+    icon: <BookOpen />,
+    title: "Validación APA",
+    text: "Comprueba los criterios académicos definidos por la institución."
+  },
 
-{
-icon:<BarChart3/>,
-title:"Reportes claros",
-text:"Resultados fáciles de interpretar."
-},
+  {
+    icon: <BarChart3 />,
+    title: "Reportes claros",
+    text: "Obtén resultados fáciles de interpretar y recomendaciones concretas."
+  },
 
-{
-icon:<Layers/>,
-title:"Revisión masiva",
-text:"Evalúa grupos completos de estudiantes."
-}
+  {
+    icon: <Layers />,
+    title: "Revisión masiva",
+    text: "Evalúa grupos completos de estudiantes de forma rápida y organizada."
+  }
 
 ];
 
 
-export default function Features(){
+export default function Features() {
 
-return(
+  return (
 
-<section
-id="features"
-className="
-py-24
-bg-gray-50
-"
->
+    <section
+      id="features"
+      className="py-24 bg-white"
+    >
 
+      <div className="max-w-7xl mx-auto px-6">
 
-<h2 className="
-text-4xl
-font-bold
-text-center
-text-blue-950
-">
-Todo lo que necesitas
-</h2>
+        <div className="text-center max-w-3xl mx-auto">
 
-
-<p className="
-text-center
-text-gray-500
-mt-3
-">
-Una herramienta diseñada para estudiantes y docentes
-</p>
+          <span
+            className="
+              inline-flex
+              rounded-full
+              bg-blue-100
+              text-blue-700
+              px-4
+              py-2
+              text-sm
+              font-semibold
+            "
+          >
+            Todo en un solo lugar
+          </span>
 
 
-
-<div className="
-max-w-6xl
-mx-auto
-mt-12
-grid
-md:grid-cols-4
-gap-6
-px-8
-">
-
-
-{
-data.map((item,index)=>(
-
-<div
-key={index}
-className="
-bg-white
-p-7
-rounded-2xl
-shadow-sm
-hover:shadow-xl
-transition
-"
->
+          <h2
+            className="
+              mt-5
+              text-4xl
+              md:text-5xl
+              font-black
+              text-slate-900
+            "
+          >
+            Una evaluación más clara
+          </h2>
 
 
-<div className="
-bg-blue-100
-text-blue-900
-w-fit
-p-3
-rounded-xl
-">
+          <p className="mt-5 text-lg text-slate-600">
 
-{item.icon}
+            Obtén información útil para mejorar tus documentos
+            académicos antes de presentarlos.
 
-</div>
+          </p>
+
+        </div>
 
 
-<h3 className="
-mt-5
-font-bold
-text-xl
-">
-{item.title}
-</h3>
+        <div
+          className="
+            mt-16
+            grid
+            md:grid-cols-2
+            lg:grid-cols-4
+            gap-6
+          "
+        >
+
+          {data.map((item, index) => (
+
+            <div
+              key={index}
+              className="
+                group
+                bg-white
+                p-7
+                rounded-3xl
+                border
+                border-slate-200
+                shadow-sm
+                hover:-translate-y-2
+                hover:shadow-xl
+                hover:border-blue-300
+                transition-all
+              "
+            >
+
+              <div
+                className="
+                  bg-blue-100
+                  text-blue-700
+                  w-14
+                  h-14
+                  rounded-2xl
+                  flex
+                  items-center
+                  justify-center
+                  group-hover:bg-blue-600
+                  group-hover:text-white
+                  transition
+                "
+              >
+
+                {item.icon}
+
+              </div>
 
 
-<p className="
-mt-3
-text-gray-600
-">
-{item.text}
-</p>
+              <h3 className="mt-6 text-xl font-bold text-slate-900">
+
+                {item.title}
+
+              </h3>
 
 
-</div>
+              <p className="mt-3 text-slate-600 leading-7">
 
-))
-}
+                {item.text}
 
+              </p>
 
-</div>
+            </div>
 
+          ))}
 
-</section>
+        </div>
 
-)
+      </div>
+
+    </section>
+
+  );
 
 }

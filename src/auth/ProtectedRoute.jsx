@@ -1,18 +1,14 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
-
-export default function ProtectedRoute({children, rol}){
-
+export default function ProtectedRoute({ children, rol }) {
 
   const { user } = useAuth();
 
-
   console.log("PROTECTED USER:", user);
 
-
-
-  if(!user){
+  // No hay sesión
+  if (!user) {
 
     return (
       <Navigate
@@ -23,12 +19,11 @@ export default function ProtectedRoute({children, rol}){
 
   }
 
-
-
-  if(
+  // Hay sesión pero no tiene el rol requerido
+  if (
     rol &&
-    user.rol !== rol
-  ){
+    user.rol?.toUpperCase() !== rol.toUpperCase()
+  ) {
 
     return (
       <Navigate
@@ -38,9 +33,6 @@ export default function ProtectedRoute({children, rol}){
     );
 
   }
-
-
 
   return children;
-
 }

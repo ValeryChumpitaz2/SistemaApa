@@ -1,271 +1,596 @@
 import {
-useState
+  useState
 } from "react";
 
 
 import {
-useNavigate
+  useNavigate
 } from "react-router-dom";
 
 
 import {
-useAuth
+  useAuth
 } from "../../auth/AuthContext";
 
 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  AlertCircle,
+  Loader2
+} from "lucide-react";
+
 
 const API =
+  "https://script.google.com/macros/s/AKfycbxwziMsLeGmXj5EJ_8CfjVMGH4Jm5c-U2X5JB41ixfhfm88wEUS9ZZ4cfUaBBXevrAWzg/exec";
 
-"https://script.google.com/macros/s/AKfycbxMRbtzWBNqDtmySn3XMtOY6bw9dotPi4hX4IcJ5wRvu_W2Jwl1h7IRyHQqcEzyC6NkjQ/exec"
+
 export default function TeacherLogin(){
 
+  const navigate = useNavigate();
 
-const navigate = useNavigate();
+  const { login } = useAuth();
 
 
-const {login} = useAuth();
+  const [correo,setCorreo] =
+    useState("");
 
+  const [password,setPassword] =
+    useState("");
 
+  const [mostrarPassword,setMostrarPassword] =
+    useState(false);
 
-const [usuario,setUsuario]=useState("");
+  const [error,setError] =
+    useState("");
 
-const [password,setPassword]=useState("");
+  const [cargando,setCargando] =
+    useState(false);
 
-const [error,setError]=useState("");
 
 
+  async function ingresar(){
 
+    setError("");
 
 
-async function ingresar(){
+    if(!correo.trim()){
 
+      setError(
+        "Ingrese su correo institucional."
+      );
 
-try{
+      return;
 
-const response = await fetch(API,{
+    }
 
-  method:"POST",
 
-  body:new URLSearchParams({
+    if(!password){
 
-    accion:"loginDocente",
+      setError(
+        "Ingrese su contraseña."
+      );
 
-    usuario,
+      return;
 
-    password
+    }
 
-  })
 
-});
+    setCargando(true);
 
 
+    try{
 
-const respuesta =
-await response.json();
+      const response =
+        await fetch(API,{
 
+          method:"POST",
 
+          body:new URLSearchParams({
 
+            accion:"loginDocente",
 
-console.log(respuesta);
+            correo:
+              correo.trim().toLowerCase(),
 
+            password
 
+          })
 
+        });
 
-if(!respuesta.ok){
 
+      const respuesta =
+        await response.json();
 
-setError(
-respuesta.mensaje
-);
 
+      console.log(
+        "RESPUESTA LOGIN DOCENTE:",
+        respuesta
+      );
 
-return;
 
+      if(!respuesta.ok){
 
-}
+        setError(
+          respuesta.mensaje ||
+          "Correo o contraseña incorrectos."
+        );
 
+        return;
 
+      }
 
 
-const docente={
+      const docente = {
 
+        nombre:
+          respuesta.data.nombre,
 
-nombre:
-respuesta.data.nombre,
+        correo:
+          respuesta.data.correo ||
+          correo.trim().toLowerCase(),
 
+        codigo:
+          respuesta.data.codigo || "",
 
-rol:
-respuesta.data.rol
+        rol:
+          respuesta.data.rol
 
+      };
 
-};
 
+      login(docente);
 
 
+      localStorage.setItem(
+        "usuario",
+        JSON.stringify(docente)
+      );
 
-login(docente);
 
+      navigate(
+        "/teacher/dashboard"
+      );
 
 
-localStorage.setItem(
+    }
+    catch(error){
 
-"usuario",
+      console.error(
+        error
+      );
 
-JSON.stringify(docente)
+      setError(
+        "No se pudo conectar con el servidor."
+      );
 
-);
+    }
+    finally{
 
+      setCargando(false);
 
+    }
 
+  }
 
-navigate(
-"/teacher/dashboard"
-);
 
 
+  return (
 
+    <div className="w-full">
 
-}
 
-catch(error){
+      {/* TITULO */}
 
+      <div className="mb-8">
 
-console.error(error);
+        <p className="
+          text-sm
+          font-semibold
+          text-blue-600
+          mb-2
+        ">
 
+          Acceso docente
 
-setError(
-"Error conectando con servidor"
-);
+        </p>
 
 
-}
+        <h1 className="
+          text-3xl
+          font-black
+          text-slate-900
+          tracking-tight
+        ">
 
+          Portal Docente
 
+        </h1>
 
-}
 
+        <p className="
+          text-sm
+          text-slate-500
+          mt-2
+        ">
 
+          Ingresa con tu cuenta institucional
+          de Valle Grande.
 
+        </p>
 
+      </div>
 
-return(
 
 
-<div className="space-y-4">
+      {/* FORMULARIO */}
 
+      <div className="space-y-5">
 
-<input
 
+        {/* CORREO */}
 
-className="
-w-full
-border
-rounded-xl
-p-3
-"
+        <div>
 
+          <label className="
+            block
+            text-sm
+            font-semibold
+            text-slate-700
+            mb-2
+          ">
 
-placeholder="Usuario docente"
+            Correo institucional
 
+          </label>
 
-value={usuario}
 
+          <div className="relative">
 
-onChange={
-e=>setUsuario(e.target.value)
-}
+            <Mail
+              size={18}
+              className="
+                absolute
+                left-4
+                top-1/2
+                -translate-y-1/2
+                text-slate-400
+                pointer-events-none
+              "
+            />
 
 
-/>
+            <input
 
+              type="email"
 
+              value={correo}
 
-<input
+              onChange={e =>
+                setCorreo(e.target.value)
+              }
 
+              onKeyDown={e => {
 
-className="
-w-full
-border
-rounded-xl
-p-3
-"
+                if(e.key === "Enter"){
+                  ingresar();
+                }
 
+              }}
 
-type="password"
+              placeholder="correo@vallegrande.edu.pe"
 
+              autoComplete="email"
 
-placeholder="Contraseña"
+              className="
+                w-full
+                h-12
+                rounded-xl
+                border
+                border-slate-200
+                bg-slate-50
+                pl-11
+                pr-4
+                text-sm
+                text-slate-800
+                placeholder:text-slate-400
+                outline-none
+                transition
+                focus:bg-white
+                focus:border-blue-600
+                focus:ring-4
+                focus:ring-blue-600/10
+              "
 
+            />
 
-value={password}
+          </div>
 
+        </div>
 
-onChange={
-e=>setPassword(e.target.value)
-}
 
 
-/>
+        {/* PASSWORD */}
 
+        <div>
 
+          <div className="
+            flex
+            items-center
+            justify-between
+            mb-2
+          ">
 
+            <label className="
+              text-sm
+              font-semibold
+              text-slate-700
+            ">
 
-{
+              Contraseña
 
-error &&
+            </label>
 
-<p className="
-text-red-600
-text-sm
-">
+          </div>
 
-{error}
 
-</p>
+          <div className="relative">
 
+            <Lock
+              size={18}
+              className="
+                absolute
+                left-4
+                top-1/2
+                -translate-y-1/2
+                text-slate-400
+                pointer-events-none
+              "
+            />
 
-}
 
+            <input
 
+              type={
+                mostrarPassword
+                  ? "text"
+                  : "password"
+              }
 
+              value={password}
 
-<button
+              onChange={e =>
+                setPassword(e.target.value)
+              }
 
+              onKeyDown={e => {
 
-onClick={ingresar}
+                if(e.key === "Enter"){
+                  ingresar();
+                }
 
+              }}
 
-className="
+              placeholder="Ingresa tu contraseña"
 
-w-full
+              autoComplete="current-password"
 
-bg-blue-700
+              className="
+                w-full
+                h-12
+                rounded-xl
+                border
+                border-slate-200
+                bg-slate-50
+                pl-11
+                pr-12
+                text-sm
+                text-slate-800
+                placeholder:text-slate-400
+                outline-none
+                transition
+                focus:bg-white
+                focus:border-blue-600
+                focus:ring-4
+                focus:ring-blue-600/10
+              "
 
-text-white
+            />
 
-rounded-xl
 
-p-3
+            <button
 
-hover:bg-blue-800
+              type="button"
 
-"
+              onClick={() =>
+                setMostrarPassword(
+                  !mostrarPassword
+                )
+              }
 
+              className="
+                absolute
+                right-2
+                top-1/2
+                -translate-y-1/2
+                w-9
+                h-9
+                rounded-lg
+                flex
+                items-center
+                justify-center
+                text-slate-400
+                hover:text-blue-600
+                hover:bg-blue-50
+                transition
+              "
 
->
+              aria-label={
+                mostrarPassword
+                  ? "Ocultar contraseña"
+                  : "Mostrar contraseña"
+              }
 
+            >
 
-Ingresar como docente
+              {mostrarPassword
+                ?
+                <EyeOff size={18}/>
+                :
+                <Eye size={18}/>
+              }
 
+            </button>
 
-</button>
+          </div>
 
+        </div>
 
 
-</div>
 
+        {/* ERROR */}
 
-);
+        {error && (
 
+          <div className="
+            flex
+            items-start
+            gap-3
+            rounded-xl
+            border
+            border-red-200
+            bg-red-50
+            p-3
+          ">
+
+            <AlertCircle
+              size={18}
+              className="
+                text-red-500
+                shrink-0
+                mt-0.5
+              "
+            />
+
+            <p className="
+              text-sm
+              text-red-700
+              font-medium
+            ">
+
+              {error}
+
+            </p>
+
+          </div>
+
+        )}
+
+
+
+        {/* BOTON */}
+
+        <button
+
+          type="button"
+
+          onClick={ingresar}
+
+          disabled={cargando}
+
+          className="
+            w-full
+            h-12
+            rounded-xl
+            bg-blue-700
+            hover:bg-blue-800
+            disabled:bg-blue-400
+            text-white
+            font-bold
+            flex
+            items-center
+            justify-center
+            gap-2
+            transition
+            shadow-lg
+            shadow-blue-700/20
+            hover:-translate-y-0.5
+            active:translate-y-0
+          "
+
+        >
+
+          {cargando ? (
+
+            <>
+
+              <Loader2
+                size={18}
+                className="animate-spin"
+              />
+
+              Verificando...
+
+            </>
+
+          ) : (
+
+            <>
+
+              <LogIn size={18}/>
+
+              Ingresar
+
+            </>
+
+          )}
+
+        </button>
+
+
+      </div>
+
+
+
+      {/* INFORMACION */}
+
+      <div className="
+        mt-7
+        pt-5
+        border-t
+        border-slate-100
+        text-center
+      ">
+
+        <p className="
+          text-xs
+          text-slate-400
+        ">
+
+          Acceso exclusivo para docentes
+
+        </p>
+
+
+        <p className="
+          text-xs
+          text-slate-400
+          mt-1
+        ">
+
+          Valle Grande · VG Smart Review
+
+        </p>
+
+      </div>
+
+
+    </div>
+
+  );
 
 }

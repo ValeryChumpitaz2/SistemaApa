@@ -1,9 +1,110 @@
 import {
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
+import { useState } from "react";
+
+
+// ==================================================
+// RESUMEN DEL CRITERIO
+// ==================================================
+
+function obtenerResumenCriterio(criterio) {
+
+  // -----------------------------------------------
+  // CONCLUSIONES
+  // -----------------------------------------------
+
+  if (
+    criterio.criterio === "Conclusiones"
+  ) {
+
+    const calculo =
+      criterio.detalles?.find(
+        detalle =>
+          detalle.titulo === "Cálculo requerido"
+      );
+
+
+    if (calculo) {
+
+      return calculo.descripcion;
+
+    }
+
+
+    return "Se verificaron las conclusiones requeridas.";
+
+  }
+
+
+  // -----------------------------------------------
+  // REFERENCIAS
+  // -----------------------------------------------
+
+  if (
+    criterio.criterio ===
+    "Referencias bibliográficas"
+  ) {
+
+    return (
+      "Se verificó la cantidad y existencia " +
+      "de referencias bibliográficas."
+    );
+
+  }
+
+
+  // -----------------------------------------------
+  // GLOSARIO
+  // -----------------------------------------------
+
+  if (
+    criterio.criterio === "Glosario"
+  ) {
+
+    return (
+      "Se verificó la existencia y cantidad " +
+      "de términos del glosario."
+    );
+
+  }
+
+
+  // -----------------------------------------------
+  // FORMATO
+  // -----------------------------------------------
+
+  if (
+    criterio.criterio ===
+    "Nombre archivo, estructura y formato institucional"
+  ) {
+
+    return (
+      "Se verificó la estructura y el formato " +
+      "institucional del documento."
+    );
+
+  }
+
+
+  // -----------------------------------------------
+  // RESUMEN POR DEFECTO
+  // -----------------------------------------------
+
+  return "Criterio evaluado correctamente.";
+
+}
+
+
+
+// ==================================================
+// COMPONENTE
+// ==================================================
 
 export default function CriteriaList({
 
@@ -12,411 +113,715 @@ export default function CriteriaList({
 }) {
 
 
-return (
+  // ==================================================
+  // ESTADO DE DETALLES ABIERTOS
+  // ==================================================
 
-<div className="space-y-5">
+  const [
+    detallesAbiertos,
+    setDetallesAbiertos
+  ] = useState({});
 
 
-<h2 className="
-text-2xl
-font-black
-text-gray-800
-dark:text-white
-">
+  // ==================================================
+  // ABRIR / CERRAR DETALLE
+  // ==================================================
 
-Detalle de evaluación
+  const toggleDetalle = (index) => {
 
-</h2>
+    setDetallesAbiertos(prev => ({
 
+      ...prev,
 
+      [index]: !prev[index]
 
-{
-criterios.map((criterio,index)=>{
+    }));
 
+  };
 
-const cumpleTotal =
-criterio.puntaje >= criterio.maximo;
 
+  // ==================================================
+  // RENDER
+  // ==================================================
 
+  return (
 
-const noCumple =
-criterio.puntaje === 0;
+    <div className="space-y-4">
 
 
+      {/* ==================================================
+          TÍTULO
+      ================================================== */}
 
-const estadoColor =
+      <h2 className="
+        text-2xl
+        font-black
+        text-gray-800
+        dark:text-white
+        mb-5
+      ">
 
-cumpleTotal
+        Detalle de evaluación
 
-?
+      </h2>
 
-"bg-green-100 text-green-700"
 
-:
 
-noCumple
+      {/* ==================================================
+          CRITERIOS
+      ================================================== */}
 
-?
+      {
 
-"bg-red-100 text-red-700"
+        criterios.map((criterio, index) => {
 
-:
 
-"bg-yellow-100 text-yellow-700";
+          // ==================================================
+          // PUNTAJE
+          // ==================================================
 
+          const puntaje =
+            Number(
+              criterio.puntaje || 0
+            );
 
 
-const EstadoIcono =
+          const maximo =
+            Number(
+              criterio.maximo || 0
+            );
 
-cumpleTotal
 
-?
+          // ==================================================
+          // ESTADO
+          // ==================================================
 
-CheckCircle
+          const cumpleTotal =
+            puntaje >= maximo - 0.001;
 
-:
 
-noCumple
+          const noCumple =
+            puntaje <= 0;
 
-?
 
-XCircle
+          const estadoColor =
 
-:
+            cumpleTotal
 
-AlertTriangle;
+              ?
 
+              "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
 
+              :
 
-const estadoTexto =
+              noCumple
 
-cumpleTotal
+                ?
 
-?
+                "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
 
-"Cumple"
+                :
 
-:
+                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
 
-noCumple
 
-?
+          const EstadoIcono =
 
-"No cumple"
+            cumpleTotal
 
-:
+              ?
 
-"Cumple parcialmente";
+              CheckCircle
 
+              :
 
+              noCumple
 
+                ?
 
-return (
+                XCircle
 
-<div
+                :
 
-key={index}
+                AlertTriangle;
 
-className="
-bg-white
-dark:bg-slate-900
-border
-dark:border-slate-800
-rounded-3xl
-p-6
-shadow-sm
-"
 
->
+          const estadoTexto =
 
+            cumpleTotal
 
+              ?
 
-{/* CABECERA */}
+              "Cumple"
 
-<div className="
-flex
-justify-between
-items-start
-gap-4
-">
+              :
 
+              noCumple
 
-<div>
+                ?
 
+                "No cumple"
 
-<h3 className="
-font-black
-text-lg
-dark:text-white
-">
+                :
 
-{criterio.criterio}
+                "Cumple parcialmente";
 
-</h3>
 
+          // ==================================================
+          // DETALLE ABIERTO
+          // ==================================================
 
+          const abierto =
+            !!detallesAbiertos[index];
 
-<p className="
-text-gray-500
-text-sm
-mt-2
-">
 
-Puntuación:
+          // ==================================================
+          // RESUMEN
+          // ==================================================
 
-<strong>
-{" "}
-{criterio.puntaje}
-</strong>
+          const resumen =
+            obtenerResumenCriterio(
+              criterio
+            );
 
-/
-{criterio.maximo}
 
-</p>
+          // ==================================================
+          // RENDER DE TARJETA
+          // ==================================================
 
+          return (
 
-</div>
+            <div
 
+              key={index}
 
+              className="
+                bg-white
+                dark:bg-slate-900
+                border
+                border-gray-200
+                dark:border-slate-800
+                rounded-3xl
+                shadow-sm
+                overflow-hidden
+              "
 
+            >
 
 
-{/* ESTADO */}
+              {/* ==================================================
+                  CABECERA
+              ================================================== */}
 
-<div className={`
+              <div className="
+                p-5
+                flex
+                justify-between
+                items-center
+                gap-4
+              ">
 
-px-4
-py-2
-rounded-full
-font-bold
-text-sm
-flex
-items-center
-gap-2
 
-${estadoColor}
+                {/* ==================================================
+                    NOMBRE Y PUNTAJE
+                ================================================== */}
 
-`}>
+                <div className="
+                  min-w-0
+                  flex-1
+                ">
 
-<EstadoIcono size={18}/>
 
-{estadoTexto}
+                  <h3 className="
+                    font-black
+                    text-lg
+                    text-gray-800
+                    dark:text-white
+                    truncate
+                  ">
 
-</div>
+                    {criterio.criterio}
 
+                  </h3>
 
 
-</div>
+                  <p className="
+                    text-gray-500
+                    dark:text-gray-400
+                    text-sm
+                    mt-1
+                  ">
 
+                    Puntuación:
 
+                    <strong className="
+                      text-gray-800
+                      dark:text-white
+                      ml-1
+                    ">
 
+                      {puntaje}
 
+                    </strong>
 
+                    <span className="mx-1">
+                      /
+                    </span>
 
-{/* DETALLES */}
+                    {maximo}
 
-<div className="
-mt-5
-space-y-3
-">
+                  </p>
 
 
-{
+                </div>
 
-criterio.detalles?.map((detalle,i)=>(
 
 
-<div
+                {/* ==================================================
+                    ESTADO
+                ================================================== */}
 
-key={i}
+                <div className={`
+                  px-3
+                  py-1.5
+                  rounded-full
+                  font-bold
+                  text-sm
+                  flex
+                  items-center
+                  gap-2
+                  shrink-0
+                  ${estadoColor}
+                `}>
 
-className={`
 
-border
-rounded-2xl
-p-4
+                  <EstadoIcono
+                    size={16}
+                  />
 
 
-${
-detalle.cumple
+                  <span>
 
-?
+                    {estadoTexto}
 
-"border-green-200 bg-green-50 dark:bg-green-900/20"
+                  </span>
 
-:
 
-"border-red-200 bg-red-50 dark:bg-red-900/20"
+                </div>
 
-}
 
-`}
+              </div>
 
->
 
 
-<div className="
-flex
-items-center
-gap-2
-font-bold
-dark:text-white
-">
+              {/* ==================================================
+                  RESUMEN
+              ================================================== */}
 
+              <div className="
+                px-5
+                pb-4
+              ">
 
-{
 
-detalle.cumple
+                <p className="
+                  text-sm
+                  text-gray-600
+                  dark:text-gray-300
+                  leading-relaxed
+                ">
 
-?
+                  {resumen}
 
-<CheckCircle
+                </p>
 
-size={18}
 
-className="text-green-500"
+              </div>
 
-/>
 
 
-:
+              {/* ==================================================
+                  BOTÓN VER DETALLE
+              ================================================== */}
 
-<XCircle
+              <button
 
-size={18}
+                type="button"
 
-className="text-red-500"
+                onClick={() =>
+                  toggleDetalle(index)
+                }
 
-/>
+                className="
+                  w-full
+                  border-t
+                  border-gray-100
+                  dark:border-slate-800
+                  px-5
+                  py-3
+                  flex
+                  items-center
+                  justify-between
+                  text-sm
+                  font-bold
+                  text-blue-600
+                  dark:text-blue-400
+                  hover:bg-blue-50
+                  dark:hover:bg-slate-800
+                  transition-colors
+                "
 
-}
+              >
 
 
+                <span>
 
-{detalle.titulo}
+                  {
 
+                    abierto
 
-</div>
+                      ?
 
+                      "Ocultar detalle"
 
+                      :
 
+                      "Ver detalle"
 
-<p className="
-text-sm
-text-gray-600
-dark:text-gray-300
-mt-2
-">
+                  }
 
-{detalle.descripcion}
+                </span>
 
-</p>
 
+                {
 
+                  abierto
 
-</div>
+                    ?
 
+                    <ChevronUp
+                      size={18}
+                    />
 
-))
+                    :
 
+                    <ChevronDown
+                      size={18}
+                    />
 
-}
+                }
 
 
-</div>
+              </button>
 
 
 
+              {/* ==================================================
+                  CONTENIDO DEL DETALLE
+              ================================================== */}
 
+              {
 
+                abierto && (
 
-{/* RECOMENDACION */}
+                  <div className="
+                    border-t
+                    border-gray-100
+                    dark:border-slate-800
+                    p-5
+                    space-y-3
+                    bg-gray-50
+                    dark:bg-slate-950/50
+                  ">
 
-{
 
-!criterio.cumple &&
+                    {/* ==================================================
+                        DETALLES
+                    ================================================== */}
 
+                    {
 
-<div className="
-mt-5
-bg-yellow-50
-dark:bg-yellow-900/20
-border
-border-yellow-200
-rounded-2xl
-p-4
-flex
-gap-3
-items-start
-">
+                      criterio.detalles?.map(
+                        (detalle, i) => {
 
 
-<AlertTriangle
+                          // -----------------------------------------------
+                          // Colores según estado
+                          // -----------------------------------------------
 
-size={20}
+                          const detalleColor =
 
-className="text-yellow-600"
+                            detalle.cumple
 
-/>
+                              ?
 
+                              `
+                                border-green-200
+                                bg-green-50
+                                dark:border-green-900
+                                dark:bg-green-900/20
+                              `
 
+                              :
 
-<div>
+                              `
+                                border-red-200
+                                bg-red-50
+                                dark:border-red-900
+                                dark:bg-red-900/20
+                              `;
 
 
-<p className="
-font-bold
-text-yellow-700
-">
+                          return (
 
-Recomendación
+                            <div
 
-</p>
+                              key={i}
 
+                              className={`
+                                border
+                                rounded-2xl
+                                p-4
+                                ${detalleColor}
+                              `}
 
+                            >
 
-<p className="
-text-sm
-text-yellow-700
-mt-1
-">
 
-{
+                              {/* ==================================================
+                                  TÍTULO DETALLE
+                              ================================================== */}
 
-criterio.recomendacion ||
+                              <div className="
+                                flex
+                                items-start
+                                gap-2
+                                font-bold
+                                text-gray-800
+                                dark:text-white
+                              ">
 
-"Revisar los puntos pendientes."
 
-}
+                                {
 
-</p>
+                                  detalle.cumple
 
+                                    ?
 
-</div>
+                                    <CheckCircle
+                                      size={18}
+                                      className="
+                                        text-green-500
+                                        shrink-0
+                                        mt-0.5
+                                      "
+                                    />
 
+                                    :
 
-</div>
+                                    <XCircle
+                                      size={18}
+                                      className="
+                                        text-red-500
+                                        shrink-0
+                                        mt-0.5
+                                      "
+                                    />
 
+                                }
 
-}
 
+                                <span>
 
+                                  {detalle.titulo}
 
+                                </span>
 
 
-</div>
+                              </div>
 
-)
 
 
-})
+                              {/* ==================================================
+                                  DESCRIPCIÓN
+                              ================================================== */}
 
-}
+                              {
 
+                                detalle.descripcion && (
 
+                                  <p className="
+                                    text-sm
+                                    text-gray-600
+                                    dark:text-gray-300
+                                    mt-2
+                                    leading-relaxed
+                                  ">
 
-</div>
+                                    {
+                                      detalle.descripcion
+                                    }
 
-);
+                                  </p>
+
+                                )
+
+                              }
+
+
+                            </div>
+
+                          );
+
+                        }
+
+                      )
+
+                    }
+
+
+
+                    {/* ==================================================
+                        RECOMENDACIÓN
+                    ================================================== */}
+
+                    {
+
+                      !criterio.cumple && (
+
+                        <div className="
+                          mt-4
+                          bg-yellow-50
+                          dark:bg-yellow-900/20
+                          border
+                          border-yellow-200
+                          dark:border-yellow-900
+                          rounded-2xl
+                          p-4
+                          flex
+                          gap-3
+                          items-start
+                        ">
+
+
+                          <AlertTriangle
+                            size={20}
+                            className="
+                              text-yellow-600
+                              dark:text-yellow-400
+                              shrink-0
+                            "
+                          />
+
+
+                          <div>
+
+
+                            <p className="
+                              font-bold
+                              text-yellow-700
+                              dark:text-yellow-400
+                            ">
+
+                              Recomendación
+
+                            </p>
+
+
+                            <p className="
+                              text-sm
+                              text-yellow-700
+                              dark:text-yellow-300
+                              mt-1
+                              leading-relaxed
+                            ">
+
+                              {
+
+                                criterio.recomendacion ||
+
+                                "Revisar los puntos pendientes."
+
+                              }
+
+                            </p>
+
+
+                          </div>
+
+
+                        </div>
+
+                      )
+
+                    }
+
+
+                  </div>
+
+                )
+
+              }
+
+
+            </div>
+
+          );
+
+        })
+
+      }
+
+
+      {/* ==================================================
+          SIN CRITERIOS
+      ================================================== */}
+
+      {
+
+        criterios.length === 0 && (
+
+          <div className="
+            bg-white
+            dark:bg-slate-900
+            border
+            border-gray-200
+            dark:border-slate-800
+            rounded-3xl
+            p-8
+            text-center
+          ">
+
+
+            <AlertTriangle
+              size={32}
+              className="
+                mx-auto
+                text-gray-400
+                mb-3
+              "
+            />
+
+
+            <p className="
+              text-gray-500
+              dark:text-gray-400
+            ">
+
+              No hay criterios de evaluación disponibles.
+
+            </p>
+
+
+          </div>
+
+        )
+
+      }
+
+
+    </div>
+
+  );
 
 }

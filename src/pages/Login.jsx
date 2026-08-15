@@ -1,4 +1,6 @@
-import { useState } from "react";
+import {
+  useState
+} from "react";
 
 import {
   ShieldCheck,
@@ -8,546 +10,657 @@ import {
   Sparkles
 } from "lucide-react";
 
-
 import TeacherLogin from "../components/auth/TeacherLogin";
 import GoogleLogin from "../components/auth/GoogleLogin";
 
 
-
 export default function Login(){
 
+  const [tipo,setTipo] = useState(null);
+
+
+  return (
+
+    <div className="
+      min-h-screen
+      bg-slate-100
+      flex
+      items-center
+      justify-center
+      px-4
+      py-8
+    ">
+
+
+      {/* FONDO DECORATIVO */}
+
+      <div className="
+        fixed
+        inset-0
+        pointer-events-none
+        overflow-hidden
+      ">
+
+        <div className="
+          absolute
+          -top-32
+          -right-32
+          w-96
+          h-96
+          rounded-full
+          bg-blue-200/40
+          blur-3xl
+        "/>
+
+        <div className="
+          absolute
+          -bottom-32
+          -left-32
+          w-96
+          h-96
+          rounded-full
+          bg-indigo-200/30
+          blur-3xl
+        "/>
+
+      </div>
+
+
+
+      {/* CONTENEDOR */}
+
+      <div className="
+        relative
+        w-full
+        max-w-5xl
+        min-h-[620px]
+        bg-white
+        rounded-[2rem]
+        shadow-xl
+        shadow-slate-300/40
+        overflow-hidden
+        grid
+        lg:grid-cols-[0.9fr_1.1fr]
+      ">
+
+
+        {/* ============================= */}
+        {/* PANEL IZQUIERDO */}
+        {/* ============================= */}
+
+        <div className="
+          hidden
+          lg:flex
+          flex-col
+          justify-between
+          bg-gradient-to-br
+          from-blue-800
+          to-blue-950
+          p-12
+          text-white
+          relative
+          overflow-hidden
+        ">
+
+
+          {/* DECORACIÓN */}
+
+          <div className="
+            absolute
+            -right-24
+            -top-24
+            w-72
+            h-72
+            rounded-full
+            border
+            border-white/10
+          "/>
+
+          <div className="
+            absolute
+            -right-10
+            -top-10
+            w-44
+            h-44
+            rounded-full
+            border
+            border-white/10
+          "/>
 
-const [tipo,setTipo]=useState(null);
 
+          {/* MARCA */}
 
+          <div className="
+            relative
+            flex
+            items-center
+            gap-3
+          ">
 
-return (
+            <div className="
+              w-11
+              h-11
+              rounded-xl
+              bg-white/10
+              border
+              border-white/10
+              flex
+              items-center
+              justify-center
+            ">
+
+              <ShieldCheck
+                size={25}
+              />
 
+            </div>
 
-<div className="
 
-min-h-screen
+            <div>
 
-flex
+              <p className="
+                font-black
+                text-lg
+                tracking-tight
+              ">
 
-items-center
+                VG Smart Review
 
-justify-center
+              </p>
 
-relative
+              <p className="
+                text-xs
+                text-blue-200
+              ">
 
-overflow-hidden
+                Plataforma académica
 
-bg-gradient-to-br
+              </p>
 
-from-slate-950
+            </div>
 
-via-blue-950
+          </div>
 
-to-indigo-950
 
-p-6
 
-">
+          {/* TEXTO CENTRAL */}
 
+          <div className="
+            relative
+            max-w-sm
+          ">
 
-{/* luces decorativas */}
+            <div className="
+              w-14
+              h-1
+              bg-blue-400
+              rounded-full
+              mb-7
+            "/>
 
-<div className="
 
-absolute
+            <h2 className="
+              text-4xl
+              font-black
+              leading-tight
+            ">
 
-w-96
+              Evaluación académica
+              <span className="
+                block
+                text-blue-300
+              ">
+                inteligente.
+              </span>
 
-h-96
+            </h2>
 
-bg-blue-500
 
-opacity-20
+            <p className="
+              text-blue-100
+              mt-5
+              leading-relaxed
+              text-sm
+            ">
 
-rounded-full
+              Analiza tus documentos,
+              revisa tus criterios y mejora
+              tus entregables académicos
+              de manera rápida y organizada.
 
-blur-3xl
+            </p>
 
-top-10
 
-left-10
+            <div className="
+              mt-8
+              flex
+              items-center
+              gap-3
+              text-sm
+              text-blue-100
+            ">
 
-"/>
+              <div className="
+                w-8
+                h-8
+                rounded-lg
+                bg-white/10
+                flex
+                items-center
+                justify-center
+              ">
 
+                <Sparkles size={16}/>
 
-<div className="
+              </div>
 
-absolute
+              Sistema de revisión automatizada
 
-w-96
+            </div>
 
-h-96
+          </div>
 
-bg-indigo-500
 
-opacity-20
 
-rounded-full
+          {/* PIE */}
 
-blur-3xl
+          <div className="
+            relative
+            text-xs
+            text-blue-300
+          ">
 
-bottom-10
+            © 2026 Valle Grande
 
-right-10
+          </div>
 
-"/>
+        </div>
 
 
 
+        {/* ============================= */}
+        {/* PANEL DERECHO */}
+        {/* ============================= */}
 
-<div className="
+        <div className="
+          flex
+          flex-col
+          justify-center
+          px-6
+          py-10
+          sm:px-10
+          lg:px-14
+        ">
 
-relative
 
-w-full
+          {/* MARCA MOBILE */}
 
-max-w-md
+          <div className="
+            lg:hidden
+            flex
+            items-center
+            justify-center
+            gap-2
+            mb-8
+          ">
 
-bg-white/95
+            <div className="
+              w-9
+              h-9
+              rounded-lg
+              bg-blue-700
+              text-white
+              flex
+              items-center
+              justify-center
+            ">
 
-backdrop-blur-xl
+              <ShieldCheck size={21}/>
 
-rounded-[2rem]
+            </div>
 
-shadow-2xl
 
-p-10
+            <span className="
+              font-black
+              text-slate-800
+            ">
 
-border
+              VG Smart Review
 
-border-white/20
+            </span>
 
-text-center
+          </div>
 
-">
 
 
+          {/* SELECCIÓN DE TIPO */}
 
-<div className="
+          {!tipo && (
 
-mx-auto
+            <div className="
+              w-full
+              max-w-md
+              mx-auto
+            ">
 
-w-24
 
-h-24
+              <div className="
+                mb-8
+              ">
 
-rounded-3xl
+                <p className="
+                  text-sm
+                  font-semibold
+                  text-blue-600
+                  mb-2
+                ">
 
-bg-gradient-to-br
+                  Bienvenido
 
-from-blue-600
+                </p>
 
-to-indigo-700
 
-flex
+                <h1 className="
+                  text-3xl
+                  font-black
+                  text-slate-900
+                  tracking-tight
+                ">
 
-items-center
+                  ¿Cómo deseas ingresar?
 
-justify-center
+                </h1>
 
-shadow-lg
 
-shadow-blue-500/30
+                <p className="
+                  text-sm
+                  text-slate-500
+                  mt-2
+                ">
 
-">
+                  Selecciona el tipo de cuenta
+                  para continuar.
 
+                </p>
 
-<ShieldCheck
+              </div>
 
-size={48}
 
-className="text-white"
 
-/>
+              <div className="
+                space-y-4
+              ">
 
 
-</div>
+                {/* DOCENTE */}
 
+                <button
 
+                  onClick={() =>
+                    setTipo("DOCENTE")
+                  }
 
-<h1 className="
+                  className="
+                    w-full
+                    group
+                    flex
+                    items-center
+                    gap-4
+                    p-5
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    bg-white
+                    text-left
+                    transition-all
+                    duration-200
+                    hover:border-blue-400
+                    hover:bg-blue-50/40
+                    hover:shadow-md
+                  "
 
-text-4xl
+                >
 
-font-black
+                  <div className="
+                    w-12
+                    h-12
+                    rounded-xl
+                    bg-blue-100
+                    text-blue-700
+                    flex
+                    items-center
+                    justify-center
+                    shrink-0
+                    group-hover:bg-blue-600
+                    group-hover:text-white
+                    transition
+                  ">
 
-mt-6
+                    <UserRound size={24}/>
 
-text-slate-800
+                  </div>
 
-tracking-tight
 
-">
+                  <div className="flex-1">
 
-VG Smart Review
+                    <p className="
+                      font-bold
+                      text-slate-800
+                    ">
 
-</h1>
+                      Soy docente
 
+                    </p>
 
 
-<div className="
+                    <p className="
+                      text-sm
+                      text-slate-500
+                      mt-1
+                    ">
 
-flex
+                      Acceso con correo institucional
 
-items-center
+                    </p>
 
-justify-center
+                  </div>
 
-gap-2
 
-mt-3
+                  <span className="
+                    text-slate-300
+                    group-hover:text-blue-600
+                    text-xl
+                    transition
+                  ">
 
-text-blue-600
+                    →
 
-font-medium
+                  </span>
 
-">
+                </button>
 
 
-<Sparkles size={16}/>
 
+                {/* ESTUDIANTE */}
 
-Plataforma académica inteligente
+                <button
 
+                  onClick={() =>
+                    setTipo("ESTUDIANTE")
+                  }
 
-</div>
+                  className="
+                    w-full
+                    group
+                    flex
+                    items-center
+                    gap-4
+                    p-5
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    bg-white
+                    text-left
+                    transition-all
+                    duration-200
+                    hover:border-emerald-400
+                    hover:bg-emerald-50/40
+                    hover:shadow-md
+                  "
 
+                >
 
+                  <div className="
+                    w-12
+                    h-12
+                    rounded-xl
+                    bg-emerald-100
+                    text-emerald-700
+                    flex
+                    items-center
+                    justify-center
+                    shrink-0
+                    group-hover:bg-emerald-600
+                    group-hover:text-white
+                    transition
+                  ">
 
+                    <GraduationCap
+                      size={24}
+                    />
 
-<p className="
+                  </div>
 
-text-gray-500
 
-mt-5
+                  <div className="flex-1">
 
-mb-8
+                    <p className="
+                      font-bold
+                      text-slate-800
+                    ">
 
-">
+                      Soy estudiante
 
-Selecciona tu tipo de acceso para continuar
+                    </p>
 
-</p>
 
+                    <p className="
+                      text-sm
+                      text-slate-500
+                      mt-1
+                    ">
 
+                      Ingreso con Google institucional
 
+                    </p>
 
+                  </div>
 
-{
-!tipo && (
 
+                  <span className="
+                    text-slate-300
+                    group-hover:text-emerald-600
+                    text-xl
+                    transition
+                  ">
 
+                    →
 
-<div className="space-y-5">
+                  </span>
 
+                </button>
 
 
-<button
+              </div>
 
-onClick={()=>setTipo("DOCENTE")}
 
-className="
+              <p className="
+                text-center
+                text-xs
+                text-slate-400
+                mt-8
+              ">
 
-group
+                Acceso seguro para la comunidad
+                académica de Valle Grande.
 
-w-full
+              </p>
 
-p-5
+            </div>
 
-rounded-2xl
+          )}
 
-border-2
 
-border-blue-100
 
-bg-gradient-to-r
+          {/* ============================= */}
+          {/* LOGIN */}
+          {/* ============================= */}
 
-from-blue-600
+          {tipo && (
 
-to-indigo-600
+            <div className="
+              w-full
+              max-w-md
+              mx-auto
+            ">
 
-text-white
 
-flex
+              {/* VOLVER */}
 
-items-center
+              <button
 
-gap-4
+                onClick={() =>
+                  setTipo(null)
+                }
 
-transition-all
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+                  text-sm
+                  font-medium
+                  text-slate-500
+                  hover:text-blue-600
+                  transition
+                  mb-7
+                "
 
-duration-300
+              >
 
-hover:scale-[1.03]
+                <ArrowLeft size={16}/>
 
-hover:shadow-xl
+                Cambiar tipo de acceso
 
-hover:shadow-blue-500/30
+              </button>
 
-"
 
 
->
+              {tipo === "DOCENTE" && (
 
+                <TeacherLogin/>
 
-<div className="
+              )}
 
-bg-white/20
 
-p-3
 
-rounded-xl
+              {tipo === "ESTUDIANTE" && (
 
-group-hover:rotate-6
+                <GoogleLogin/>
 
-transition
+              )}
 
-">
+            </div>
 
+          )}
 
-<UserRound size={28}/>
 
+        </div>
 
-</div>
 
+      </div>
 
+    </div>
 
-<div className="text-left">
-
-
-<p className="font-bold text-lg">
-
-Soy Docente
-
-</p>
-
-
-<p className="text-sm opacity-80">
-
-Acceso administrativo
-
-</p>
-
-
-</div>
-
-
-</button>
-
-
-
-
-
-<button
-
-onClick={()=>setTipo("ESTUDIANTE")}
-
-
-className="
-
-group
-
-w-full
-
-p-5
-
-rounded-2xl
-
-border-2
-
-border-green-100
-
-bg-gradient-to-r
-
-from-emerald-500
-
-to-green-600
-
-text-white
-
-flex
-
-items-center
-
-gap-4
-
-transition-all
-
-duration-300
-
-hover:scale-[1.03]
-
-hover:shadow-xl
-
-hover:shadow-green-500/30
-
-"
-
->
-
-
-<div className="
-
-bg-white/20
-
-p-3
-
-rounded-xl
-
-group-hover:rotate-6
-
-transition
-
-">
-
-
-<GraduationCap size={28}/>
-
-
-</div>
-
-
-
-
-<div className="text-left">
-
-
-<p className="font-bold text-lg">
-
-Soy Estudiante
-
-</p>
-
-
-<p className="text-sm opacity-80">
-
-Ingreso con Google institucional
-
-</p>
-
-
-</div>
-
-
-
-</button>
-
-
-
-</div>
-
-
-)
-
-}
-
-
-
-
-{
-tipo && (
-
-
-<>
-
-
-<button
-
-onClick={()=>setTipo(null)}
-
-className="
-
-flex
-
-items-center
-
-gap-2
-
-text-sm
-
-text-gray-500
-
-hover:text-blue-600
-
-mb-6
-
-transition
-
-"
-
-
->
-
-
-<ArrowLeft size={16}/>
-
-Cambiar tipo de acceso
-
-
-</button>
-
-
-
-{
-
-tipo==="DOCENTE" &&
-
-<TeacherLogin/>
-
-}
-
-
-
-{
-
-tipo==="ESTUDIANTE" &&
-
-<GoogleLogin/>
-
-}
-
-
-
-</>
-
-
-)
-
-}
-
-
-
-<div className="
-
-mt-8
-
-text-xs
-
-text-gray-400
-
-">
-
-
-© 2026 VG Smart Review
-
-</div>
-
-
-
-</div>
-
-
-
-</div>
-
-
-);
-
+  );
 
 }

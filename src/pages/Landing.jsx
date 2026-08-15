@@ -1,32 +1,49 @@
 import Navbar from "../components/common/Navbar";
+
 import Hero from "../components/landing/Hero";
 import Features from "../components/landing/Features";
 import Process from "../components/landing/Process";
 import SemesterProgress from "../components/landing/SemesterProgress";
 import Users from "../components/landing/Users";
+import Testimonials from "../components/landing/Testimonials";
+import FAQ from "../components/landing/FAQ";
+import CTA from "../components/landing/CTA";
+
 import Footer from "../components/common/Footer";
 
-export default function Landing(){
 
-return(
+export default function Landing() {
 
-<div>
+  return (
 
-<Navbar/>
+    <div className="min-h-screen bg-white">
 
-<Hero/>
+      <Navbar />
 
-<Features/>
+      <main>
 
-<Process/>
-<SemesterProgress/>
-<Users/>
+        <Hero />
 
+        <Features />
 
-<Footer/>
+        <Process />
 
-</div>
+        <SemesterProgress />
 
-)
+        <Users />
+
+        <Testimonials />
+
+        <FAQ />
+
+        <CTA />
+
+      </main>
+
+      <Footer />
+
+    </div>
+
+  );
 
 }
