@@ -2047,6 +2047,10 @@ export default function ConsolidacionPage() {
               )}
 
             </div>
+<<<<<<< HEAD
+=======
+ 
+>>>>>>> 25295415b61f2c5024cdec37da948d185ebd90da
           )}
 
         </div>
@@ -2054,4 +2058,9 @@ export default function ConsolidacionPage() {
 
     </section>
   );
+<<<<<<< HEAD
 }
+=======
+
+}
+>>>>>>> 25295415b61f2c5024cdec37da948d185ebd90da

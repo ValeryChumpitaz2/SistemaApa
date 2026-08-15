@@ -502,7 +502,7 @@ export function exportarConsolidacionCSV(
     enlace
   );
 
-
+ 
   URL.revokeObjectURL(
     url
   );
