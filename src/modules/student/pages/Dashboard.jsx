@@ -4,916 +4,756 @@ import {
   Award,
   CheckCircle,
   BarChart3,
-  History as HistoryIcon
+  History as HistoryIcon,
+  AlertTriangle
 } from "lucide-react";
-
 
 import {
   useState,
   useEffect
 } from "react";
 
-
 import StudentSidebar from "../components/StudentSidebar";
 import TopNavbar from "../components/TopNavbar";
 import DashboardHeader from "../components/DashboardHeader";
-
 
 import Evaluation from "./Evaluation";
 import Results from "./Results";
 import History from "./History";
 import Reports from "./Reports";
+import ReportsIncidencias from "./ReportsIncidencias";
 import Achievements from "./Achievements";
 import Settings from "./Settings";
 
 
+export default function Dashboard() {
 
+  const [
+    pagina,
+    setPagina
+  ] = useState("dashboard");
 
 
-export default function Dashboard(){
+  /*==================================================
+   * DOCUMENTOS GUARDADOS
+   *==================================================*/
 
+  const [
+    documentos,
+    setDocumentos
+  ] = useState(() => {
 
+    const guardados =
+      localStorage.getItem("documentos");
 
-const [
-pagina,
-setPagina
-]=useState("dashboard");
+    return guardados
+      ? JSON.parse(guardados)
+      : [];
 
+  });
 
 
+  /*==================================================
+   * GUARDAR DOCUMENTOS
+   *==================================================*/
 
+  useEffect(() => {
 
-// DOCUMENTOS GUARDADOS
+    localStorage.setItem(
+      "documentos",
+      JSON.stringify(documentos)
+    );
 
-const [
-documentos,
-setDocumentos
-]=useState(()=>{
+  }, [documentos]);
 
 
-const guardados =
-localStorage.getItem("documentos");
+  /*==================================================
+   * DOCUMENTOS EVALUADOS
+   *==================================================*/
 
+  const evaluados =
+    documentos.filter(
+      doc => doc.puntaje
+    );
 
-return guardados
-?
-JSON.parse(guardados)
-:
-[];
 
+  /*==================================================
+   * PROMEDIO
+   *==================================================*/
 
-});
+  const promedio =
 
+    evaluados.length
 
+      ?
 
+      Math.round(
 
-// GUARDAR CAMBIOS
+        evaluados.reduce(
 
-useEffect(()=>{
+          (total, item) =>
 
+            total +
+            (item.puntaje?.porcentaje || 0),
 
-localStorage.setItem(
+          0
 
-"documentos",
+        ) /
 
-JSON.stringify(documentos)
+        evaluados.length
 
-);
+      )
 
+      :
 
-},[documentos]);
+      0;
 
 
+  /*==================================================
+   * RENDER
+   *==================================================*/
 
+  return (
 
+    <div
+      className="
+        min-h-screen
+        bg-slate-100
+        dark:bg-slate-950
+      "
+    >
 
+      {/* SIDEBAR */}
 
-const evaluados =
+      <StudentSidebar
 
-documentos.filter(
+        pagina={pagina}
 
-doc=>doc.puntaje
+        setPagina={setPagina}
 
-);
+      />
 
 
+      {/* CONTENIDO PRINCIPAL */}
 
+      <div
+        className="
+          xl:ml-72
+        "
+      >
 
+        <TopNavbar />
 
 
-const promedio =
+        <main
+          className="
+            max-w-7xl
+            mx-auto
+            p-6
+            md:p-10
+          "
+        >
 
-evaluados.length
 
-?
+          {/*==================================================
+           * INICIO
+           *==================================================*/}
 
-Math.round(
+          {
+            pagina === "dashboard"
 
-evaluados.reduce(
+            &&
 
-(total,item)=>
+            <div className="space-y-8">
 
-total+(item.puntaje?.porcentaje || 0)
+              <DashboardHeader />
 
-,0)
 
-/
+              {/* ESTADÍSTICAS */}
 
-evaluados.length
+              <section
+                className="
+                  grid
+                  md:grid-cols-4
+                  gap-6
+                "
+              >
 
-)
+                <Card
 
-:
+                  icon={<FileText />}
 
-0;
+                  titulo="Documentos"
 
+                  valor={documentos.length}
 
+                />
 
 
+                <Card
 
+                  icon={<Award />}
 
+                  titulo="Promedio APA"
 
-return (
+                  valor={`${promedio}%`}
 
+                />
 
-<div
 
-className="
-min-h-screen
-bg-slate-100
-dark:bg-slate-950
-"
+                <Card
 
->
+                  icon={<CheckCircle />}
 
+                  titulo="Estado"
 
-<StudentSidebar
+                  valor={
 
-pagina={pagina}
+                    promedio >= 95
 
-setPagina={setPagina}
+                      ?
 
-/>
+                      "Excelente"
 
+                      :
 
+                    promedio >= 70
 
+                      ?
 
+                      "Buen avance"
 
+                      :
 
+                      "En mejora"
 
-<div
+                  }
 
-className="
-xl:ml-72
-"
+                />
 
->
 
+                <Card
 
-<TopNavbar/>
+                  icon={<BarChart3 />}
 
+                  titulo="Evaluados"
 
+                  valor={evaluados.length}
 
+                />
 
+              </section>
 
 
-<main
+              {/*==================================================
+               * PROGRESO
+               *==================================================*/}
 
-className="
-max-w-7xl
-mx-auto
-p-6
-md:p-10
-"
+              <section
+                className="
+                  grid
+                  md:grid-cols-2
+                  gap-6
+                "
+              >
 
->
+                <div
+                  className="
+                    bg-white
+                    dark:bg-slate-900
+                    rounded-3xl
+                    p-8
+                    border
+                    dark:border-slate-800
+                  "
+                >
 
+                  <h2
+                    className="
+                      text-2xl
+                      font-black
+                      dark:text-white
+                    "
+                  >
+                    Tu progreso APA
+                  </h2>
 
 
+                  <p
+                    className="
+                      mt-3
+                      text-gray-500
+                    "
+                  >
+                    Mejora tus documentos para alcanzar
+                    el estándar institucional.
+                  </p>
 
 
+                  <div
+                    className="
+                      mt-6
+                      h-4
+                      bg-gray-200
+                      dark:bg-slate-700
+                      rounded-full
+                      overflow-hidden
+                    "
+                  >
 
+                    <div
+                      className="
+                        bg-[#1D3681]
+                        h-full
+                        rounded-full
+                        transition-all
+                      "
+                      style={{
+                        width: `${promedio}%`
+                      }}
+                    />
 
-{
-pagina==="dashboard"
+                  </div>
 
-&&
 
+                  <div
+                    className="
+                      mt-3
+                      flex
+                      justify-between
+                      text-sm
+                      text-gray-500
+                    "
+                  >
 
+                    <span>
+                      Progreso APA
+                    </span>
 
-<div className="space-y-8">
+                    <strong>
+                      {promedio}%
+                    </strong>
 
+                  </div>
 
+                </div>
 
 
+                {/* RECOMENDACIÓN */}
 
-<DashboardHeader/>
+                <div
+                  className="
+                    bg-white
+                    dark:bg-slate-900
+                    rounded-3xl
+                    p-8
+                    border
+                    dark:border-slate-800
+                  "
+                >
 
+                  <h2
+                    className="
+                      text-2xl
+                      font-black
+                      dark:text-white
+                    "
+                  >
+                    🤖 Recomendación IA
+                  </h2>
 
 
+                  <p
+                    className="
+                      mt-4
+                      text-gray-600
+                      dark:text-gray-300
+                    "
+                  >
 
+                    {
+                      promedio >= 90
 
+                        ?
 
+                        "Excelente trabajo. Tu documento cumple los criterios institucionales."
 
+                        :
 
+                        "Mejora referencias bibliográficas, conclusiones y glosario para aumentar tu puntuación."
 
-<section
+                    }
 
-className="
-grid
-md:grid-cols-4
-gap-6
-"
+                  </p>
 
->
+                </div>
 
+              </section>
 
 
-<Card
+              {/*==================================================
+               * ACCIONES RÁPIDAS
+               *==================================================*/}
 
-icon={<FileText/>}
+              <section
+                className="
+                  bg-white
+                  dark:bg-slate-900
+                  rounded-3xl
+                  p-8
+                  border
+                  dark:border-slate-800
+                "
+              >
 
-titulo="Documentos"
+                <h2
+                  className="
+                    text-2xl
+                    font-black
+                    dark:text-white
+                  "
+                >
+                  Acciones rápidas
+                </h2>
 
-valor={documentos.length}
 
-/>
+                <div
+                  className="
+                    grid
+                    md:grid-cols-2
+                    gap-4
+                    mt-5
+                  "
+                >
 
+                  {/* ANALIZAR */}
 
+                  <Action
 
+                    icon={<UploadCloud />}
 
+                    texto="Analizar documento"
 
-<Card
+                    click={() =>
+                      setPagina("evaluation")
+                    }
 
-icon={<Award/>}
+                  />
 
-titulo="Promedio APA"
 
-valor={`${promedio}%`}
+                  {/* RESULTADOS */}
 
-/>
+                  <Action
 
+                    icon={<CheckCircle />}
 
+                    texto="Ver resultados"
 
+                    click={() =>
+                      setPagina("results")
+                    }
 
+                  />
 
-<Card
 
-icon={<CheckCircle/>}
+                  {/* REPORTES ACADÉMICOS */}
 
-titulo="Estado"
+                  <Action
 
-valor={
-promedio>=95
-?
-"Excelente"
-:
-promedio>=70
-?
-"Buen avance"
-:
-"En mejora"
-}
+                    icon={<BarChart3 />}
 
-/>
+                    texto="Ver reportes"
 
+                    click={() =>
+                      setPagina("reports")
+                    }
 
+                  />
 
 
+                  {/* REPORTAR INCIDENCIA */}
 
-<Card
+                  <Action
 
-icon={<BarChart3/>}
+                    icon={<AlertTriangle />}
 
-titulo="Evaluados"
+                    texto="Reportar incidencia"
 
-valor={evaluados.length}
+                    click={() =>
+                      setPagina("reports-incidencias")
+                    }
 
-/>
+                  />
 
 
+                  {/* HISTORIAL */}
 
-</section>
+                  <Action
 
+                    icon={<HistoryIcon />}
 
+                    texto="Historial"
 
+                    click={() =>
+                      setPagina("history")
+                    }
 
+                  />
 
+                </div>
 
+              </section>
 
+            </div>
 
+          }
 
-<section
 
-className="
-grid
-md:grid-cols-2
-gap-6
-"
+          {/*==================================================
+           * EVALUACIÓN
+           *==================================================*/}
 
->
+          {
+            pagina === "evaluation"
 
+            &&
 
+            <Evaluation
 
+              setDocumentos={
+                setDocumentos
+              }
 
+            />
 
+          }
 
 
-<div
+          {/*==================================================
+           * RESULTADOS
+           *==================================================*/}
 
-className="
-bg-white
-dark:bg-slate-900
-rounded-3xl
-p-8
-border
-dark:border-slate-800
-"
+          {
+            pagina === "results"
 
->
+            &&
 
+            <Results
 
-<h2
+              documentos={
+                documentos
+              }
 
-className="
-text-2xl
-font-black
-dark:text-white
-"
+            />
 
->
+          }
 
-Tu progreso APA
 
-</h2>
+          {/*==================================================
+           * HISTORIAL
+           *==================================================*/}
 
+          {
+            pagina === "history"
 
+            &&
 
-<p
+            <History
 
-className="
-mt-3
-text-gray-500
-"
+              documentos={
+                documentos
+              }
 
->
+            />
 
-Mejora tus documentos para alcanzar
-el estándar institucional.
+          }
 
-</p>
 
+          {/*==================================================
+           * REPORTES ACADÉMICOS
+           *==================================================*/}
 
+          {
+            pagina === "reports"
 
+            &&
 
+            <Reports
 
+              documentos={
+                documentos
+              }
 
-<div
+            />
 
-className="
-mt-6
-h-4
-bg-gray-200
-dark:bg-slate-700
-rounded-full
-overflow-hidden
-"
+          }
 
->
 
+          {/*==================================================
+           * REPORTES DE INCIDENCIAS
+           *==================================================*/}
 
-<div
+        {
+  pagina === "reports-incidencias"
 
-className="
-bg-[#1D3681]
-h-full
-rounded-full
-transition-all
-"
+  &&
 
-style={{
-
-width:`${promedio}%`
-
-}}
-
-/>
-
-
-</div>
-
-
-
-
-
-<div
-
-className="
-mt-3
-flex
-justify-between
-text-sm
-text-gray-500
-"
-
->
-
-<span>
-
-Progreso APA
-
-</span>
-
-
-<strong>
-
-{promedio}%
-
-</strong>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div
-
-className="
-bg-white
-dark:bg-slate-900
-rounded-3xl
-p-8
-border
-dark:border-slate-800
-"
-
->
-
-
-<h2
-
-className="
-text-2xl
-font-black
-dark:text-white
-"
-
->
-
-🤖 Recomendación IA
-
-</h2>
-
-
-
-
-<p
-
-className="
-mt-4
-text-gray-600
-dark:text-gray-300
-"
-
->
-
-
-{
-
-promedio>=90
-
-?
-
-"Excelente trabajo. Tu documento cumple los criterios institucionales."
-
-:
-
-"Mejora referencias bibliográficas, conclusiones y glosario para aumentar tu puntuación."
-
-}
-
-
-</p>
-
-
-
-</div>
-
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<section
-
-className="
-bg-white
-dark:bg-slate-900
-rounded-3xl
-p-8
-border
-dark:border-slate-800
-"
-
->
-
-
-<h2
-
-className="
-text-2xl
-font-black
-dark:text-white
-"
-
->
-
-Acciones rápidas
-
-</h2>
-
-
-
-
-
-<div
-
-className="
-grid
-md:grid-cols-2
-gap-4
-mt-5
-"
-
->
-
-
-
-
-<Action
-
-icon={<UploadCloud/>}
-
-texto="Analizar documento"
-
-click={()=>setPagina("evaluation")}
-
-/>
-
-
-
-
-
-<Action
-
-icon={<CheckCircle/>}
-
-texto="Ver resultados"
-
-click={()=>setPagina("results")}
-
-/>
-
-
-
-
-
-<Action
-
-icon={<BarChart3/>}
-
-texto="Ver reportes"
-
-click={()=>setPagina("reports")}
-
-/>
-
-
-
-
-
-
-<Action
-
-icon={<HistoryIcon/>}
-
-texto="Historial"
-
-click={()=>setPagina("history")}
-
-/>
-
-
-
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-</div>
-
+  <ReportsIncidencias
+    setPagina={setPagina}
+  />
 
 }
 
 
+          {/*==================================================
+           * LOGROS
+           *==================================================*/}
+
+          {
+            pagina === "achievements"
+
+            &&
+
+            <Achievements />
+
+          }
 
 
+          {/*==================================================
+           * CONFIGURACIÓN
+           *==================================================*/}
 
+          {
+            pagina === "settings"
 
+            &&
 
-{
-pagina==="evaluation"
+            <Settings />
 
-&&
+          }
 
-<Evaluation
+        </main>
 
-setDocumentos={setDocumentos}
+      </div>
 
-/>
+    </div>
 
-}
-
-
-
-
-
-{
-pagina==="results"
-
-&&
-
-<Results
-
-documentos={documentos}
-
-/>
-
-}
-
-
-
-
-
-
-
-{
-pagina==="history"
-
-&&
-
-<History
-
-documentos={documentos}
-
-/>
+  );
 
 }
 
 
-
-
-
-
-
-{
-pagina==="reports"
-
-&&
-
-<Reports
-
-documentos={documentos}
-
-/>
-
-}
-
-
-
-
-
-
-
-{
-pagina==="achievements"
-
-&&
-
-<Achievements
-
-documentos={documentos}
-
-/>
-
-}
-
-
-
-
-
-
-{
-pagina==="settings"
-
-&&
-
-<Settings/>
-
-}
-
-
-
-
-
-
-
-</main>
-
-
-
-</div>
-
-
-
-</div>
-
-
-);
-
-
-}
-
-
-
-
-
-
-
-
+/*==================================================
+ * CARD
+ *==================================================*/
 
 function Card({
 
-icon,
+  icon,
 
-titulo,
+  titulo,
 
-valor
+  valor
 
-}){
+}) {
 
+  return (
 
-return (
+    <div
+      className="
+        bg-white
+        dark:bg-slate-900
+        rounded-3xl
+        p-6
+        border
+        dark:border-slate-800
+        shadow-sm
+      "
+    >
 
+      <div
+        className="
+          text-[#1D3681]
+        "
+      >
 
-<div
+        {icon}
 
-className="
-bg-white
-dark:bg-slate-900
-rounded-3xl
-p-6
-border
-dark:border-slate-800
-shadow-sm
-"
-
->
-
-
-<div
-
-className="
-text-[#1D3681]
-"
-
->
-
-{icon}
-
-</div>
+      </div>
 
 
+      <p
+        className="
+          mt-4
+          text-gray-500
+        "
+      >
+
+        {titulo}
+
+      </p>
 
 
-<p
+      <h3
+        className="
+          text-3xl
+          font-black
+          dark:text-white
+        "
+      >
 
-className="
-mt-4
-text-gray-500
-"
+        {valor}
 
->
+      </h3>
 
-{titulo}
+    </div>
 
-</p>
-
-
-
-
-
-<h3
-
-className="
-text-3xl
-font-black
-dark:text-white
-"
-
->
-
-{valor}
-
-</h3>
-
-
-
-</div>
-
-
-);
-
+  );
 
 }
 
 
-
-
-
-
-
+/*==================================================
+ * ACTION
+ *==================================================*/
 
 function Action({
 
-icon,
+  icon,
 
-texto,
+  texto,
 
-click
+  click
 
-}){
+}) {
 
+  return (
 
-return (
+    <button
 
-<button
+      onClick={click}
 
-onClick={click}
+      className="
+        flex
+        items-center
+        gap-3
+        p-4
+        rounded-xl
+        bg-blue-50
+        text-[#1D3681]
+        font-bold
+        hover:bg-blue-100
+        transition
+      "
 
-className="
-flex
-items-center
-gap-3
-p-4
-rounded-xl
-bg-blue-50
-text-[#1D3681]
-font-bold
-hover:bg-blue-100
-transition
-"
+    >
 
->
+      {icon}
 
+      {texto}
 
-{icon}
+    </button>
 
-
-{texto}
-
-
-</button>
-
-
-);
-
+  );
 
 }

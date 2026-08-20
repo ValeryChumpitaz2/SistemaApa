@@ -19,6 +19,10 @@ import {
   Search,
   FileDown,
   RotateCcw,
+  X,
+  ExternalLink,
+  BarChart3,
+  RefreshCw,
 } from "lucide-react";
 
 import jsPDF from "jspdf";
@@ -26,7 +30,57 @@ import autoTable from "jspdf-autotable";
 
 import { consolidarEntregables } from "../services/teacherService";
 
+
+// =====================================================
+// CONSTANTES
+// =====================================================
+
+const ENTREGABLES = [
+  {
+    codigo: "EN1",
+    numero: "01",
+    titulo: "Entregable 1",
+    descripcion: "Primera evaluación",
+    color: "blue",
+  },
+  {
+    codigo: "EN2",
+    numero: "02",
+    titulo: "Entregable 2",
+    descripcion: "Segunda evaluación",
+    color: "violet",
+  },
+  {
+    codigo: "EN3",
+    numero: "03",
+    titulo: "Entregable 3",
+    descripcion: "Tercera evaluación",
+    color: "emerald",
+  },
+];
+
+const MENSAJES_PROCESAMIENTO = [
+  "Conectando con Google Drive...",
+  "Obteniendo los documentos de las carpetas...",
+  "Identificando los archivos de cada entregable...",
+  "Analizando los documentos de EN1...",
+  "Analizando los documentos de EN2...",
+  "Analizando los documentos de EN3...",
+  "Ejecutando la evaluación de los documentos...",
+  "Calculando los puntajes obtenidos...",
+  "Relacionando los documentos con cada alumno...",
+  "Consolidando EN1, EN2 y EN3...",
+  "Verificando los resultados...",
+  "Preparando la tabla final...",
+];
+
+
+// =====================================================
+// COMPONENTE
+// =====================================================
+
 export default function ConsolidacionPage() {
+
   // =====================================================
   // CARPETAS
   // =====================================================
@@ -37,69 +91,66 @@ export default function ConsolidacionPage() {
     EN3: "",
   });
 
+
   // =====================================================
   // RESULTADO
   // =====================================================
 
   const [resultado, setResultado] = useState(null);
 
+
   // =====================================================
   // ESTADOS
   // =====================================================
 
   const [cargando, setCargando] = useState(false);
+
   const [error, setError] = useState("");
 
   const [paso, setPaso] = useState(
     "Esperando inicio..."
   );
 
-  const [tiempoInicio, setTiempoInicio] = useState(null);
-  const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
-
   const [mensajeProceso, setMensajeProceso] = useState(
     "Preparando análisis..."
   );
 
-  const [etapaActual, setEtapaActual] = useState(0);
+  const [tiempoInicio, setTiempoInicio] =
+    useState(null);
+
+  const [tiempoTranscurrido, setTiempoTranscurrido] =
+    useState(0);
+
+  const [etapaActual, setEtapaActual] =
+    useState(0);
+
 
   // =====================================================
   // TABLA
   // =====================================================
 
-  const [paginaActual, setPaginaActual] = useState(1);
+  const [paginaActual, setPaginaActual] =
+    useState(1);
+
   const [elementosPorPagina, setElementosPorPagina] =
     useState(10);
 
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] =
+    useState("");
+
 
   // =====================================================
-  // MENSAJES
-  // =====================================================
-
-  const mensajesProcesamiento = [
-    "Conectando con las carpetas de Google Drive...",
-    "Obteniendo los documentos de las carpetas...",
-    "Identificando los archivos de cada entregable...",
-    "Analizando los documentos de EN1...",
-    "Analizando los documentos de EN2...",
-    "Analizando los documentos de EN3...",
-    "Ejecutando la evaluación de los documentos...",
-    "Calculando los puntajes obtenidos...",
-    "Relacionando los documentos con cada alumno...",
-    "Consolidando EN1, EN2 y EN3...",
-    "Verificando los resultados...",
-    "Preparando la tabla final...",
-  ];
-
-  // =====================================================
-  // CONTADOR
+  // CONTADOR DE TIEMPO
   // =====================================================
 
   useEffect(() => {
-    if (!cargando || !tiempoInicio) return;
+
+    if (!cargando || !tiempoInicio) {
+      return;
+    }
 
     const intervalo = setInterval(() => {
+
       const ahora = Date.now();
 
       const segundos = Math.floor(
@@ -107,60 +158,87 @@ export default function ConsolidacionPage() {
       );
 
       setTiempoTranscurrido(segundos);
+
     }, 1000);
 
     return () => clearInterval(intervalo);
+
   }, [cargando, tiempoInicio]);
+
 
   // =====================================================
   // MENSAJES AUTOMÁTICOS
   // =====================================================
 
   useEffect(() => {
-    if (!cargando) return;
+
+    if (!cargando) {
+      return;
+    }
 
     let indice = 0;
 
-    setMensajeProceso(mensajesProcesamiento[0]);
+    setMensajeProceso(
+      MENSAJES_PROCESAMIENTO[0]
+    );
 
     const intervalo = setInterval(() => {
+
       indice =
         (indice + 1) %
-        mensajesProcesamiento.length;
+        MENSAJES_PROCESAMIENTO.length;
 
       setMensajeProceso(
-        mensajesProcesamiento[indice]
+        MENSAJES_PROCESAMIENTO[indice]
       );
+
     }, 3500);
 
     return () => clearInterval(intervalo);
+
   }, [cargando]);
 
+
   // =====================================================
-  // ETAPAS
+  // ETAPAS VISUALES
   // =====================================================
 
   useEffect(() => {
-    if (!cargando) return;
+
+    if (!cargando) {
+      return;
+    }
 
     const intervalo = setInterval(() => {
+
       setEtapaActual((anterior) => {
-        if (anterior >= 3) return anterior;
+
+        if (anterior >= 3) {
+          return anterior;
+        }
+
         return anterior + 1;
+
       });
+
     }, 5000);
 
     return () => clearInterval(intervalo);
+
   }, [cargando]);
 
+
   // =====================================================
-  // TIEMPO
+  // FORMATEAR TIEMPO
   // =====================================================
 
   function formatearTiempo(segundos) {
-    const minutos = Math.floor(segundos / 60);
 
-    const segundosRestantes = segundos % 60;
+    const minutos =
+      Math.floor(segundos / 60);
+
+    const segundosRestantes =
+      segundos % 60;
 
     return (
       String(minutos).padStart(2, "0") +
@@ -169,50 +247,92 @@ export default function ConsolidacionPage() {
     );
   }
 
+
   // =====================================================
   // CAMBIAR CARPETA
   // =====================================================
 
-  function cambiarCarpeta(entregable, valor) {
+  function cambiarCarpeta(
+    entregable,
+    valor
+  ) {
+
     setCarpetas((anterior) => ({
       ...anterior,
       [entregable]: valor,
     }));
+
+    if (error) {
+      setError("");
+    }
   }
+
+
+  // =====================================================
+  // LIMPIAR CARPETA
+  // =====================================================
+
+  function limpiarCarpeta(entregable) {
+
+    setCarpetas((anterior) => ({
+      ...anterior,
+      [entregable]: "",
+    }));
+  }
+
 
   // =====================================================
   // ESPERAR
   // =====================================================
 
   function esperar(ms) {
+
     return new Promise((resolve) =>
       setTimeout(resolve, ms)
     );
   }
 
+
   // =====================================================
-  // CONSOLIDAR
+  // EJECUTAR CONSOLIDACIÓN
   // =====================================================
 
   async function ejecutarConsolidacion() {
-    console.log("=================================");
-    console.log("INICIANDO CONSOLIDACIÓN");
-    console.log("CARPETAS:", carpetas);
+
+    console.log(
+      "================================="
+    );
+
+    console.log(
+      "INICIANDO CONSOLIDACIÓN"
+    );
+
+    console.log(
+      "CARPETAS:",
+      carpetas
+    );
+
 
     setError("");
+
     setResultado(null);
+
     setPaginaActual(1);
+
     setBusqueda("");
 
-    // -----------------------------------------------
-    // VALIDAR
-    // -----------------------------------------------
 
-    if (
-      !carpetas.EN1.trim() &&
-      !carpetas.EN2.trim() &&
-      !carpetas.EN3.trim()
-    ) {
+    // -------------------------------------------------
+    // VALIDACIÓN
+    // -------------------------------------------------
+
+    const hayCarpeta =
+      carpetas.EN1.trim() ||
+      carpetas.EN2.trim() ||
+      carpetas.EN3.trim();
+
+    if (!hayCarpeta) {
+
       setError(
         "Debes ingresar al menos una carpeta de EN1, EN2 o EN3."
       );
@@ -220,25 +340,35 @@ export default function ConsolidacionPage() {
       return;
     }
 
-    // -----------------------------------------------
-    // INICIAR
-    // -----------------------------------------------
 
-    const inicio = Date.now();
+    // -------------------------------------------------
+    // INICIO
+    // -------------------------------------------------
+
+    const inicio =
+      Date.now();
 
     setCargando(true);
+
     setTiempoInicio(inicio);
+
     setTiempoTranscurrido(0);
+
     setEtapaActual(0);
 
-    setPaso("Preparando consolidación...");
+    setPaso(
+      "Preparando consolidación..."
+    );
 
     setMensajeProceso(
       "Preparando análisis..."
     );
 
+
     try {
+
       await esperar(500);
+
 
       setPaso(
         "Preparando las carpetas..."
@@ -246,11 +376,13 @@ export default function ConsolidacionPage() {
 
       await esperar(500);
 
-      // ---------------------------------------------
+
+      // -------------------------------------------------
       // EN1
-      // ---------------------------------------------
+      // -------------------------------------------------
 
       if (carpetas.EN1.trim()) {
+
         setPaso(
           "📁 Procesando carpeta EN1..."
         );
@@ -263,11 +395,13 @@ export default function ConsolidacionPage() {
         await esperar(300);
       }
 
-      // ---------------------------------------------
+
+      // -------------------------------------------------
       // EN2
-      // ---------------------------------------------
+      // -------------------------------------------------
 
       if (carpetas.EN2.trim()) {
+
         setPaso(
           "📁 Procesando carpeta EN2..."
         );
@@ -280,11 +414,13 @@ export default function ConsolidacionPage() {
         await esperar(300);
       }
 
-      // ---------------------------------------------
+
+      // -------------------------------------------------
       // EN3
-      // ---------------------------------------------
+      // -------------------------------------------------
 
       if (carpetas.EN3.trim()) {
+
         setPaso(
           "📁 Procesando carpeta EN3..."
         );
@@ -297,9 +433,10 @@ export default function ConsolidacionPage() {
         await esperar(300);
       }
 
-      // ---------------------------------------------
+
+      // -------------------------------------------------
       // BACKEND
-      // ---------------------------------------------
+      // -------------------------------------------------
 
       setEtapaActual(0);
 
@@ -311,49 +448,57 @@ export default function ConsolidacionPage() {
         "El servidor está analizando los documentos..."
       );
 
+
       console.log(
         "ENVIANDO SOLICITUD AL BACKEND..."
       );
+
 
       const data =
         await consolidarEntregables({
           carpetas,
         });
 
+
       console.log(
         "CONSOLIDACIÓN TERMINADA:",
         data
       );
 
-      // ---------------------------------------------
-      // RESULTADOS
-      // ---------------------------------------------
+
+      // -------------------------------------------------
+      // MOSTRAR RESULTADOS EN CONSOLA
+      // -------------------------------------------------
 
       if (data?.consolidado) {
+
         console.log(
           "RESULTADOS CONSOLIDADOS"
         );
 
         data.consolidado.forEach(
           (alumno) => {
+
             console.log(
               alumno.alumno +
-                " | EN1: " +
-                alumno.EN1 +
-                " | EN2: " +
-                alumno.EN2 +
-                " | EN3: " +
-                alumno.EN3 +
-                " | TOTAL: " +
-                alumno.total
+              " | EN1: " +
+              alumno.EN1 +
+              " | EN2: " +
+              alumno.EN2 +
+              " | EN3: " +
+              alumno.EN3 +
+              " | TOTAL: " +
+              alumno.total
             );
+
           }
         );
       }
 
-      // ---------------------------------------------
+
+      // -------------------------------------------------
       // FINAL
-      // ---------------------------------------------
+      // -------------------------------------------------
 
       setEtapaActual(4);
 
@@ -368,7 +513,9 @@ export default function ConsolidacionPage() {
       setResultado(data);
 
       setPaginaActual(1);
+
     } catch (err) {
+
       console.error(
         "ERROR CONSOLIDACIÓN:",
         err
@@ -376,7 +523,7 @@ export default function ConsolidacionPage() {
 
       setError(
         err?.message ||
-          "No se pudo realizar la consolidación."
+        "No se pudo realizar la consolidación."
       );
 
       setPaso(
@@ -386,95 +533,139 @@ export default function ConsolidacionPage() {
       setMensajeProceso(
         "No fue posible completar el procesamiento."
       );
+
     } finally {
+
       setCargando(false);
 
       console.log(
         "TIEMPO TOTAL:",
         formatearTiempo(
           Math.floor(
-            (Date.now() - inicio) / 1000
+            (Date.now() - inicio) /
+            1000
           )
         )
       );
+
     }
   }
 
+
   // =====================================================
-  // DATOS
+  // DATOS CONSOLIDADOS
   // =====================================================
 
- const datosConsolidados = useMemo(() => {
-  const datos = resultado?.consolidado || [];
+  const datosConsolidados = useMemo(() => {
 
-  return [...datos].sort((a, b) => {
-    const nombreA = String(a.alumno || "").trim();
-    const nombreB = String(b.alumno || "").trim();
+    const datos =
+      resultado?.consolidado || [];
 
-    return nombreA.localeCompare(nombreB, "es", {
-      sensitivity: "base",
-    });
-  });
-}, [resultado]);
+    return [...datos].sort(
+      (a, b) => {
+
+        const nombreA =
+          String(
+            a.alumno || ""
+          ).trim();
+
+        const nombreB =
+          String(
+            b.alumno || ""
+          ).trim();
+
+        return nombreA.localeCompare(
+          nombreB,
+          "es",
+          {
+            sensitivity: "base",
+          }
+        );
+      }
+    );
+
+  }, [resultado]);
+
+
   // =====================================================
   // FILTRO
   // =====================================================
 
-  const resultadosFiltrados = useMemo(() => {
-    const texto = busqueda
-      .trim()
-      .toLowerCase();
+  const resultadosFiltrados =
+    useMemo(() => {
 
-    if (!texto) {
-      return datosConsolidados;
-    }
+      const texto =
+        busqueda
+          .trim()
+          .toLowerCase();
 
-    return datosConsolidados.filter(
-      (alumno) => {
-        const nombre = String(
-          alumno.alumno || ""
-        ).toLowerCase();
-
-        const semestre = String(
-          alumno.semestre || ""
-        ).toLowerCase();
-
-        const informe = String(
-          alumno.informe || ""
-        ).toLowerCase();
-
-        return (
-          nombre.includes(texto) ||
-          semestre.includes(texto) ||
-          informe.includes(texto)
-        );
+      if (!texto) {
+        return datosConsolidados;
       }
-    );
-  }, [
-    datosConsolidados,
-    busqueda,
-  ]);
+
+      return datosConsolidados.filter(
+        (alumno) => {
+
+          const nombre =
+            String(
+              alumno.alumno || ""
+            ).toLowerCase();
+
+          const semestre =
+            String(
+              alumno.semestre || ""
+            ).toLowerCase();
+
+          const informe =
+            String(
+              alumno.informe || ""
+            ).toLowerCase();
+
+          return (
+            nombre.includes(texto) ||
+            semestre.includes(texto) ||
+            informe.includes(texto)
+          );
+        }
+      );
+
+    }, [
+      datosConsolidados,
+      busqueda,
+    ]);
+
 
   // =====================================================
   // PAGINACIÓN
   // =====================================================
 
-  const totalPaginas = Math.max(
-    1,
-    Math.ceil(
-      resultadosFiltrados.length /
+  const totalPaginas =
+    Math.max(
+      1,
+      Math.ceil(
+        resultadosFiltrados.length /
         elementosPorPagina
-    )
-  );
+      )
+    );
+
 
   useEffect(() => {
-    if (paginaActual > totalPaginas) {
-      setPaginaActual(totalPaginas);
+
+    if (
+      paginaActual >
+      totalPaginas
+    ) {
+
+      setPaginaActual(
+        totalPaginas
+      );
     }
+
   }, [
     paginaActual,
     totalPaginas,
   ]);
+
 
   const indiceInicio =
     (paginaActual - 1) *
@@ -484,18 +675,34 @@ export default function ConsolidacionPage() {
     indiceInicio +
     elementosPorPagina;
 
+
   const resultadosPagina =
     resultadosFiltrados.slice(
       indiceInicio,
       indiceFin
     );
 
+
+  // =====================================================
+  // CAMBIAR BÚSQUEDA
+  // =====================================================
+
   function cambiarBusqueda(valor) {
+
     setBusqueda(valor);
+
     setPaginaActual(1);
   }
 
-  function cambiarElementosPorPagina(valor) {
+
+  // =====================================================
+  // CAMBIAR CANTIDAD
+  // =====================================================
+
+  function cambiarElementosPorPagina(
+    valor
+  ) {
+
     setElementosPorPagina(
       Number(valor)
     );
@@ -503,14 +710,19 @@ export default function ConsolidacionPage() {
     setPaginaActual(1);
   }
 
+
   // =====================================================
-  // CSV
+  // EXPORTAR CSV
   // =====================================================
 
   function exportarCSV() {
-    if (!resultadosFiltrados.length) {
+
+    if (
+      !resultadosFiltrados.length
+    ) {
       return;
     }
+
 
     const encabezados = [
       "Alumno",
@@ -522,9 +734,11 @@ export default function ConsolidacionPage() {
       "Total",
     ];
 
+
     const filas =
       resultadosFiltrados.map(
         (alumno) => [
+
           alumno.alumno,
           alumno.semestre,
           alumno.informe,
@@ -532,41 +746,55 @@ export default function ConsolidacionPage() {
           alumno.EN2,
           alumno.EN3,
           alumno.total,
+
         ]
       );
+
 
     const csv = [
       encabezados,
       ...filas,
     ]
-      .map((fila) =>
-        fila
-          .map(
-            (valor) =>
-              `"${String(
-                valor ?? ""
-              ).replace(
-                /"/g,
-                '""'
-              )}"`
-          )
-          .join(",")
+      .map(
+        (fila) =>
+          fila
+            .map(
+              (valor) =>
+                `"${String(
+                  valor ?? ""
+                ).replace(
+                  /"/g,
+                  '""'
+                )}"`
+            )
+            .join(",")
       )
       .join("\n");
 
-    const blob = new Blob(
-      ["\ufeff" + csv],
-      {
-        type:
-          "text/csv;charset=utf-8;",
-      }
-    );
+
+    const blob =
+      new Blob(
+        [
+          "\ufeff" +
+          csv
+        ],
+        {
+          type:
+            "text/csv;charset=utf-8;",
+        }
+      );
+
 
     const url =
-      URL.createObjectURL(blob);
+      URL.createObjectURL(
+        blob
+      );
+
 
     const enlace =
-      document.createElement("a");
+      document.createElement(
+        "a"
+      );
 
     enlace.href = url;
 
@@ -583,24 +811,37 @@ export default function ConsolidacionPage() {
       enlace
     );
 
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(
+      url
+    );
   }
 
+
   // =====================================================
-  // PDF
+  // EXPORTAR PDF
   // =====================================================
 
   function exportarPDF() {
-    if (!resultadosFiltrados.length) {
+
+    if (
+      !resultadosFiltrados.length
+    ) {
       return;
     }
 
+
     try {
-      const doc = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-      });
+
+      const doc =
+        new jsPDF({
+          orientation:
+            "landscape",
+          unit: "mm",
+          format: "a4",
+        });
+
+
+      // ENCABEZADO
 
       doc.setFillColor(
         29,
@@ -616,18 +857,23 @@ export default function ConsolidacionPage() {
         "F"
       );
 
+
       doc.setTextColor(
         255,
         255,
         255
       );
 
-      doc.setFontSize(18);
+
+      doc.setFontSize(
+        18
+      );
 
       doc.setFont(
         "helvetica",
         "bold"
       );
+
 
       doc.text(
         "Consolidación de Entregables",
@@ -635,12 +881,16 @@ export default function ConsolidacionPage() {
         13
       );
 
-      doc.setFontSize(9);
+
+      doc.setFontSize(
+        9
+      );
 
       doc.setFont(
         "helvetica",
         "normal"
       );
+
 
       doc.text(
         "Resultados consolidados por alumno",
@@ -648,11 +898,13 @@ export default function ConsolidacionPage() {
         21
       );
 
+
       doc.text(
         `Total de alumnos: ${resultadosFiltrados.length}`,
         220,
         13
       );
+
 
       doc.text(
         `Generado: ${new Date().toLocaleString(
@@ -662,9 +914,11 @@ export default function ConsolidacionPage() {
         21
       );
 
+
       const filasPDF =
         resultadosFiltrados.map(
           (alumno) => [
+
             alumno.alumno || "-",
             alumno.semestre || "-",
             alumno.informe || "-",
@@ -672,136 +926,174 @@ export default function ConsolidacionPage() {
             alumno.EN2 ?? 0,
             alumno.EN3 ?? 0,
             alumno.total ?? 0,
+
           ]
         );
 
-      autoTable(doc, {
-        startY: 37,
 
-        head: [
-          [
-            "Alumno",
-            "Semestre",
-            "Informe",
-            "EN1",
-            "EN2",
-            "EN3",
-            "TOTAL",
+      autoTable(
+        doc,
+        {
+
+          startY: 37,
+
+          head: [
+            [
+              "Alumno",
+              "Semestre",
+              "Informe",
+              "EN1",
+              "EN2",
+              "EN3",
+              "TOTAL",
+            ],
           ],
-        ],
 
-        body: filasPDF,
+          body:
+            filasPDF,
 
-        theme: "grid",
+          theme:
+            "grid",
 
-        styles: {
-          fontSize: 8,
-          cellPadding: 3,
-          valign: "middle",
-        },
-
-        headStyles: {
-          fillColor: [
-            29,
-            54,
-            129,
-          ],
-          textColor: 255,
-          fontStyle: "bold",
-          halign: "center",
-        },
-
-        columnStyles: {
-          0: {
-            cellWidth: 70,
+          styles: {
+            fontSize: 8,
+            cellPadding: 3,
+            valign:
+              "middle",
           },
 
-          1: {
-            cellWidth: 28,
-            halign: "center",
-          },
-
-          2: {
-            cellWidth: 28,
-            halign: "center",
-          },
-
-          3: {
-            cellWidth: 25,
-            halign: "center",
-          },
-
-          4: {
-            cellWidth: 25,
-            halign: "center",
-          },
-
-          5: {
-            cellWidth: 25,
-            halign: "center",
-          },
-
-          6: {
-            cellWidth: 30,
-            halign: "center",
-          },
-        },
-
-        alternateRowStyles: {
-          fillColor: [
-            248,
-            250,
-            252,
-          ],
-        },
-
-        didParseCell(data) {
-          if (
-            data.section ===
-              "body" &&
-            data.column.index === 6
-          ) {
-            data.cell.styles.fontStyle =
-              "bold";
-
-            data.cell.styles.textColor = [
+          headStyles: {
+            fillColor: [
               29,
               54,
               129,
-            ];
-          }
-        },
+            ],
+            textColor:
+              255,
+            fontStyle:
+              "bold",
+            halign:
+              "center",
+          },
 
-        didDrawPage() {
-          const pageHeight =
-            doc.internal.pageSize.height;
+          columnStyles: {
 
-          doc.setFontSize(8);
+            0: {
+              cellWidth: 70,
+            },
 
-          doc.setTextColor(
-            100,
-            116,
-            139
-          );
+            1: {
+              cellWidth: 28,
+              halign:
+                "center",
+            },
 
-          doc.text(
-            "Sistema de consolidación de entregables",
-            14,
-            pageHeight - 8
-          );
+            2: {
+              cellWidth: 28,
+              halign:
+                "center",
+            },
 
-          doc.text(
-            `Página ${doc.internal.getNumberOfPages()}`,
-            260,
-            pageHeight - 8
-          );
-        },
-      });
+            3: {
+              cellWidth: 25,
+              halign:
+                "center",
+            },
+
+            4: {
+              cellWidth: 25,
+              halign:
+                "center",
+            },
+
+            5: {
+              cellWidth: 25,
+              halign:
+                "center",
+            },
+
+            6: {
+              cellWidth: 30,
+              halign:
+                "center",
+            },
+
+          },
+
+          alternateRowStyles: {
+            fillColor: [
+              248,
+              250,
+              252,
+            ],
+          },
+
+          didParseCell(
+            data
+          ) {
+
+            if (
+              data.section ===
+                "body" &&
+              data.column.index ===
+                6
+            ) {
+
+              data.cell.styles.fontStyle =
+                "bold";
+
+              data.cell.styles.textColor =
+                [
+                  29,
+                  54,
+                  129,
+                ];
+            }
+          },
+
+          didDrawPage() {
+
+            const pageHeight =
+              doc.internal
+                .pageSize
+                .height;
+
+
+            doc.setFontSize(
+              8
+            );
+
+            doc.setTextColor(
+              100,
+              116,
+              139
+            );
+
+
+            doc.text(
+              "Sistema de consolidación de entregables",
+              14,
+              pageHeight - 8
+            );
+
+
+            doc.text(
+              `Página ${doc.internal.getNumberOfPages()}`,
+              260,
+              pageHeight - 8
+            );
+          },
+
+        }
+      );
+
 
       doc.save(
         "consolidacion_entregables.pdf"
       );
+
     } catch (err) {
+
       console.error(
         "ERROR GENERANDO PDF:",
         err
@@ -812,6 +1104,7 @@ export default function ConsolidacionPage() {
       );
     }
   }
+
 
   // =====================================================
   // CARPETAS SELECCIONADAS
@@ -827,59 +1120,134 @@ export default function ConsolidacionPage() {
         carpeta.trim() !== ""
     ).length;
 
+
   // =====================================================
   // ESTADO DE ETAPA
   // =====================================================
 
   function estadoEtapa(numero) {
+
     if (!cargando) {
+
       if (
         resultado &&
         numero <= 3
       ) {
+
         return "completa";
       }
 
       return "pendiente";
     }
 
-    if (numero < etapaActual) {
+
+    if (
+      numero < etapaActual
+    ) {
+
       return "completa";
     }
 
-    if (numero === etapaActual) {
+
+    if (
+      numero === etapaActual
+    ) {
+
       return "activa";
     }
 
+
     return "pendiente";
   }
+
 
   // =====================================================
   // RENDER
   // =====================================================
 
   return (
-    <section className="max-w-7xl mx-auto space-y-8 pb-10">
+
+    <section className="max-w-7xl mx-auto space-y-8 pb-14">
+
 
       {/* =================================================
-          ENCABEZADO
+          HERO
       ================================================= */}
 
-      <div className="flex items-center gap-3">
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#10245f] via-[#1D3681] to-indigo-700 p-7 sm:p-9 text-white shadow-xl">
 
-        <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center">
-          <Database size={25} />
-        </div>
+        <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
 
-        <div>
-          <h1 className="text-3xl font-black text-slate-900">
-            Consolidación
-          </h1>
+        <div className="absolute -left-20 -bottom-32 w-72 h-72 rounded-full bg-blue-400/10 blur-3xl" />
 
-          <p className="mt-1 text-slate-500">
-            Consolida los resultados de EN1,
-            EN2 y EN3 por alumno.
-          </p>
+
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
+
+          <div className="flex items-start gap-5">
+
+            <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
+
+              <Database
+                size={30}
+              />
+
+            </div>
+
+
+            <div>
+
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold text-blue-100 mb-3">
+
+                <Sparkles
+                  size={14}
+                />
+
+                Módulo docente
+
+              </div>
+
+
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+
+                Consolidación
+
+              </h1>
+
+
+              <p className="mt-2 text-blue-100 max-w-2xl leading-relaxed">
+
+                Reúne automáticamente los resultados de
+                <span className="font-bold text-white">
+                  {" "}EN1, EN2 y EN3
+                </span>
+                {" "}por alumno en una sola tabla.
+
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div className="flex items-center gap-3">
+
+            <div className="rounded-2xl bg-white/10 border border-white/15 px-5 py-4 backdrop-blur">
+
+              <p className="text-xs text-blue-100">
+                Carpetas listas
+              </p>
+
+              <p className="text-2xl font-black mt-1">
+                {carpetasSeleccionadas}
+                <span className="text-base text-blue-200">
+                  {" "} / 3
+                </span>
+              </p>
+
+            </div>
+
+          </div>
+
         </div>
 
       </div>
@@ -889,58 +1257,103 @@ export default function ConsolidacionPage() {
           INFORMACIÓN
       ================================================= */}
 
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-6">
+      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-5">
 
-        <div className="flex gap-4">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm">
 
-          <div className="bg-blue-600 text-white rounded-2xl p-3 h-fit shrink-0">
-            <FolderOpen size={24} />
-          </div>
+          <div className="flex items-start gap-4">
 
-          <div>
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
 
-            <h2 className="font-black text-blue-900">
-              ¿Cómo funciona?
-            </h2>
-
-            <p className="text-sm text-blue-800 mt-1 leading-relaxed">
-              Ingresa las carpetas de EN1,
-              EN2 y EN3. El sistema analizará
-              los documentos, identificará al
-              alumno y reunirá sus puntajes
-              en una sola fila.
-            </p>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-
-              {[
-                "EN1",
-                "+",
-                "EN2",
-                "+",
-                "EN3",
-              ].map(
-                (texto, index) => (
-                  <span
-                    key={index}
-                    className="bg-white border border-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-lg"
-                  >
-                    {texto}
-                  </span>
-                )
-              )}
-
-              <span className="text-xs font-bold text-blue-700 flex items-center ml-1">
-                = Total del alumno
-              </span>
+              <FolderOpen
+                size={23}
+              />
 
             </div>
 
-            <p className="text-xs text-blue-700 mt-4 font-semibold">
-              Ejemplo:
-              {" "}
-              ASE242S5_IS1_EN2_CondeCerronTatiana
-            </p>
+
+            <div>
+
+              <h2 className="font-black text-lg text-slate-900">
+                ¿Cómo funciona?
+              </h2>
+
+              <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+
+                Ingresa las carpetas de Google Drive
+                correspondientes a cada entregable.
+                El sistema analizará los documentos,
+                identificará a cada alumno y reunirá
+                sus puntajes.
+
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div className="mt-6 flex items-center gap-2 flex-wrap">
+
+            {["EN1", "+", "EN2", "+", "EN3"].map(
+              (texto, index) => (
+
+                <div
+                  key={index}
+                  className={
+                    texto === "+"
+                      ? "text-slate-300 font-black px-1"
+                      : "px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-sm font-black"
+                  }
+                >
+                  {texto}
+                </div>
+
+              )
+            )}
+
+            <div className="text-slate-400 mx-1">
+              →
+            </div>
+
+            <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-800 text-sm font-black">
+              Total del alumno
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 sm:p-7">
+
+          <div className="flex items-start gap-4">
+
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+
+              <ShieldCheck
+                size={23}
+              />
+
+            </div>
+
+
+            <div>
+
+              <h3 className="font-black text-emerald-900">
+                Procesamiento seguro
+              </h3>
+
+              <p className="text-sm text-emerald-700 mt-2 leading-relaxed">
+
+                El procesamiento se realiza mediante
+                el servicio configurado para analizar
+                las carpetas y devolver los resultados
+                consolidados.
+
+              </p>
+
+            </div>
 
           </div>
 
@@ -950,292 +1363,388 @@ export default function ConsolidacionPage() {
 
 
       {/* =================================================
-          CARPETAS
+          CONFIGURACIÓN DE CARPETAS
       ================================================= */}
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="p-6 sm:p-8 border-b border-slate-100">
 
-          <div>
-
-            <h2 className="text-xl font-black text-slate-900">
-              Carpetas de entregables
-            </h2>
-
-            <p className="text-sm text-slate-500 mt-1">
-              Coloca la URL de Google Drive
-              para cada entregable.
-            </p>
-
-          </div>
-
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl">
-
-            <FolderOpen size={15} />
-
-            {carpetasSeleccionadas} de 3 carpetas
-
-          </div>
-
-        </div>
-
-
-        {/* =================================================
-            INPUTS EN1 EN2 EN3
-        ================================================= */}
-
-        <div className="grid md:grid-cols-3 gap-6">
-
-          {["EN1", "EN2", "EN3"].map(
-            (entregable) => {
-
-              const tieneCarpeta =
-                carpetas[
-                  entregable
-                ].trim() !== "";
-
-              return (
-                <div
-                  key={entregable}
-                  className={`border rounded-2xl p-5 transition ${
-                    tieneCarpeta
-                      ? "border-green-200 bg-green-50/40"
-                      : "border-slate-200 bg-slate-50"
-                  }`}
-                >
-
-                  <div className="flex items-center justify-between mb-4">
-
-                    <div>
-
-                      <span className="font-black text-lg text-slate-900">
-                        {entregable}
-                      </span>
-
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Entregable{" "}
-                        {entregable.replace(
-                          "EN",
-                          ""
-                        )}
-                      </p>
-
-                    </div>
-
-                    <div
-                      className={`rounded-xl p-2.5 ${
-                        tieneCarpeta
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {tieneCarpeta ? (
-                        <CheckCircle2
-                          size={20}
-                        />
-                      ) : (
-                        <FolderOpen
-                          size={20}
-                        />
-                      )}
-                    </div>
-
-                  </div>
-
-
-                  {/* INPUT REAL */}
-
-                  <div className="relative">
-
-                    <Link
-                      size={17}
-                      className="absolute left-3 top-3 text-slate-400"
-                    />
-
-                    <input
-                      type="text"
-                      value={
-                        carpetas[
-                          entregable
-                        ]
-                      }
-                      disabled={cargando}
-                      onChange={(e) =>
-                        cambiarCarpeta(
-                          entregable,
-                          e.target.value
-                        )
-                      }
-                      placeholder="URL de Google Drive"
-                      className="w-full pl-10 pr-3 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
-                    />
-
-                  </div>
-
-
-                  <div className="mt-3 flex items-center gap-2">
-
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        tieneCarpeta
-                          ? "bg-green-500"
-                          : "bg-slate-300"
-                      }`}
-                    />
-
-                    <span className="text-xs text-slate-500">
-                      {tieneCarpeta
-                        ? "Carpeta configurada"
-                        : "Esperando carpeta"}
-                    </span>
-
-                  </div>
-
-                </div>
-              );
-            }
-          )}
-
-        </div>
-
-
-        {/* =================================================
-            ERROR
-        ================================================= */}
-
-        {error && (
-          <div className="mt-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4">
-
-            <AlertCircle
-              size={20}
-              className="shrink-0 mt-0.5"
-            />
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
             <div>
 
-              <p className="font-bold">
-                No se pudo realizar la consolidación
-              </p>
+              <div className="flex items-center gap-3">
 
-              <p className="text-sm mt-1">
-                {error}
-              </p>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
 
-            </div>
-
-          </div>
-        )}
-
-
-        {/* =================================================
-            PROCESAMIENTO
-        ================================================= */}
-
-        {cargando && (
-          <div className="mt-6 bg-white border border-blue-200 rounded-3xl shadow-lg overflow-hidden">
-
-            <div className="px-6 py-6 bg-gradient-to-r from-[#1D3681] via-blue-700 to-indigo-700 text-white">
-
-              <div className="flex items-center justify-between gap-4">
-
-                <div className="flex items-center gap-4">
-
-                  <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/10 flex items-center justify-center">
-
-                    <Sparkles
-                      size={26}
-                      className="animate-pulse"
-                    />
-
-                  </div>
-
-                  <div>
-
-                    <p className="text-xl font-black">
-                      Consolidando entregables
-                    </p>
-
-                    <p className="text-sm text-blue-100 mt-1">
-                      El servidor está procesando
-                      los documentos.
-                    </p>
-
-                  </div>
-
-                </div>
-
-                <div className="hidden sm:flex items-center gap-2 bg-white/10 border border-white/10 rounded-xl px-4 py-2">
-
-                  <Clock3 size={17} />
-
-                  <span className="font-mono font-bold">
-                    {formatearTiempo(
-                      tiempoTranscurrido
-                    )}
-                  </span>
-
-                </div>
-
-              </div>
-
-
-              <div className="mt-6 h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
-
-                <div
-                  className="h-full w-1/3 bg-white rounded-full"
-                  style={{
-                    animation:
-                      "loading 1.5s ease-in-out infinite",
-                  }}
-                />
-
-              </div>
-
-              <style>
-                {`
-                  @keyframes loading {
-                    0% {
-                      transform: translateX(-120%);
-                    }
-
-                    50% {
-                      transform: translateX(100%);
-                    }
-
-                    100% {
-                      transform: translateX(320%);
-                    }
-                  }
-                `}
-              </style>
-
-            </div>
-
-
-            <div className="p-6">
-
-              {/* MENSAJE */}
-
-              <div className="flex items-center gap-4 bg-blue-50 border border-blue-100 rounded-2xl p-5">
-
-                <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
-
-                  <Loader2
-                    size={21}
-                    className="animate-spin"
+                  <Link
+                    size={19}
                   />
 
                 </div>
 
+                <h2 className="text-xl font-black text-slate-900">
+                  Carpetas de entregables
+                </h2>
+
+              </div>
+
+              <p className="text-sm text-slate-500 mt-2 ml-13">
+                Coloca la URL de Google Drive para cada entregable.
+              </p>
+
+            </div>
+
+
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl">
+
+              <div className="w-2 h-2 rounded-full bg-blue-600" />
+
+              <span className="text-xs font-bold text-slate-600">
+
+                {carpetasSeleccionadas === 0
+                  ? "Sin carpetas"
+                  : `${carpetasSeleccionadas} de 3 configuradas`}
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div className="p-6 sm:p-8">
+
+          <div className="grid lg:grid-cols-3 gap-5">
+
+            {ENTREGABLES.map(
+              (entregable) => {
+
+                const valor =
+                  carpetas[
+                    entregable.codigo
+                  ];
+
+                const tieneCarpeta =
+                  valor.trim() !== "";
+
+
+                const colores = {
+
+                  blue: {
+                    card: tieneCarpeta
+                      ? "border-blue-200 bg-blue-50/40"
+                      : "border-slate-200 bg-slate-50/50",
+                    icon: "bg-blue-100 text-blue-700",
+                    badge: "bg-blue-50 text-blue-700 border-blue-100",
+                  },
+
+                  violet: {
+                    card: tieneCarpeta
+                      ? "border-violet-200 bg-violet-50/40"
+                      : "border-slate-200 bg-slate-50/50",
+                    icon: "bg-violet-100 text-violet-700",
+                    badge: "bg-violet-50 text-violet-700 border-violet-100",
+                  },
+
+                  emerald: {
+                    card: tieneCarpeta
+                      ? "border-emerald-200 bg-emerald-50/40"
+                      : "border-slate-200 bg-slate-50/50",
+                    icon: "bg-emerald-100 text-emerald-700",
+                    badge: "bg-emerald-50 text-emerald-700 border-emerald-100",
+                  },
+
+                }[
+                  entregable.color
+                ];
+
+
+                return (
+
+                  <div
+                    key={
+                      entregable.codigo
+                    }
+                    className={`rounded-2xl border p-5 transition-all duration-200 hover:shadow-md ${colores.card}`}
+                  >
+
+                    <div className="flex items-start justify-between gap-3 mb-5">
+
+                      <div>
+
+                        <div className="flex items-center gap-2">
+
+                          <span className="text-xs font-black text-slate-400">
+                            {entregable.numero}
+                          </span>
+
+                          <span className="text-lg font-black text-slate-900">
+                            {entregable.codigo}
+                          </span>
+
+                        </div>
+
+                        <p className="text-xs text-slate-500 mt-1">
+                          {entregable.descripcion}
+                        </p>
+
+                      </div>
+
+
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${colores.icon}`}
+                      >
+
+                        {tieneCarpeta ? (
+                          <CheckCircle2
+                            size={20}
+                          />
+                        ) : (
+                          <FolderOpen
+                            size={20}
+                          />
+                        )}
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="relative">
+
+                      <Link
+                        size={17}
+                        className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"
+                      />
+
+
+                      <input
+                        type="text"
+                        value={valor}
+                        disabled={cargando}
+                        onChange={(e) =>
+                          cambiarCarpeta(
+                            entregable.codigo,
+                            e.target.value
+                          )
+                        }
+                        placeholder="Pega aquí la URL de Google Drive"
+                        className="w-full pl-11 pr-10 py-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                      />
+
+
+                      {tieneCarpeta && !cargando && (
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            limpiarCarpeta(
+                              entregable.codigo
+                            )
+                          }
+                          className="absolute right-3 top-3 text-slate-400 hover:text-red-500 transition"
+                          title="Limpiar"
+                        >
+
+                          <X
+                            size={17}
+                          />
+
+                        </button>
+
+                      )}
+
+                    </div>
+
+
+                    <div className="mt-4 flex items-center justify-between gap-2">
+
+                      <div className="flex items-center gap-2">
+
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            tieneCarpeta
+                              ? "bg-emerald-500"
+                              : "bg-slate-300"
+                          }`}
+                        />
+
+                        <span className="text-xs font-semibold text-slate-500">
+
+                          {tieneCarpeta
+                            ? "Carpeta configurada"
+                            : "Esperando carpeta"}
+
+                        </span>
+
+                      </div>
+
+
+                      {tieneCarpeta && (
+
+                        <span
+                          className={`text-[10px] uppercase tracking-wide font-black border px-2 py-1 rounded-lg ${colores.badge}`}
+                        >
+                          Lista
+                        </span>
+
+                      )}
+
+                    </div>
+
+                  </div>
+
+                );
+
+              }
+            )}
+
+          </div>
+
+
+          {/* =================================================
+              ERROR
+          ================================================= */}
+
+          {error && (
+
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4">
+
+              <div className="flex items-start gap-3">
+
+                <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+
+                  <AlertCircle
+                    size={19}
+                  />
+
+                </div>
+
+
                 <div className="min-w-0">
 
-                  <p className="font-bold text-blue-900">
-                    {paso}
+                  <p className="font-black text-red-800">
+                    No se pudo realizar la consolidación
                   </p>
 
-                  <p className="text-sm text-blue-700 mt-1">
-                    {mensajeProceso}
+                  <p className="text-sm text-red-700 mt-1 leading-relaxed">
+                    {error}
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          )}
+
+
+          {/* =================================================
+              BOTÓN
+          ================================================= */}
+
+          <div className="mt-7 flex flex-col sm:flex-row sm:items-center gap-4">
+
+            <button
+              type="button"
+              onClick={
+                ejecutarConsolidacion
+              }
+              disabled={
+                cargando
+              }
+              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#1D3681] hover:bg-[#14285f] text-white font-black shadow-lg shadow-blue-900/15 transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            >
+
+              {cargando ? (
+
+                <>
+                  <Loader2
+                    size={20}
+                    className="animate-spin"
+                  />
+
+                  Procesando...
+
+                </>
+
+              ) : (
+
+                <>
+                  <CheckCircle2
+                    size={20}
+                  />
+
+                  Consolidar entregables
+
+                </>
+
+              )}
+
+            </button>
+
+
+            {!cargando && (
+
+              <p className="text-xs text-slate-400 flex items-center gap-2">
+
+                <ShieldCheck
+                  size={15}
+                />
+
+                Puedes ingresar una, dos o las tres carpetas.
+
+              </p>
+
+            )}
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* =================================================
+          PROCESAMIENTO
+      ================================================= */}
+
+      {cargando && (
+
+        <div className="rounded-[2rem] overflow-hidden border border-blue-200 bg-white shadow-xl">
+
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#10245f] via-[#1D3681] to-indigo-700 p-6 sm:p-8 text-white">
+
+            <div className="absolute -right-16 -top-24 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
+
+
+            <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+
+              <div className="flex items-center gap-4">
+
+                <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
+
+                  <Sparkles
+                    size={27}
+                    className="animate-pulse"
+                  />
+
+                </div>
+
+
+                <div>
+
+                  <p className="text-xl font-black">
+                    Consolidando entregables
+                  </p>
+
+                  <p className="text-sm text-blue-100 mt-1">
+                    El servidor está procesando los documentos.
                   </p>
 
                 </div>
@@ -1243,58 +1752,124 @@ export default function ConsolidacionPage() {
               </div>
 
 
-              {/* TIEMPO */}
+              <div className="flex items-center gap-2 bg-white/10 border border-white/10 rounded-xl px-4 py-2.5">
 
-              <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Clock3
+                  size={17}
+                />
 
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+                <span className="font-mono font-bold">
+                  {formatearTiempo(
+                    tiempoTranscurrido
+                  )}
+                </span>
 
-                  <Clock3 size={15} />
+              </div>
 
-                  Tiempo transcurrido:
+            </div>
 
-                  <span className="font-mono font-bold text-slate-700">
-                    {formatearTiempo(
-                      tiempoTranscurrido
-                    )}
-                  </span>
 
-                </div>
+            <div className="mt-7 h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
 
-                <p className="text-xs text-slate-400">
-                  No cierres ni recargues esta página.
+              <div
+                className="h-full w-1/3 bg-white rounded-full"
+                style={{
+                  animation:
+                    "consolidacionLoading 1.5s ease-in-out infinite",
+                }}
+              />
+
+            </div>
+
+
+            <style>
+              {`
+                @keyframes consolidacionLoading {
+                  0% {
+                    transform: translateX(-120%);
+                  }
+
+                  50% {
+                    transform: translateX(100%);
+                  }
+
+                  100% {
+                    transform: translateX(320%);
+                  }
+                }
+              `}
+            </style>
+
+          </div>
+
+
+          <div className="p-6 sm:p-8">
+
+            <div className="flex items-center gap-4 rounded-2xl bg-blue-50 border border-blue-100 p-5">
+
+              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+
+                <Loader2
+                  size={21}
+                  className="animate-spin"
+                />
+
+              </div>
+
+
+              <div className="min-w-0">
+
+                <p className="font-black text-blue-900">
+                  {paso}
+                </p>
+
+                <p className="text-sm text-blue-700 mt-1">
+                  {mensajeProceso}
                 </p>
 
               </div>
 
+            </div>
 
-              {/* =================================================
-                  ETAPAS
-              ================================================= */}
 
-              <div className="mt-6 space-y-3">
+            <div className="mt-5 flex items-center justify-between gap-4 text-xs">
 
-                {[
-                  {
-                    codigo: "EN1",
-                    numero: 0,
-                    titulo: "Entregable 1",
-                  },
-                  {
-                    codigo: "EN2",
-                    numero: 1,
-                    titulo: "Entregable 2",
-                  },
-                  {
-                    codigo: "EN3",
-                    numero: 2,
-                    titulo: "Entregable 3",
-                  },
-                ].map((etapa) => {
+              <div className="flex items-center gap-2 text-slate-500">
+
+                <Clock3
+                  size={15}
+                />
+
+                Tiempo transcurrido:
+
+                <span className="font-mono font-black text-slate-700">
+                  {formatearTiempo(
+                    tiempoTranscurrido
+                  )}
+                </span>
+
+              </div>
+
+
+              <span className="text-slate-400 hidden sm:block">
+                No cierres ni recargues esta página.
+              </span>
+
+            </div>
+
+
+            {/* ETAPAS */}
+
+            <div className="mt-7 space-y-3">
+
+              {ENTREGABLES.map(
+                (etapa) => {
 
                   const estado =
                     estadoEtapa(
-                      etapa.numero
+                      Number(
+                        etapa.numero
+                      ) - 1
                     );
 
                   const tiene =
@@ -1302,15 +1877,19 @@ export default function ConsolidacionPage() {
                       etapa.codigo
                     ].trim() !== "";
 
+
                   return (
+
                     <div
-                      key={etapa.codigo}
+                      key={
+                        etapa.codigo
+                      }
                       className={`flex items-center gap-4 rounded-2xl border p-4 transition-all ${
                         !tiene
                           ? "opacity-40 border-slate-200 bg-slate-50"
                           : estado ===
                             "completa"
-                          ? "border-green-200 bg-green-50"
+                          ? "border-emerald-200 bg-emerald-50"
                           : estado ===
                             "activa"
                           ? "border-blue-300 bg-blue-50 shadow-sm"
@@ -1324,22 +1903,27 @@ export default function ConsolidacionPage() {
                             ? "bg-slate-200 text-slate-400"
                             : estado ===
                               "completa"
-                            ? "bg-green-600 text-white"
+                            ? "bg-emerald-600 text-white"
                             : estado ===
                               "activa"
                             ? "bg-blue-600 text-white"
                             : "bg-slate-200 text-slate-500"
                         }`}
                       >
-                        {!tiene ? (
-                          etapa.codigo
-                        ) : estado ===
-                          "completa" ? (
-                          <Check size={18} />
-                        ) : (
-                          etapa.codigo
-                        )}
+
+                        {!tiene
+                          ? etapa.codigo
+                          : estado ===
+                            "completa"
+                          ? (
+                            <Check
+                              size={18}
+                            />
+                          )
+                          : etapa.codigo}
+
                       </div>
+
 
                       <div className="flex-1">
 
@@ -1348,6 +1932,7 @@ export default function ConsolidacionPage() {
                         </p>
 
                         <p className="text-xs text-slate-500 mt-0.5">
+
                           {!tiene
                             ? "No seleccionado"
                             : estado ===
@@ -1357,118 +1942,134 @@ export default function ConsolidacionPage() {
                               "activa"
                             ? "Procesando documentos..."
                             : "Pendiente"}
+
                         </p>
 
                       </div>
 
+
                       {tiene &&
                         estado ===
                           "activa" && (
+
                           <Loader2
                             size={19}
                             className="text-blue-600 animate-spin"
                           />
+
                         )}
 
                     </div>
+
                   );
-                })}
+
+                }
+              )}
 
 
-                {/* CONSOLIDACIÓN */}
+              {/* CONSOLIDACIÓN */}
+
+              <div
+                className={`flex items-center gap-4 rounded-2xl border p-4 ${
+                  estadoEtapa(3) ===
+                  "completa"
+                    ? "border-emerald-200 bg-emerald-50"
+                    : estadoEtapa(3) ===
+                      "activa"
+                    ? "border-blue-300 bg-blue-50 shadow-sm"
+                    : "border-slate-200 bg-slate-50"
+                }`}
+              >
 
                 <div
-                  className={`flex items-center gap-4 rounded-2xl border p-4 ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                     estadoEtapa(3) ===
                     "completa"
-                      ? "border-green-200 bg-green-50"
+                      ? "bg-emerald-600 text-white"
                       : estadoEtapa(3) ===
                         "activa"
-                      ? "border-blue-300 bg-blue-50 shadow-sm"
-                      : "border-slate-200 bg-slate-50"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-200 text-slate-500"
                   }`}
                 >
 
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                      estadoEtapa(3) ===
-                      "completa"
-                        ? "bg-green-600 text-white"
-                        : estadoEtapa(3) ===
-                          "activa"
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-200 text-slate-500"
-                    }`}
-                  >
-
-                    {estadoEtapa(3) ===
-                    "completa" ? (
-                      <Check size={19} />
-                    ) : (
-                      <FileSearch
-                        size={19}
-                      />
-                    )}
-
-                  </div>
-
-                  <div className="flex-1">
-
-                    <p className="font-bold text-slate-800">
-                      Consolidación
-                    </p>
-
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {estadoEtapa(3) ===
-                      "completa"
-                        ? "Resultados preparados"
-                        : estadoEtapa(3) ===
-                          "activa"
-                        ? "Calculando resultados finales..."
-                        : "Pendiente"}
-                    </p>
-
-                  </div>
-
                   {estadoEtapa(3) ===
-                    "activa" && (
-                    <Loader2
+                  "completa" ? (
+
+                    <Check
                       size={19}
-                      className="text-blue-600 animate-spin"
                     />
+
+                  ) : (
+
+                    <FileSearch
+                      size={19}
+                    />
+
                   )}
 
                 </div>
 
+
+                <div className="flex-1">
+
+                  <p className="font-bold text-slate-800">
+                    Consolidación
+                  </p>
+
+                  <p className="text-xs text-slate-500 mt-0.5">
+
+                    {estadoEtapa(3) ===
+                    "completa"
+                      ? "Resultados preparados"
+                      : estadoEtapa(3) ===
+                        "activa"
+                      ? "Calculando resultados finales..."
+                      : "Pendiente"}
+
+                  </p>
+
+                </div>
+
+
+                {estadoEtapa(3) ===
+                  "activa" && (
+
+                  <Loader2
+                    size={19}
+                    className="text-blue-600 animate-spin"
+                  />
+
+                )}
+
               </div>
 
+            </div>
 
-              {/* AVISO */}
 
-              <div className="mt-6 rounded-2xl bg-slate-50 border border-slate-200 p-4">
+            <div className="mt-6 rounded-2xl bg-amber-50 border border-amber-100 p-4">
 
-                <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3">
 
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
 
-                    <Clock3 size={16} />
+                  <Clock3
+                    size={16}
+                  />
 
-                  </div>
+                </div>
 
-                  <div>
 
-                    <p className="text-sm font-bold text-slate-700">
-                      El análisis puede tardar varios minutos
-                    </p>
+                <div>
 
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Cada documento puede requerir
-                      análisis individual. Mantén esta
-                      página abierta hasta recibir los
-                      resultados.
-                    </p>
+                  <p className="text-sm font-black text-amber-900">
+                    El análisis puede tardar varios minutos
+                  </p>
 
-                  </div>
+                  <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                    Cada documento puede requerir un análisis individual.
+                    Mantén esta página abierta hasta recibir los resultados.
+                  </p>
 
                 </div>
 
@@ -1477,40 +2078,10 @@ export default function ConsolidacionPage() {
             </div>
 
           </div>
-        )}
 
+        </div>
 
-        {/* =================================================
-            BOTÓN CONSOLIDAR
-        ================================================= */}
-
-        <button
-          type="button"
-          onClick={ejecutarConsolidacion}
-          disabled={cargando}
-          className="mt-6 bg-[#1D3681] hover:bg-blue-950 disabled:opacity-60 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-black flex items-center gap-2 transition shadow-sm"
-        >
-
-          {cargando ? (
-            <>
-              <Loader2
-                size={20}
-                className="animate-spin"
-              />
-
-              Procesando...
-            </>
-          ) : (
-            <>
-              <CheckCircle2 size={20} />
-
-              Consolidar entregables
-            </>
-          )}
-
-        </button>
-
-      </div>
+      )}
 
 
       {/* =================================================
@@ -1518,55 +2089,139 @@ export default function ConsolidacionPage() {
       ================================================= */}
 
       {resultado && (
-        <div className="grid md:grid-cols-3 gap-5">
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div>
 
-            <Users className="text-blue-700 mb-3" />
+          <div className="flex items-center gap-3 mb-5">
 
-            <p className="text-sm text-slate-500">
-              Alumnos
-            </p>
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
 
-            <p className="text-3xl font-black text-slate-900">
-              {resultado.totalAlumnos ||
-                datosConsolidados.length ||
-                0}
-            </p>
+              <BarChart3
+                size={20}
+              />
 
-          </div>
+            </div>
 
+            <div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <h2 className="text-xl font-black text-slate-900">
+                Resumen
+              </h2>
 
-            <Database className="text-blue-700 mb-3" />
+              <p className="text-sm text-slate-500">
+                Vista general de la consolidación.
+              </p>
 
-            <p className="text-sm text-slate-500">
-              Entregables
-            </p>
-
-            <p className="text-xl font-black mt-2 text-slate-900">
-              EN1 · EN2 · EN3
-            </p>
+            </div>
 
           </div>
 
 
-          <div className="bg-white border border-green-200 rounded-2xl p-6 shadow-sm">
+          <div className="grid md:grid-cols-3 gap-5">
 
-            <ShieldCheck className="text-green-600 mb-3" />
+            {/* ALUMNOS */}
 
-            <p className="text-sm text-slate-500">
-              Estado
-            </p>
+            <div className="group bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
 
-            <p className="text-xl font-black text-green-600 mt-2">
-              Consolidado
-            </p>
+              <div className="flex items-start justify-between">
+
+                <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+
+                  <Users
+                    size={21}
+                  />
+
+                </div>
+
+                <span className="text-xs font-bold text-slate-400">
+                  REGISTROS
+                </span>
+
+              </div>
+
+
+              <p className="text-sm text-slate-500 mt-5">
+                Alumnos encontrados
+              </p>
+
+              <p className="text-3xl font-black text-slate-900 mt-1">
+
+                {resultado.totalAlumnos ||
+                  datosConsolidados.length ||
+                  0}
+
+              </p>
+
+            </div>
+
+
+            {/* ENTREGABLES */}
+
+            <div className="group bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+
+              <div className="flex items-start justify-between">
+
+                <div className="w-11 h-11 rounded-xl bg-violet-50 text-violet-700 flex items-center justify-center">
+
+                  <Database
+                    size={21}
+                  />
+
+                </div>
+
+                <span className="text-xs font-bold text-slate-400">
+                  EVALUACIONES
+                </span>
+
+              </div>
+
+
+              <p className="text-sm text-slate-500 mt-5">
+                Entregables procesados
+              </p>
+
+              <p className="text-lg font-black text-slate-900 mt-2">
+                EN1 · EN2 · EN3
+              </p>
+
+            </div>
+
+
+            {/* ESTADO */}
+
+            <div className="group bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+
+              <div className="flex items-start justify-between">
+
+                <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+
+                  <ShieldCheck
+                    size={21}
+                  />
+
+                </div>
+
+                <span className="text-xs font-bold text-emerald-600">
+                  FINALIZADO
+                </span>
+
+              </div>
+
+
+              <p className="text-sm text-slate-500 mt-5">
+                Estado
+              </p>
+
+              <p className="text-lg font-black text-emerald-600 mt-2">
+                Consolidado correctamente
+              </p>
+
+            </div>
 
           </div>
 
         </div>
+
       )}
 
 
@@ -1575,52 +2230,83 @@ export default function ConsolidacionPage() {
       ================================================= */}
 
       {resultado && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+
+        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+
 
           {/* CABECERA */}
 
-          <div className="p-6 border-b border-slate-200 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div className="p-6 sm:p-7 border-b border-slate-200">
 
-            <div>
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
 
-              <h2 className="text-xl font-black text-slate-900">
-                Resultado de consolidación
-              </h2>
+              <div>
 
-              <p className="text-sm text-slate-500 mt-1">
-                Resultado agrupado por alumno,
-                semestre e informe.
-              </p>
+                <div className="flex items-center gap-3">
 
-            </div>
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
 
+                    <Database
+                      size={19}
+                    />
 
-            <div className="flex flex-wrap items-center gap-2">
+                  </div>
 
-              <button
-                type="button"
-                onClick={exportarCSV}
-                disabled={
-                  !resultadosFiltrados.length
-                }
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed transition"
-              >
-                <Download size={18} />
-                CSV
-              </button>
+                  <h2 className="text-xl font-black text-slate-900">
+                    Resultado de consolidación
+                  </h2>
+
+                </div>
+
+                <p className="text-sm text-slate-500 mt-2 ml-13">
+                  Resultados agrupados por alumno, semestre e informe.
+                </p>
+
+              </div>
 
 
-              <button
-                type="button"
-                onClick={exportarPDF}
-                disabled={
-                  !resultadosFiltrados.length
-                }
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed transition"
-              >
-                <FileDown size={18} />
-                PDF
-              </button>
+              <div className="flex flex-wrap gap-2">
+
+                <button
+                  type="button"
+                  onClick={
+                    exportarCSV
+                  }
+                  disabled={
+                    !resultadosFiltrados.length
+                  }
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+
+                  <Download
+                    size={17}
+                  />
+
+                  Exportar CSV
+
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={
+                    exportarPDF
+                  }
+                  disabled={
+                    !resultadosFiltrados.length
+                  }
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+
+                  <FileDown
+                    size={17}
+                  />
+
+                  Exportar PDF
+
+                </button>
+
+              </div>
 
             </div>
 
@@ -1629,79 +2315,99 @@ export default function ConsolidacionPage() {
 
           {/* FILTROS */}
 
-          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="px-6 sm:px-7 py-4 bg-slate-50/80 border-b border-slate-200">
 
-            <div className="relative w-full lg:max-w-md">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
-              <Search
-                size={18}
-                className="absolute left-3 top-3 text-slate-400"
-              />
+              <div className="relative w-full lg:max-w-lg">
 
-              <input
-                type="text"
-                value={busqueda}
-                onChange={(e) =>
-                  cambiarBusqueda(
-                    e.target.value
-                  )
-                }
-                placeholder="Buscar alumno, semestre o informe..."
-                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                <Search
+                  size={18}
+                  className="absolute left-3.5 top-3 text-slate-400"
+                />
 
-              {busqueda && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    cambiarBusqueda("")
+
+                <input
+                  type="text"
+                  value={
+                    busqueda
                   }
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700"
+                  onChange={(e) =>
+                    cambiarBusqueda(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Buscar alumno, semestre o informe..."
+                  className="w-full pl-11 pr-10 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+
+
+                {busqueda && (
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      cambiarBusqueda(
+                        ""
+                      )
+                    }
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
+                  >
+
+                    <X
+                      size={17}
+                    />
+
+                  </button>
+
+                )}
+
+              </div>
+
+
+              <div className="flex items-center gap-3">
+
+                <span className="text-xs font-bold text-slate-500">
+                  Mostrar
+                </span>
+
+
+                <select
+                  value={
+                    elementosPorPagina
+                  }
+                  onChange={(e) =>
+                    cambiarElementosPorPagina(
+                      e.target.value
+                    )
+                  }
+                  className="px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
-                  ×
-                </button>
-              )}
 
-            </div>
+                  <option value={10}>
+                    10
+                  </option>
+
+                  <option value={25}>
+                    25
+                  </option>
+
+                  <option value={50}>
+                    50
+                  </option>
+
+                  <option value={100}>
+                    100
+                  </option>
+
+                </select>
 
 
-            <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-500">
+                  por página
+                </span>
 
-              <span className="text-xs font-bold text-slate-500">
-                Mostrar
-              </span>
-
-              <select
-                value={elementosPorPagina}
-                onChange={(e) =>
-                  cambiarElementosPorPagina(
-                    e.target.value
-                  )
-                }
-                className="px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 outline-none"
-              >
-
-                <option value={10}>
-                  10
-                </option>
-
-                <option value={25}>
-                  25
-                </option>
-
-                <option value={50}>
-                  50
-                </option>
-
-                <option value={100}>
-                  100
-                </option>
-
-              </select>
-
-              <span className="text-xs text-slate-500">
-                por página
-              </span>
+              </div>
 
             </div>
 
@@ -1710,42 +2416,57 @@ export default function ConsolidacionPage() {
 
           {/* INFORMACIÓN */}
 
-          <div className="px-6 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="px-6 sm:px-7 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 
             <p className="text-xs text-slate-500">
 
               Mostrando{" "}
 
-              <span className="font-bold text-slate-700">
+              <span className="font-black text-slate-700">
+
                 {resultadosFiltrados.length ===
                 0
                   ? 0
                   : indiceInicio + 1}
+
               </span>
 
               {" – "}
 
-              <span className="font-bold text-slate-700">
+              <span className="font-black text-slate-700">
+
                 {Math.min(
                   indiceFin,
                   resultadosFiltrados.length
                 )}
+
               </span>
 
               {" de "}
 
-              <span className="font-bold text-slate-700">
+              <span className="font-black text-slate-700">
+
                 {resultadosFiltrados.length}
+
               </span>
 
               {" resultados"}
 
             </p>
 
+
             {busqueda && (
-              <p className="text-xs text-blue-600 font-semibold">
+
+              <div className="inline-flex items-center gap-2 text-xs text-blue-600 font-bold">
+
+                <Search
+                  size={13}
+                />
+
                 Filtro activo
-              </p>
+
+              </div>
+
             )}
 
           </div>
@@ -1754,39 +2475,40 @@ export default function ConsolidacionPage() {
           {/* TABLA */}
 
           {resultadosPagina.length > 0 ? (
+
             <div className="overflow-x-auto">
 
               <table className="w-full text-sm">
 
-                <thead className="bg-slate-100">
+                <thead>
 
-                  <tr>
+                  <tr className="bg-slate-100 border-b border-slate-200">
 
-                    <th className="text-left p-4 font-black text-slate-700">
+                    <th className="text-left p-4 pl-6 font-black text-slate-700 whitespace-nowrap">
                       Alumno
                     </th>
 
-                    <th className="p-4 font-black text-slate-700">
+                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
                       Semestre
                     </th>
 
-                    <th className="p-4 font-black text-slate-700">
+                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
                       Informe
                     </th>
 
-                    <th className="p-4 font-black text-slate-700">
+                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
                       EN1
                     </th>
 
-                    <th className="p-4 font-black text-slate-700">
+                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
                       EN2
                     </th>
 
-                    <th className="p-4 font-black text-slate-700">
+                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
                       EN3
                     </th>
 
-                    <th className="p-4 font-black text-blue-800">
+                    <th className="p-4 pr-6 font-black text-blue-800 whitespace-nowrap">
                       TOTAL
                     </th>
 
@@ -1798,45 +2520,97 @@ export default function ConsolidacionPage() {
                 <tbody>
 
                   {resultadosPagina.map(
-                    (alumno, index) => (
+                    (
+                      alumno,
+                      index
+                    ) => (
+
                       <tr
                         key={`${alumno.alumno}-${indiceInicio + index}`}
-                        className="border-t border-slate-100 hover:bg-slate-50"
+                        className="border-b border-slate-100 last:border-0 hover:bg-blue-50/30 transition"
                       >
 
-                        <td className="p-4 font-bold text-slate-900">
-                          {alumno.alumno}
+                        <td className="p-4 pl-6">
+
+                          <div className="flex items-center gap-3">
+
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-black text-xs shrink-0">
+
+                              {String(
+                                alumno.alumno ||
+                                "?"
+                              )
+                                .charAt(0)
+                                .toUpperCase()}
+
+                            </div>
+
+
+                            <span className="font-bold text-slate-900 whitespace-nowrap">
+
+                              {alumno.alumno ||
+                                "-"}
+
+                            </span>
+
+                          </div>
+
                         </td>
 
-                        <td className="p-4 text-center text-slate-600">
-                          {alumno.semestre}
+
+                        <td className="p-4 text-center text-slate-600 whitespace-nowrap">
+
+                          {alumno.semestre ||
+                            "-"}
+
                         </td>
 
-                        <td className="p-4 text-center text-slate-600">
-                          {alumno.informe}
+
+                        <td className="p-4 text-center text-slate-600 whitespace-nowrap">
+
+                          {alumno.informe ||
+                            "-"}
+
                         </td>
 
-                        <td className="p-4 text-center font-semibold">
-                          {alumno.EN1}
+
+                        <td className="p-4 text-center font-semibold text-slate-700">
+
+                          {alumno.EN1 ??
+                            0}
+
                         </td>
 
-                        <td className="p-4 text-center font-semibold">
-                          {alumno.EN2}
+
+                        <td className="p-4 text-center font-semibold text-slate-700">
+
+                          {alumno.EN2 ??
+                            0}
+
                         </td>
 
-                        <td className="p-4 text-center font-semibold">
-                          {alumno.EN3}
+
+                        <td className="p-4 text-center font-semibold text-slate-700">
+
+                          {alumno.EN3 ??
+                            0}
+
                         </td>
 
-                        <td className="p-4 text-center">
 
-                          <span className="inline-flex items-center justify-center min-w-[60px] px-3 py-1.5 rounded-lg bg-blue-50 text-blue-800 font-black">
-                            {alumno.total}
+                        <td className="p-4 pr-6 text-center">
+
+                          <span className="inline-flex items-center justify-center min-w-[64px] px-3 py-1.5 rounded-lg bg-blue-50 text-blue-800 font-black">
+
+                            {alumno.total ??
+                              0}
+
                           </span>
 
                         </td>
 
                       </tr>
+
                     )
                   )}
 
@@ -1845,31 +2619,60 @@ export default function ConsolidacionPage() {
               </table>
 
             </div>
+
           ) : (
-            <div className="p-12 text-center text-slate-500">
 
-              <FileSearch
-                size={45}
-                className="mx-auto mb-4 text-slate-300"
-              />
+            <div className="p-14 text-center">
 
-              <p className="font-bold text-slate-700">
-                No se encontraron resultados.
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center mx-auto">
+
+                <FileSearch
+                  size={30}
+                />
+
+              </div>
+
+
+              <p className="font-black text-slate-700 mt-5">
+                No se encontraron resultados
               </p>
 
-              <p className="text-sm mt-1">
-                Prueba con otro nombre o
-                verifica las carpetas.
+              <p className="text-sm text-slate-400 mt-1">
+                Prueba con otro nombre, semestre o informe.
               </p>
+
+
+              {busqueda && (
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusqueda("");
+                    setPaginaActual(1);
+                  }}
+                  className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800"
+                >
+
+                  <RotateCcw
+                    size={15}
+                  />
+
+                  Limpiar búsqueda
+
+                </button>
+
+              )}
 
             </div>
+
           )}
 
 
           {/* PAGINACIÓN */}
 
           {resultadosFiltrados.length > 0 && (
-            <div className="px-6 py-5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+            <div className="px-6 sm:px-7 py-5 border-t border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
               <button
                 type="button"
@@ -1885,10 +2688,12 @@ export default function ConsolidacionPage() {
                       )
                   )
                 }
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 disabled:opacity-40"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
 
-                <ChevronLeft size={18} />
+                <ChevronLeft
+                  size={17}
+                />
 
                 Anterior
 
@@ -1905,25 +2710,28 @@ export default function ConsolidacionPage() {
                   (_, index) =>
                     index + 1
                 )
-                  .filter((numero) => {
+                  .filter(
+                    (numero) => {
 
-                    if (
-                      totalPaginas <=
-                      7
-                    ) {
-                      return true;
+                      if (
+                        totalPaginas <=
+                        7
+                      ) {
+                        return true;
+                      }
+
+                      return (
+                        numero ===
+                          1 ||
+                        numero ===
+                          totalPaginas ||
+                        Math.abs(
+                          numero -
+                            paginaActual
+                        ) <= 1
+                      );
                     }
-
-                    return (
-                      numero === 1 ||
-                      numero ===
-                        totalPaginas ||
-                      Math.abs(
-                        numero -
-                          paginaActual
-                      ) <= 1
-                    );
-                  })
+                  )
                   .map(
                     (
                       numero,
@@ -1942,17 +2750,24 @@ export default function ConsolidacionPage() {
                           anteriorNumero >
                           1;
 
+
                       return (
+
                         <div
-                          key={numero}
+                          key={
+                            numero
+                          }
                           className="flex items-center gap-1.5"
                         >
 
                           {mostrarPuntos && (
+
                             <span className="px-1 text-slate-400">
                               ...
                             </span>
+
                           )}
+
 
                           <button
                             type="button"
@@ -1961,18 +2776,22 @@ export default function ConsolidacionPage() {
                                 numero
                               )
                             }
-                            className={`w-10 h-10 rounded-xl font-bold text-sm ${
+                            className={`w-10 h-10 rounded-xl font-bold text-sm transition ${
                               paginaActual ===
                               numero
-                                ? "bg-[#1D3681] text-white"
+                                ? "bg-[#1D3681] text-white shadow-md"
                                 : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                             }`}
                           >
+
                             {numero}
+
                           </button>
 
                         </div>
+
                       );
+
                     }
                   )}
 
@@ -1994,73 +2813,105 @@ export default function ConsolidacionPage() {
                       )
                   )
                 }
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 disabled:opacity-40"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
 
                 Siguiente
 
-                <ChevronRight size={18} />
+                <ChevronRight
+                  size={17}
+                />
 
               </button>
 
             </div>
+
           )}
 
 
           {/* PIE */}
 
           {resultadosFiltrados.length > 0 && (
-            <div className="px-6 pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
-              <div className="text-xs text-slate-400">
+            <div className="px-6 sm:px-7 pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+              <p className="text-xs text-slate-400">
 
                 Página{" "}
 
-                <span className="font-bold text-slate-600">
+                <span className="font-black text-slate-600">
                   {paginaActual}
                 </span>
 
                 {" de "}
 
-                <span className="font-bold text-slate-600">
+                <span className="font-black text-slate-600">
                   {totalPaginas}
                 </span>
 
-              </div>
+              </p>
 
 
               {busqueda && (
+
                 <button
                   type="button"
                   onClick={() => {
-                    setBusqueda("");
-                    setPaginaActual(1);
+
+                    setBusqueda(
+                      ""
+                    );
+
+                    setPaginaActual(
+                      1
+                    );
+
                   }}
-                  className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800"
                 >
 
-                  <RotateCcw size={14} />
+                  <RotateCcw
+                    size={14}
+                  />
 
                   Limpiar filtro
 
                 </button>
+
               )}
 
             </div>
-<<<<<<< HEAD
-=======
- 
->>>>>>> 25295415b61f2c5024cdec37da948d185ebd90da
+
           )}
 
         </div>
+
       )}
 
-    </section>
-  );
-<<<<<<< HEAD
-}
-=======
 
+      {/* =================================================
+          ANIMACIÓN EXTRA
+      ================================================= */}
+
+      <style>
+        {`
+          @keyframes pulse-soft {
+            0%, 100% {
+              opacity: 1;
+            }
+
+            50% {
+              opacity: .65;
+            }
+          }
+
+          .animate-pulse-soft {
+            animation: pulse-soft 2s ease-in-out infinite;
+          }
+        `}
+      </style>
+
+    </section>
+
+  );
 }
->>>>>>> 25295415b61f2c5024cdec37da948d185ebd90da

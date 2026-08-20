@@ -3,7 +3,8 @@
 // ==================================================
 
 const API_URL =
-"https://script.google.com/macros/s/AKfycbxAKW0d1mqNRXCw0hX4C8Y9hf1Al4DaJyAnPGGOuDso33pgSjS58ropX-TmtQO7U551CA/exec";
+"https://script.google.com/macros/s/AKfycbxttCz6WDsug6ouYlNSjrfuxMUOGbLDMBvuqFC4ceM0hgei5ovLXrR4W7eMzu8csdDDIA/exec";
+
 // ==================================================
 // PETICIÓN GENERAL
 // ==================================================
@@ -12,22 +13,38 @@ async function enviarPeticion(datos) {
 
   console.log("========================================");
   console.log("ENVIANDO AL BACK:");
-  console.log(datos);
+  console.log(JSON.stringify(datos, null, 2));
 
   const inicio = performance.now();
 
-  const response = await fetch(
-    API_URL,
-    {
-      method: "POST",
+  let response;
 
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
+  try {
 
-      body: JSON.stringify(datos)
-    }
-  );
+    response = await fetch(
+      API_URL,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+
+        body: JSON.stringify(datos)
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "ERROR DE CONEXIÓN CON EL BACK:",
+      error
+    );
+
+    throw new Error(
+      "No se pudo conectar con el servidor."
+    );
+  }
 
   const fin = performance.now();
 
@@ -37,14 +54,28 @@ async function enviarPeticion(datos) {
     "segundos"
   );
 
+
+  // ==================================================
+  // RESPUESTA RAW
+  // ==================================================
+
   const texto =
     await response.text();
+
+  console.log(
+    "========================================"
+  );
 
   console.log(
     "RESPUESTA RAW DEL BACK:"
   );
 
   console.log(texto);
+
+
+  // ==================================================
+  // PARSEAR JSON
+  // ==================================================
 
   let json;
 
@@ -67,6 +98,10 @@ async function enviarPeticion(datos) {
   }
 
 
+  // ==================================================
+  // VALIDAR OK
+  // ==================================================
+
   if (!json.ok) {
 
     console.error(
@@ -82,11 +117,26 @@ async function enviarPeticion(datos) {
   }
 
 
+  // ==================================================
+  // RESPUESTA CORRECTA
+  // ==================================================
+
   console.log(
-    "RESPUESTA CORRECTA:"
+    "========================================"
   );
 
-  console.log(json.data);
+  console.log(
+    "RESPUESTA CORRECTA DEL BACK:"
+  );
+
+  console.log(
+    JSON.stringify(
+      json.data,
+      null,
+      2
+    )
+  );
+
 
   return json.data;
 }
@@ -95,19 +145,22 @@ async function enviarPeticion(datos) {
 // ==================================================
 // ANALIZAR UNA CARPETA
 // ==================================================
-//
-// ESTA FUNCIÓN ES NECESARIA PARA:
-// FolderAnalyzer.jsx
-// ==================================================
 
 export async function analyzeFolder(url) {
 
-  if (!url) {
+  if (
+    !url ||
+    !String(url).trim()
+  ) {
 
     throw new Error(
       "No se proporcionó una URL de carpeta."
     );
   }
+
+
+  const urlLimpia =
+    String(url).trim();
 
 
   console.log(
@@ -118,7 +171,9 @@ export async function analyzeFolder(url) {
     "ANALIZANDO CARPETA"
   );
 
-  console.log(url);
+  console.log(
+    urlLimpia
+  );
 
 
   const data =
@@ -128,16 +183,26 @@ export async function analyzeFolder(url) {
         "analizarCarpeta",
 
       url:
-        url
+        urlLimpia
 
     });
 
 
   console.log(
+    "========================================"
+  );
+
+  console.log(
     "RESULTADO ANALIZAR CARPETA:"
   );
 
-  console.log(data);
+  console.log(
+    JSON.stringify(
+      data,
+      null,
+      2
+    )
+  );
 
 
   return data;
@@ -146,15 +211,6 @@ export async function analyzeFolder(url) {
 
 // ==================================================
 // CONSOLIDAR EN1 + EN2 + EN3
-// ==================================================
-//
-// Acepta estas DOS formas:
-//
-// consolidarEntregables(carpetas)
-//
-// o
-//
-// consolidarEntregables({ carpetas })
 // ==================================================
 
 export async function consolidarEntregables(
@@ -173,23 +229,31 @@ export async function consolidarEntregables(
     "ENTRADA RECIBIDA:"
   );
 
-  console.log(entrada);
+  console.log(
+    JSON.stringify(
+      entrada,
+      null,
+      2
+    )
+  );
 
 
-  // ------------------------------------------------
-  // COMPATIBILIDAD CON AMBAS FORMAS
-  // ------------------------------------------------
+  // ==================================================
+  // OBTENER CARPETAS
+  // ==================================================
 
   let carpetas;
 
 
-  // Caso 1:
+  // --------------------------------------------------
+  // CASO 1
   //
   // consolidarEntregables({
   //   EN1: "...",
   //   EN2: "...",
   //   EN3: "..."
   // })
+  // --------------------------------------------------
 
   if (
     entrada &&
@@ -206,15 +270,17 @@ export async function consolidarEntregables(
   }
 
 
-  // Caso 2:
+  // --------------------------------------------------
+  // CASO 2
   //
   // consolidarEntregables({
   //   carpetas: {
-  //      EN1: "...",
-  //      EN2: "...",
-  //      EN3: "..."
+  //     EN1: "...",
+  //     EN2: "...",
+  //     EN3: "..."
   //   }
   // })
+  // --------------------------------------------------
 
   else if (
     entrada &&
@@ -227,9 +293,9 @@ export async function consolidarEntregables(
   }
 
 
-  // ------------------------------------------------
-  // SI NO HAY CARPETAS
-  // ------------------------------------------------
+  // ==================================================
+  // VALIDAR CARPETAS
+  // ==================================================
 
   if (!carpetas) {
 
@@ -239,9 +305,9 @@ export async function consolidarEntregables(
   }
 
 
-  // ------------------------------------------------
+  // ==================================================
   // LIMPIAR URLs
-  // ------------------------------------------------
+  // ==================================================
 
   const EN1 =
     String(
@@ -262,21 +328,23 @@ export async function consolidarEntregables(
 
 
   console.log(
+    "========================================"
+  );
+
+  console.log(
     "CARPETAS PROCESADAS:"
   );
 
   console.log({
-
     EN1,
     EN2,
     EN3
-
   });
 
 
-  // ------------------------------------------------
+  // ==================================================
   // VALIDAR
-  // ------------------------------------------------
+  // ==================================================
 
   if (
     !EN1 &&
@@ -290,9 +358,9 @@ export async function consolidarEntregables(
   }
 
 
-  // ------------------------------------------------
+  // ==================================================
   // DATOS PARA APPS SCRIPT
-  // ------------------------------------------------
+  // ==================================================
 
   const datos = {
 
@@ -320,15 +388,21 @@ export async function consolidarEntregables(
   );
 
   console.log(
-    "INICIANDO CONSOLIDACIÓN"
+    "DATOS QUE SE ENVIARÁN AL BACK:"
   );
 
   console.log(
-    "DATOS QUE SE ENVIARÁN:"
+    JSON.stringify(
+      datos,
+      null,
+      2
+    )
   );
 
-  console.log(datos);
 
+  // ==================================================
+  // LLAMAR BACKEND
+  // ==================================================
 
   try {
 
@@ -338,26 +412,103 @@ export async function consolidarEntregables(
       );
 
 
+    // ==================================================
+    // RESPUESTA COMPLETA
+    // ==================================================
+
     console.log(
       "========================================"
     );
 
     console.log(
-      "CONSOLIDACIÓN FINALIZADA"
+      "RESPUESTA COMPLETA DE CONSOLIDACIÓN:"
     );
 
     console.log(
-      "RESULTADO:"
+      JSON.stringify(
+        resultado,
+        null,
+        2
+      )
     );
 
-    console.log(resultado);
+
+    // ==================================================
+    // ANALIZAR CONSOLIDADO
+    // ==================================================
+
+    if (
+      Array.isArray(
+        resultado?.consolidado
+      )
+    ) {
+
+      console.log(
+        "========================================"
+      );
+
+      console.log(
+        "VERIFICACIÓN DE PUNTAJES"
+      );
+
+      resultado.consolidado.forEach(
+        function(alumno, index) {
+
+          console.log(
+            "----------------------------------------"
+          );
+
+          console.log(
+            "ALUMNO #" +
+            (index + 1)
+          );
+
+          console.log(
+            "Alumno:",
+            alumno.alumno
+          );
+
+          console.log(
+            "Semestre:",
+            alumno.semestre
+          );
+
+          console.log(
+            "Informe:",
+            alumno.informe
+          );
+
+          console.log(
+            "EN1:",
+            alumno.EN1
+          );
+
+          console.log(
+            "EN2:",
+            alumno.EN2
+          );
+
+          console.log(
+            "EN3:",
+            alumno.EN3
+          );
+
+          console.log(
+            "TOTAL:",
+            alumno.total
+          );
+
+        }
+      );
+
+    }
 
 
-    // ------------------------------------------------
+    // ==================================================
     // NORMALIZAR RESPUESTA
-    // ------------------------------------------------
+    // ==================================================
 
-    return {
+    const respuestaFinal = {
 
       totalAlumnos:
         Number(
@@ -372,6 +523,34 @@ export async function consolidarEntregables(
           : []
 
     };
+
+
+    // ==================================================
+    // MOSTRAR RESPUESTA FINAL
+    // ==================================================
+
+    console.log(
+      "========================================"
+    );
+
+    console.log(
+      "RESPUESTA FINAL QUE SE ENTREGA AL FRONT:"
+    );
+
+    console.log(
+      JSON.stringify(
+        respuestaFinal,
+        null,
+        2
+      )
+    );
+
+    console.log(
+      "========================================"
+    );
+
+
+    return respuestaFinal;
 
   } catch (error) {
 
@@ -502,7 +681,7 @@ export function exportarConsolidacionCSV(
     enlace
   );
 
- 
+
   URL.revokeObjectURL(
     url
   );
