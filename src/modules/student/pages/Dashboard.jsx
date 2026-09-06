@@ -5,7 +5,8 @@ import {
   CheckCircle,
   BarChart3,
   History as HistoryIcon,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from "lucide-react";
 
 import {
@@ -24,7 +25,7 @@ import Reports from "./Reports";
 import ReportsIncidencias from "./ReportsIncidencias";
 import Achievements from "./Achievements";
 import Settings from "./Settings";
-
+import TestimonialForm from "../components/TestimonialForm";
 
 export default function Dashboard() {
 
@@ -123,7 +124,9 @@ export default function Dashboard() {
       "
     >
 
-      {/* SIDEBAR */}
+      {/*==================================================
+       * SIDEBAR
+       *==================================================*/}
 
       <StudentSidebar
 
@@ -134,7 +137,9 @@ export default function Dashboard() {
       />
 
 
-      {/* CONTENIDO PRINCIPAL */}
+      {/*==================================================
+       * CONTENIDO PRINCIPAL
+       *==================================================*/}
 
       <div
         className="
@@ -156,7 +161,7 @@ export default function Dashboard() {
 
 
           {/*==================================================
-           * INICIO
+           * DASHBOARD / INICIO
            *==================================================*/}
 
           {
@@ -169,12 +174,15 @@ export default function Dashboard() {
               <DashboardHeader />
 
 
-              {/* ESTADÍSTICAS */}
+              {/*==================================================
+               * ESTADÍSTICAS
+               *==================================================*/}
 
               <section
                 className="
                   grid
-                  md:grid-cols-4
+                  md:grid-cols-2
+                  lg:grid-cols-4
                   gap-6
                 "
               >
@@ -246,7 +254,7 @@ export default function Dashboard() {
 
 
               {/*==================================================
-               * PROGRESO
+               * PROGRESO Y RECOMENDACIÓN
                *==================================================*/}
 
               <section
@@ -257,6 +265,8 @@ export default function Dashboard() {
                 "
               >
 
+                {/* PROGRESO APA */}
+
                 <div
                   className="
                     bg-white
@@ -264,7 +274,9 @@ export default function Dashboard() {
                     rounded-3xl
                     p-8
                     border
+                    border-slate-200
                     dark:border-slate-800
+                    shadow-sm
                   "
                 >
 
@@ -272,10 +284,13 @@ export default function Dashboard() {
                     className="
                       text-2xl
                       font-black
+                      text-slate-900
                       dark:text-white
                     "
                   >
+
                     Tu progreso APA
+
                   </h2>
 
 
@@ -283,10 +298,13 @@ export default function Dashboard() {
                     className="
                       mt-3
                       text-gray-500
+                      dark:text-gray-400
                     "
                   >
+
                     Mejora tus documentos para alcanzar
                     el estándar institucional.
+
                   </p>
 
 
@@ -330,6 +348,7 @@ export default function Dashboard() {
                       Progreso APA
                     </span>
 
+
                     <strong>
                       {promedio}%
                     </strong>
@@ -339,7 +358,7 @@ export default function Dashboard() {
                 </div>
 
 
-                {/* RECOMENDACIÓN */}
+                {/* RECOMENDACIÓN IA */}
 
                 <div
                   className="
@@ -348,7 +367,9 @@ export default function Dashboard() {
                     rounded-3xl
                     p-8
                     border
+                    border-slate-200
                     dark:border-slate-800
+                    shadow-sm
                   "
                 >
 
@@ -356,10 +377,13 @@ export default function Dashboard() {
                     className="
                       text-2xl
                       font-black
+                      text-slate-900
                       dark:text-white
                     "
                   >
+
                     🤖 Recomendación IA
+
                   </h2>
 
 
@@ -368,6 +392,7 @@ export default function Dashboard() {
                       mt-4
                       text-gray-600
                       dark:text-gray-300
+                      leading-7
                     "
                   >
 
@@ -402,7 +427,9 @@ export default function Dashboard() {
                   rounded-3xl
                   p-8
                   border
+                  border-slate-200
                   dark:border-slate-800
+                  shadow-sm
                 "
               >
 
@@ -410,10 +437,13 @@ export default function Dashboard() {
                   className="
                     text-2xl
                     font-black
+                    text-slate-900
                     dark:text-white
                   "
                 >
+
                   Acciones rápidas
+
                 </h2>
 
 
@@ -456,7 +486,7 @@ export default function Dashboard() {
                   />
 
 
-                  {/* REPORTES ACADÉMICOS */}
+                  {/* REPORTES */}
 
                   <Action
 
@@ -471,7 +501,7 @@ export default function Dashboard() {
                   />
 
 
-                  {/* REPORTAR INCIDENCIA */}
+                  {/* INCIDENCIA */}
 
                   <Action
 
@@ -500,9 +530,233 @@ export default function Dashboard() {
 
                   />
 
+
+                  {/*==================================================
+                   * TESTIMONIO
+                   *==================================================*/}
+
+                  <Action
+
+                    icon={<MessageSquare />}
+
+                    texto="Compartir mi experiencia"
+
+                    click={() =>
+                      setPagina("testimonio")
+                    }
+
+                  />
+
                 </div>
 
               </section>
+
+
+              {/*==================================================
+               * PEQUEÑO CTA DE TESTIMONIO
+               *==================================================*/}
+
+              <section
+                className="
+                  rounded-3xl
+                  bg-gradient-to-r
+                  from-blue-950
+                  to-indigo-700
+                  p-8
+                  text-white
+                  shadow-xl
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    flex-col
+                    md:flex-row
+                    md:items-center
+                    md:justify-between
+                    gap-6
+                  "
+                >
+
+                  <div>
+
+                    <p
+                      className="
+                        text-sm
+                        font-semibold
+                        text-cyan-200
+                      "
+                    >
+
+                      Comunidad VG Smart Review
+
+                    </p>
+
+
+                    <h2
+                      className="
+                        mt-2
+                        text-2xl
+                        md:text-3xl
+                        font-black
+                      "
+                    >
+
+                      ¿Cómo ha sido tu experiencia?
+
+                    </h2>
+
+
+                    <p
+                      className="
+                        mt-2
+                        text-blue-100
+                      "
+                    >
+
+                      Comparte tu opinión y ayuda a otros
+                      estudiantes a conocer la plataforma.
+
+                    </p>
+
+                  </div>
+
+
+                  <button
+
+                    onClick={() =>
+                      setPagina("testimonio")
+                    }
+
+                    className="
+                      shrink-0
+                      inline-flex
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-xl
+                      bg-white
+                      px-6
+                      py-3
+                      font-bold
+                      text-blue-900
+                      transition
+                      hover:scale-105
+                      hover:bg-blue-50
+                    "
+                  >
+
+                    <MessageSquare size={18} />
+
+                    Dejar testimonio
+
+                  </button>
+
+                </div>
+
+              </section>
+
+            </div>
+
+          }
+
+
+          {/*==================================================
+           * TESTIMONIO
+           *
+           * IMPORTANTE:
+           * Está FUERA del bloque dashboard.
+           *==================================================*/}
+
+          {
+            pagina === "testimonio"
+
+            &&
+
+            <div
+              className="
+                max-w-3xl
+                mx-auto
+              "
+            >
+
+              {/* BOTÓN VOLVER */}
+
+              <button
+
+                onClick={() =>
+                  setPagina("dashboard")
+                }
+
+                className="
+                  mb-6
+                  text-sm
+                  font-semibold
+                  text-blue-600
+                  hover:text-blue-800
+                  transition
+                "
+              >
+
+                ← Volver al dashboard
+
+              </button>
+
+
+              {/* ENCABEZADO */}
+
+              <div className="mb-8">
+
+                <p
+                  className="
+                    text-sm
+                    font-semibold
+                    text-blue-600
+                  "
+                >
+
+                  Comunidad
+
+                </p>
+
+
+                <h1
+                  className="
+                    mt-2
+                    text-3xl
+                    md:text-4xl
+                    font-black
+                    text-slate-900
+                    dark:text-white
+                  "
+                >
+
+                  Comparte tu experiencia
+
+                </h1>
+
+
+                <p
+                  className="
+                    mt-3
+                    text-slate-500
+                    dark:text-slate-400
+                    leading-7
+                  "
+                >
+
+                  Cuéntanos cómo ha sido tu experiencia
+                  utilizando VG Smart Review.
+
+                </p>
+
+              </div>
+
+
+              {/* FORMULARIO */}
+
+              <TestimonialForm />
 
             </div>
 
@@ -570,7 +824,7 @@ export default function Dashboard() {
 
 
           {/*==================================================
-           * REPORTES ACADÉMICOS
+           * REPORTES
            *==================================================*/}
 
           {
@@ -593,16 +847,16 @@ export default function Dashboard() {
            * REPORTES DE INCIDENCIAS
            *==================================================*/}
 
-        {
-  pagina === "reports-incidencias"
+          {
+            pagina === "reports-incidencias"
 
-  &&
+            &&
 
-  <ReportsIncidencias
-    setPagina={setPagina}
-  />
+            <ReportsIncidencias
+              setPagina={setPagina}
+            />
 
-}
+          }
 
 
           {/*==================================================
@@ -666,6 +920,7 @@ function Card({
         rounded-3xl
         p-6
         border
+        border-slate-200
         dark:border-slate-800
         shadow-sm
       "
@@ -674,6 +929,7 @@ function Card({
       <div
         className="
           text-[#1D3681]
+          dark:text-blue-400
         "
       >
 
@@ -686,6 +942,7 @@ function Card({
         className="
           mt-4
           text-gray-500
+          dark:text-gray-400
         "
       >
 
@@ -698,6 +955,7 @@ function Card({
         className="
           text-3xl
           font-black
+          text-slate-900
           dark:text-white
         "
       >
@@ -731,6 +989,8 @@ function Action({
 
     <button
 
+      type="button"
+
       onClick={click}
 
       className="
@@ -740,10 +1000,14 @@ function Action({
         p-4
         rounded-xl
         bg-blue-50
+        dark:bg-blue-950/40
         text-[#1D3681]
+        dark:text-blue-300
         font-bold
         hover:bg-blue-100
+        dark:hover:bg-blue-900/50
         transition
+        text-left
       "
 
     >

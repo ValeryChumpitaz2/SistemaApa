@@ -24,40 +24,75 @@ import {
 } from "lucide-react";
 
 
-const API =
-  "https://script.google.com/macros/s/AKfycbxwziMsLeGmXj5EJ_8CfjVMGH4Jm5c-U2X5JB41ixfhfm88wEUS9ZZ4cfUaBBXevrAWzg/exec";
+import {
+  loginDocente
+} from "../../modules/teacher/services/teacherLoginService";
 
 
-export default function TeacherLogin(){
+// ==================================================
+// COMPONENTE LOGIN DOCENTE
+// ==================================================
 
-  const navigate = useNavigate();
+export default function TeacherLogin() {
 
-  const { login } = useAuth();
-
-
-  const [correo,setCorreo] =
-    useState("");
-
-  const [password,setPassword] =
-    useState("");
-
-  const [mostrarPassword,setMostrarPassword] =
-    useState(false);
-
-  const [error,setError] =
-    useState("");
-
-  const [cargando,setCargando] =
-    useState(false);
+  const navigate =
+    useNavigate();
 
 
+  const { login } =
+    useAuth();
 
-  async function ingresar(){
+
+  // ==================================================
+  // ESTADOS
+  // ==================================================
+
+  const [
+    correo,
+    setCorreo
+  ] = useState("");
+
+
+  const [
+    password,
+    setPassword
+  ] = useState("");
+
+
+  const [
+    mostrarPassword,
+    setMostrarPassword
+  ] = useState(false);
+
+
+  const [
+    error,
+    setError
+  ] = useState("");
+
+
+  const [
+    cargando,
+    setCargando
+  ] = useState(false);
+
+
+  // ==================================================
+  // INGRESAR
+  // ==================================================
+
+  async function ingresar() {
+
+    // Limpiar error anterior
 
     setError("");
 
 
-    if(!correo.trim()){
+    // ==================================================
+    // VALIDAR CORREO
+    // ==================================================
+
+    if (!correo.trim()) {
 
       setError(
         "Ingrese su correo institucional."
@@ -68,7 +103,11 @@ export default function TeacherLogin(){
     }
 
 
-    if(!password){
+    // ==================================================
+    // VALIDAR PASSWORD
+    // ==================================================
+
+    if (!password) {
 
       setError(
         "Ingrese su contraseña."
@@ -79,32 +118,24 @@ export default function TeacherLogin(){
     }
 
 
+    // ==================================================
+    // ACTIVAR CARGANDO
+    // ==================================================
+
     setCargando(true);
 
 
-    try{
+    try {
 
-      const response =
-        await fetch(API,{
-
-          method:"POST",
-
-          body:new URLSearchParams({
-
-            accion:"loginDocente",
-
-            correo:
-              correo.trim().toLowerCase(),
-
-            password
-
-          })
-
-        });
-
+      // ==================================================
+      // LOGIN
+      // ==================================================
 
       const respuesta =
-        await response.json();
+        await loginDocente(
+          correo,
+          password
+        );
 
 
       console.log(
@@ -113,63 +144,127 @@ export default function TeacherLogin(){
       );
 
 
-      if(!respuesta.ok){
+      // ==================================================
+      // CREAR OBJETO DOCENTE
+      // ==================================================
 
-        setError(
-          respuesta.mensaje ||
-          "Correo o contraseña incorrectos."
+      const docente = {
+
+        nombre:
+          respuesta?.nombre ||
+          "",
+
+        correo:
+          respuesta?.correo ||
+          correo
+            .trim()
+            .toLowerCase(),
+
+        codigo:
+          respuesta?.codigo ||
+          "",
+
+        rol:
+          respuesta?.rol ||
+          "DOCENTE",
+
+        debeCambiarPassword:
+          respuesta
+            ?.debeCambiarPassword === true
+
+      };
+
+
+      console.log(
+        "DOCENTE LOGUEADO:",
+        docente
+      );
+
+
+      // ==================================================
+      // GUARDAR SESIÓN EN AUTH
+      // ==================================================
+
+      login(
+        docente
+      );
+
+
+      // ==================================================
+      // GUARDAR EN LOCAL STORAGE
+      // ==================================================
+
+      localStorage.setItem(
+        "usuario",
+        JSON.stringify(
+          docente
+        )
+      );
+
+
+      // ==================================================
+      // CONTRASEÑA TEMPORAL
+      // ==================================================
+      //
+      // Si el docente todavía utiliza VG2026,
+      // el backend devuelve:
+      //
+      // debeCambiarPassword: true
+      //
+      // Lo enviamos a cambiar contraseña.
+      // ==================================================
+
+      if (
+        docente.debeCambiarPassword
+      ) {
+
+        console.log(
+          "El docente debe cambiar su contraseña."
         );
+
+
+        navigate(
+          "/teacher/cambiar-password"
+        );
+
 
         return;
 
       }
 
 
-      const docente = {
-
-        nombre:
-          respuesta.data.nombre,
-
-        correo:
-          respuesta.data.correo ||
-          correo.trim().toLowerCase(),
-
-        codigo:
-          respuesta.data.codigo || "",
-
-        rol:
-          respuesta.data.rol
-
-      };
-
-
-      login(docente);
-
-
-      localStorage.setItem(
-        "usuario",
-        JSON.stringify(docente)
-      );
-
+      // ==================================================
+      // LOGIN NORMAL
+      // ==================================================
 
       navigate(
         "/teacher/dashboard"
       );
 
-
     }
-    catch(error){
+    catch (error) {
 
       console.error(
+        "ERROR LOGIN DOCENTE:",
         error
       );
 
+
+      // ==================================================
+      // MOSTRAR ERROR DEL BACKEND
+      // ==================================================
+
       setError(
+        error?.message ||
         "No se pudo conectar con el servidor."
       );
 
     }
-    finally{
+    finally {
+
+      // ==================================================
+      // FINALIZAR CARGANDO
+      // ==================================================
 
       setCargando(false);
 
@@ -178,45 +273,69 @@ export default function TeacherLogin(){
   }
 
 
+  // ==================================================
+  // IR A RECUPERAR PASSWORD
+  // ==================================================
+
+  function irARecuperarPassword() {
+
+    navigate(
+      "/teacher/recuperar-password"
+    );
+
+  }
+
+
+  // ==================================================
+  // RENDER
+  // ==================================================
 
   return (
 
     <div className="w-full">
 
 
-      {/* TITULO */}
+      {/* ==================================================
+          TITULO
+      ================================================== */}
 
       <div className="mb-8">
 
-        <p className="
-          text-sm
-          font-semibold
-          text-blue-600
-          mb-2
-        ">
+        <p
+          className="
+            mb-2
+            text-sm
+            font-semibold
+            text-blue-600
+          "
+        >
 
           Acceso docente
 
         </p>
 
 
-        <h1 className="
-          text-3xl
-          font-black
-          text-slate-900
-          tracking-tight
-        ">
+        <h1
+          className="
+            text-3xl
+            font-black
+            tracking-tight
+            text-slate-900
+          "
+        >
 
           Portal Docente
 
         </h1>
 
 
-        <p className="
-          text-sm
-          text-slate-500
-          mt-2
-        ">
+        <p
+          className="
+            mt-2
+            text-sm
+            text-slate-500
+          "
+        >
 
           Ingresa con tu cuenta institucional
           de Valle Grande.
@@ -227,22 +346,28 @@ export default function TeacherLogin(){
 
 
 
-      {/* FORMULARIO */}
+      {/* ==================================================
+          FORMULARIO
+      ================================================== */}
 
       <div className="space-y-5">
 
 
-        {/* CORREO */}
+        {/* ==================================================
+            CORREO
+        ================================================== */}
 
         <div>
 
-          <label className="
-            block
-            text-sm
-            font-semibold
-            text-slate-700
-            mb-2
-          ">
+          <label
+            className="
+              mb-2
+              block
+              text-sm
+              font-semibold
+              text-slate-700
+            "
+          >
 
             Correo institucional
 
@@ -251,44 +376,73 @@ export default function TeacherLogin(){
 
           <div className="relative">
 
+            {/* ICONO CORREO */}
+
             <Mail
               size={18}
               className="
+                pointer-events-none
                 absolute
                 left-4
                 top-1/2
                 -translate-y-1/2
                 text-slate-400
-                pointer-events-none
               "
             />
 
+
+            {/* INPUT CORREO */}
 
             <input
 
               type="email"
 
-              value={correo}
-
-              onChange={e =>
-                setCorreo(e.target.value)
+              value={
+                correo
               }
 
-              onKeyDown={e => {
+              onChange={
+                e => {
 
-                if(e.key === "Enter"){
-                  ingresar();
+                  setCorreo(
+                    e.target.value
+                  );
+
+                  // Limpiar error mientras escribe
+
+                  if (error) {
+                    setError("");
+                  }
+
                 }
+              }
 
-              }}
+              onKeyDown={
+                e => {
+
+                  if (
+                    e.key === "Enter" &&
+                    !cargando
+                  ) {
+
+                    ingresar();
+
+                  }
+
+                }
+              }
 
               placeholder="correo@vallegrande.edu.pe"
 
               autoComplete="email"
 
+              disabled={
+                cargando
+              }
+
               className="
-                w-full
                 h-12
+                w-full
                 rounded-xl
                 border
                 border-slate-200
@@ -297,13 +451,15 @@ export default function TeacherLogin(){
                 pr-4
                 text-sm
                 text-slate-800
-                placeholder:text-slate-400
                 outline-none
                 transition
-                focus:bg-white
+                placeholder:text-slate-400
                 focus:border-blue-600
+                focus:bg-white
                 focus:ring-4
                 focus:ring-blue-600/10
+                disabled:cursor-not-allowed
+                disabled:opacity-60
               "
 
             />
@@ -314,22 +470,28 @@ export default function TeacherLogin(){
 
 
 
-        {/* PASSWORD */}
+        {/* ==================================================
+            CONTRASEÑA
+        ================================================== */}
 
         <div>
 
-          <div className="
-            flex
-            items-center
-            justify-between
-            mb-2
-          ">
+          <div
+            className="
+              mb-2
+              flex
+              items-center
+              justify-between
+            "
+          >
 
-            <label className="
-              text-sm
-              font-semibold
-              text-slate-700
-            ">
+            <label
+              className="
+                text-sm
+                font-semibold
+                text-slate-700
+              "
+            >
 
               Contraseña
 
@@ -340,18 +502,22 @@ export default function TeacherLogin(){
 
           <div className="relative">
 
+            {/* ICONO CANDADO */}
+
             <Lock
               size={18}
               className="
+                pointer-events-none
                 absolute
                 left-4
                 top-1/2
                 -translate-y-1/2
                 text-slate-400
-                pointer-events-none
               "
             />
 
+
+            {/* INPUT PASSWORD */}
 
             <input
 
@@ -361,27 +527,52 @@ export default function TeacherLogin(){
                   : "password"
               }
 
-              value={password}
-
-              onChange={e =>
-                setPassword(e.target.value)
+              value={
+                password
               }
 
-              onKeyDown={e => {
+              onChange={
+                e => {
 
-                if(e.key === "Enter"){
-                  ingresar();
+                  setPassword(
+                    e.target.value
+                  );
+
+                  // Limpiar error mientras escribe
+
+                  if (error) {
+                    setError("");
+                  }
+
                 }
+              }
 
-              }}
+              onKeyDown={
+                e => {
+
+                  if (
+                    e.key === "Enter" &&
+                    !cargando
+                  ) {
+
+                    ingresar();
+
+                  }
+
+                }
+              }
 
               placeholder="Ingresa tu contraseña"
 
               autoComplete="current-password"
 
+              disabled={
+                cargando
+              }
+
               className="
-                w-full
                 h-12
+                w-full
                 rounded-xl
                 border
                 border-slate-200
@@ -390,17 +581,23 @@ export default function TeacherLogin(){
                 pr-12
                 text-sm
                 text-slate-800
-                placeholder:text-slate-400
                 outline-none
                 transition
-                focus:bg-white
+                placeholder:text-slate-400
                 focus:border-blue-600
+                focus:bg-white
                 focus:ring-4
                 focus:ring-blue-600/10
+                disabled:cursor-not-allowed
+                disabled:opacity-60
               "
 
             />
 
+
+            {/* ==================================================
+                MOSTRAR / OCULTAR PASSWORD
+            ================================================== */}
 
             <button
 
@@ -412,21 +609,27 @@ export default function TeacherLogin(){
                 )
               }
 
+              disabled={
+                cargando
+              }
+
               className="
                 absolute
                 right-2
                 top-1/2
-                -translate-y-1/2
-                w-9
-                h-9
-                rounded-lg
                 flex
+                h-9
+                w-9
+                -translate-y-1/2
                 items-center
                 justify-center
+                rounded-lg
                 text-slate-400
-                hover:text-blue-600
-                hover:bg-blue-50
                 transition
+                hover:bg-blue-50
+                hover:text-blue-600
+                disabled:cursor-not-allowed
+                disabled:opacity-50
               "
 
               aria-label={
@@ -437,12 +640,19 @@ export default function TeacherLogin(){
 
             >
 
-              {mostrarPassword
-                ?
-                <EyeOff size={18}/>
-                :
-                <Eye size={18}/>
-              }
+              {mostrarPassword ? (
+
+                <EyeOff
+                  size={18}
+                />
+
+              ) : (
+
+                <Eye
+                  size={18}
+                />
+
+              )}
 
             </button>
 
@@ -452,35 +662,89 @@ export default function TeacherLogin(){
 
 
 
-        {/* ERROR */}
+        {/* ==================================================
+            OLVIDASTE TU PASSWORD
+        ================================================== */}
+
+        <div
+          className="
+            flex
+            justify-end
+          "
+        >
+
+          <button
+
+            type="button"
+
+            onClick={
+              irARecuperarPassword
+            }
+
+            disabled={
+              cargando
+            }
+
+            className="
+              text-sm
+              font-semibold
+              text-blue-600
+              transition
+              hover:text-blue-800
+              hover:underline
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+          >
+
+            ¿Olvidaste tu contraseña?
+
+          </button>
+
+        </div>
+
+
+
+        {/* ==================================================
+            ERROR
+        ================================================== */}
 
         {error && (
 
-          <div className="
-            flex
-            items-start
-            gap-3
-            rounded-xl
-            border
-            border-red-200
-            bg-red-50
-            p-3
-          ">
+          <div
+            className="
+              flex
+              items-start
+              gap-3
+              rounded-xl
+              border
+              border-red-200
+              bg-red-50
+              p-3
+            "
+          >
+
+            {/* ICONO */}
 
             <AlertCircle
               size={18}
               className="
-                text-red-500
-                shrink-0
                 mt-0.5
+                shrink-0
+                text-red-500
               "
             />
 
-            <p className="
-              text-sm
-              text-red-700
-              font-medium
-            ">
+
+            {/* MENSAJE */}
+
+            <p
+              className="
+                text-sm
+                font-medium
+                text-red-700
+              "
+            >
 
               {error}
 
@@ -492,36 +756,43 @@ export default function TeacherLogin(){
 
 
 
-        {/* BOTON */}
+        {/* ==================================================
+            BOTÓN INGRESAR
+        ================================================== */}
 
         <button
 
           type="button"
 
-          onClick={ingresar}
+          onClick={
+            ingresar
+          }
 
-          disabled={cargando}
+          disabled={
+            cargando
+          }
 
           className="
-            w-full
-            h-12
-            rounded-xl
-            bg-blue-700
-            hover:bg-blue-800
-            disabled:bg-blue-400
-            text-white
-            font-bold
             flex
+            h-12
+            w-full
             items-center
             justify-center
             gap-2
-            transition
+            rounded-xl
+            bg-blue-700
+            font-bold
+            text-white
             shadow-lg
             shadow-blue-700/20
+            transition
             hover:-translate-y-0.5
+            hover:bg-blue-800
             active:translate-y-0
+            disabled:cursor-not-allowed
+            disabled:bg-blue-400
+            disabled:hover:translate-y-0
           "
-
         >
 
           {cargando ? (
@@ -541,7 +812,9 @@ export default function TeacherLogin(){
 
             <>
 
-              <LogIn size={18}/>
+              <LogIn
+                size={18}
+              />
 
               Ingresar
 
@@ -556,31 +829,39 @@ export default function TeacherLogin(){
 
 
 
-      {/* INFORMACION */}
+      {/* ==================================================
+          INFORMACIÓN
+      ================================================== */}
 
-      <div className="
-        mt-7
-        pt-5
-        border-t
-        border-slate-100
-        text-center
-      ">
+      <div
+        className="
+          mt-7
+          border-t
+          border-slate-100
+          pt-5
+          text-center
+        "
+      >
 
-        <p className="
-          text-xs
-          text-slate-400
-        ">
+        <p
+          className="
+            text-xs
+            text-slate-400
+          "
+        >
 
           Acceso exclusivo para docentes
 
         </p>
 
 
-        <p className="
-          text-xs
-          text-slate-400
-          mt-1
-        ">
+        <p
+          className="
+            mt-1
+            text-xs
+            text-slate-400
+          "
+        >
 
           Valle Grande · VG Smart Review
 

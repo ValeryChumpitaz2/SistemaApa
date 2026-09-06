@@ -3,7 +3,7 @@
 // ==================================================
 
 const API_URL =
-"https://script.google.com/macros/s/AKfycbxttCz6WDsug6ouYlNSjrfuxMUOGbLDMBvuqFC4ceM0hgei5ovLXrR4W7eMzu8csdDDIA/exec";
+"https://script.google.com/macros/s/AKfycbxLM6_I-5OZGVEoH13C0tIefU-h56GNXkoTPVqTLYHAGRG-UaMEwY1vtUvNJKYnZ-JmIg/exec";
 
 // ==================================================
 // PETICIÓN GENERAL
@@ -18,6 +18,10 @@ async function enviarPeticion(datos) {
   const inicio = performance.now();
 
   let response;
+
+  // ==================================================
+  // REALIZAR PETICIÓN      
+  // ==================================================
 
   try {
 
@@ -37,16 +41,45 @@ async function enviarPeticion(datos) {
   } catch (error) {
 
     console.error(
-      "ERROR DE CONEXIÓN CON EL BACK:",
-      error
+      "========================================"
+    );
+
+    console.error(
+      "ERROR REAL DE CONEXIÓN:"
+    );
+
+    console.error(error);
+
+    console.error(
+      "Nombre:",
+      error?.name
+    );
+
+    console.error(
+      "Mensaje:",
+      error?.message
+    );
+
+    console.error(
+      "URL:",
+      API_URL
     );
 
     throw new Error(
-      "No se pudo conectar con el servidor."
+      `No se pudo conectar con el servidor: ${
+        error?.message ||
+        "error desconocido"
+      }`
     );
   }
 
-  const fin = performance.now();
+
+  // ==================================================
+  // TIEMPO DE RESPUESTA
+  // ==================================================
+
+  const fin =
+    performance.now();
 
   console.log(
     "TIEMPO DE RESPUESTA:",
@@ -56,11 +89,43 @@ async function enviarPeticion(datos) {
 
 
   // ==================================================
+  // VALIDAR RESPUESTA HTTP
+  // ==================================================
+
+  console.log(
+    "STATUS HTTP:",
+    response.status
+  );
+
+  console.log(
+    "STATUS TEXT:",
+    response.statusText
+  );
+
+
+  // ==================================================
   // RESPUESTA RAW
   // ==================================================
 
-  const texto =
-    await response.text();
+  let texto;
+
+  try {
+
+    texto =
+      await response.text();
+
+  } catch (error) {
+
+    console.error(
+      "ERROR LEYENDO RESPUESTA DEL SERVIDOR:",
+      error
+    );
+
+    throw new Error(
+      "No se pudo leer la respuesta del servidor."
+    );
+  }
+
 
   console.log(
     "========================================"
@@ -71,6 +136,22 @@ async function enviarPeticion(datos) {
   );
 
   console.log(texto);
+
+
+  // ==================================================
+  // VALIDAR RESPUESTA VACÍA
+  // ==================================================
+
+  if (!texto || !texto.trim()) {
+
+    console.error(
+      "El servidor devolvió una respuesta vacía."
+    );
+
+    throw new Error(
+      "El servidor devolvió una respuesta vacía."
+    );
+  }
 
 
   // ==================================================
@@ -87,13 +168,45 @@ async function enviarPeticion(datos) {
   } catch (error) {
 
     console.error(
-      "ERROR: respuesta no válida"
+      "========================================"
+    );
+
+    console.error(
+      "ERROR: RESPUESTA NO VÁLIDA"
+    );
+
+    console.error(
+      "Texto recibido:"
     );
 
     console.error(texto);
 
+    console.error(
+      "Error JSON:",
+      error
+    );
+
     throw new Error(
       "El servidor devolvió una respuesta inválida."
+    );
+  }
+
+
+  // ==================================================
+  // VALIDAR ESTRUCTURA
+  // ==================================================
+
+  if (
+    typeof json !== "object" ||
+    json === null
+  ) {
+
+    console.error(
+      "La respuesta del servidor no es un objeto."
+    );
+
+    throw new Error(
+      "La respuesta del servidor tiene un formato incorrecto."
     );
   }
 
@@ -105,13 +218,18 @@ async function enviarPeticion(datos) {
   if (!json.ok) {
 
     console.error(
-      "ERROR DEL BACK:"
+      "========================================"
+    );
+
+    console.error(
+      "ERROR DEVUELTO POR EL BACK:"
     );
 
     console.error(json);
 
     throw new Error(
       json.mensaje ||
+      json.message ||
       "Error en el servidor."
     );
   }
@@ -137,6 +255,10 @@ async function enviarPeticion(datos) {
     )
   );
 
+  console.log(
+    "========================================"
+  );
+
 
   return json.data;
 }
@@ -147,6 +269,10 @@ async function enviarPeticion(datos) {
 // ==================================================
 
 export async function analyzeFolder(url) {
+
+  // ==================================================
+  // VALIDAR URL
+  // ==================================================
 
   if (
     !url ||
@@ -176,6 +302,10 @@ export async function analyzeFolder(url) {
   );
 
 
+  // ==================================================
+  // ENVIAR AL BACKEND
+  // ==================================================
+
   const data =
     await enviarPeticion({
 
@@ -187,6 +317,10 @@ export async function analyzeFolder(url) {
 
     });
 
+
+  // ==================================================
+  // MOSTRAR RESULTADO
+  // ==================================================
 
   console.log(
     "========================================"
@@ -343,7 +477,7 @@ export async function consolidarEntregables(
 
 
   // ==================================================
-  // VALIDAR
+  // VALIDAR QUE EXISTA AL MENOS UNA
   // ==================================================
 
   if (
@@ -434,7 +568,7 @@ export async function consolidarEntregables(
 
 
     // ==================================================
-    // ANALIZAR CONSOLIDADO
+    // VERIFICAR CONSOLIDADO
     // ==================================================
 
     if (
@@ -505,28 +639,127 @@ export async function consolidarEntregables(
 
 
     // ==================================================
+    // VERIFICAR DOCUMENTOS NO VÁLIDOS
+    // ==================================================
+
+    if (
+      Array.isArray(
+        resultado?.noValidos
+      )
+    ) {
+
+      console.log(
+        "========================================"
+      );
+
+      console.log(
+        "DOCUMENTOS NO VÁLIDOS:"
+      );
+
+      console.log(
+        "TOTAL:",
+        resultado.noValidos.length
+      );
+
+
+      resultado.noValidos.forEach(
+        function(item, index) {
+
+          console.log(
+            "----------------------------------------"
+          );
+
+          console.log(
+            "NO VÁLIDO #" +
+            (index + 1)
+          );
+
+          console.log(
+            "Nombre:",
+            item.nombre
+          );
+
+          console.log(
+            "Entregable:",
+            item.entregable
+          );
+
+          console.log(
+            "Entregable detectado:",
+            item.entregableDetectado
+          );
+
+          console.log(
+            "Fecha y hora:",
+            item.fechaHoraAnalisis
+          );
+
+          console.log(
+            "Motivo:",
+            item.motivo
+          );
+
+        }
+      );
+
+    }
+
+
+    // ==================================================
     // NORMALIZAR RESPUESTA
     // ==================================================
 
     const respuestaFinal = {
+
+      // ----------------------------------------------
+      // FECHA/HORA
+      // ----------------------------------------------
+
+      fechaHoraConsolidacion:
+        resultado?.fechaHoraConsolidacion ||
+        null,
+
+
+      // ----------------------------------------------
+      // ALUMNOS
+      // ----------------------------------------------
 
       totalAlumnos:
         Number(
           resultado?.totalAlumnos || 0
         ),
 
+
       consolidado:
         Array.isArray(
           resultado?.consolidado
         )
           ? resultado.consolidado
+          : [],
+
+
+      // ----------------------------------------------
+      // DOCUMENTOS NO VÁLIDOS
+      // ----------------------------------------------
+
+      totalNoValidos:
+        Number(
+          resultado?.totalNoValidos || 0
+        ),
+
+
+      noValidos:
+        Array.isArray(
+          resultado?.noValidos
+        )
+          ? resultado.noValidos
           : []
 
     };
 
 
     // ==================================================
-    // MOSTRAR RESPUESTA FINAL
+    // LOG FINAL
     // ==================================================
 
     console.log(
@@ -564,18 +797,33 @@ export async function consolidarEntregables(
 
     console.error(error);
 
+    console.error(
+      "Nombre:",
+      error?.name
+    );
+
+    console.error(
+      "Mensaje:",
+      error?.message
+    );
+
     throw error;
   }
+
 }
 
 
 // ==================================================
-// EXPORTAR CSV
+// EXPORTAR CSV DE CONSOLIDACIÓN
 // ==================================================
 
 export function exportarConsolidacionCSV(
   consolidado
 ) {
+
+  // ==================================================
+  // VALIDAR DATOS
+  // ==================================================
 
   if (
     !Array.isArray(consolidado) ||
@@ -587,6 +835,10 @@ export function exportarConsolidacionCSV(
     );
   }
 
+
+  // ==================================================
+  // ENCABEZADOS
+  // ==================================================
 
   const encabezados = [
 
@@ -600,6 +852,10 @@ export function exportarConsolidacionCSV(
 
   ];
 
+
+  // ==================================================
+  // FILAS
+  // ==================================================
 
   const filas =
     consolidado.map(
@@ -623,6 +879,10 @@ export function exportarConsolidacionCSV(
     );
 
 
+  // ==================================================
+  // GENERAR CSV
+  // ==================================================
+
   const csv = [
 
     encabezados,
@@ -642,6 +902,10 @@ export function exportarConsolidacionCSV(
     )
     .join("\n");
 
+
+  // ==================================================
+  // CREAR ARCHIVO
+  // ==================================================
 
   const blob =
     new Blob(
@@ -667,6 +931,140 @@ export function exportarConsolidacionCSV(
 
   enlace.download =
     "consolidacion_entregables.csv";
+
+
+  document.body.appendChild(
+    enlace
+  );
+
+
+  enlace.click();
+
+
+  document.body.removeChild(
+    enlace
+  );
+
+
+  URL.revokeObjectURL(
+    url
+  );
+
+}
+
+
+// ==================================================
+// EXPORTAR CSV DE DOCUMENTOS NO VÁLIDOS
+// ==================================================
+
+export function exportarNoValidosCSV(
+  noValidos
+) {
+
+  // ==================================================
+  // VALIDAR DATOS
+  // ==================================================
+
+  if (
+    !Array.isArray(noValidos) ||
+    noValidos.length === 0
+  ) {
+
+    throw new Error(
+      "No existen documentos no válidos para exportar."
+    );
+  }
+
+
+  // ==================================================
+  // ENCABEZADOS
+  // ==================================================
+
+  const encabezados = [
+
+    "Nombre",
+    "Entregable",
+    "Entregable detectado",
+    "Fecha y hora",
+    "Motivo"
+
+  ];
+
+
+  // ==================================================
+  // FILAS
+  // ==================================================
+
+  const filas =
+    noValidos.map(
+      item => [
+
+        item.nombre ?? "",
+
+        item.entregable ?? "",
+
+        item.entregableDetectado ?? "",
+
+        item.fechaHoraAnalisis ?? "",
+
+        item.motivo ?? ""
+
+      ]
+    );
+
+
+  // ==================================================
+  // GENERAR CSV
+  // ==================================================
+
+  const csv = [
+
+    encabezados,
+
+    ...filas
+
+  ]
+    .map(
+      fila =>
+        fila
+          .map(
+            valor =>
+              `"${String(valor)
+                .replace(/"/g, '""')}"`
+          )
+          .join(",")
+    )
+    .join("\n");
+
+
+  // ==================================================
+  // CREAR ARCHIVO
+  // ==================================================
+
+  const blob =
+    new Blob(
+      ["\ufeff" + csv],
+      {
+        type:
+          "text/csv;charset=utf-8;"
+      }
+    );
+
+
+  const url =
+    URL.createObjectURL(blob);
+
+
+  const enlace =
+    document.createElement("a");
+
+
+  enlace.href =
+    url;
+
+
+  enlace.download =
+    "documentos_no_validos.csv";
 
 
   document.body.appendChild(

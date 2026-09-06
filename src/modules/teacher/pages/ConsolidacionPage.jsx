@@ -1,88 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
-  FolderOpen,
-  Link,
-  Loader2,
-  Users,
-  CheckCircle2,
-  Download,
-  AlertCircle,
-  Clock3,
-  FileSearch,
-  Database,
-  ShieldCheck,
-  Sparkles,
   Check,
+  Database,
+  FileSearch,
+  FolderOpen,
+  Loader2,
+  Search,
+  Sparkles,
+  Trash2,
+  Users,
+  Clock3,
   ChevronLeft,
   ChevronRight,
-  Search,
-  FileDown,
-  RotateCcw,
-  X,
-  ExternalLink,
-  BarChart3,
-  RefreshCw,
 } from "lucide-react";
-
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 import { consolidarEntregables } from "../services/teacherService";
 
-
-// =====================================================
-// CONSTANTES
-// =====================================================
-
-const ENTREGABLES = [
-  {
-    codigo: "EN1",
-    numero: "01",
-    titulo: "Entregable 1",
-    descripcion: "Primera evaluación",
-    color: "blue",
-  },
-  {
-    codigo: "EN2",
-    numero: "02",
-    titulo: "Entregable 2",
-    descripcion: "Segunda evaluación",
-    color: "violet",
-  },
-  {
-    codigo: "EN3",
-    numero: "03",
-    titulo: "Entregable 3",
-    descripcion: "Tercera evaluación",
-    color: "emerald",
-  },
-];
-
-const MENSAJES_PROCESAMIENTO = [
-  "Conectando con Google Drive...",
-  "Obteniendo los documentos de las carpetas...",
-  "Identificando los archivos de cada entregable...",
-  "Analizando los documentos de EN1...",
-  "Analizando los documentos de EN2...",
-  "Analizando los documentos de EN3...",
-  "Ejecutando la evaluación de los documentos...",
-  "Calculando los puntajes obtenidos...",
-  "Relacionando los documentos con cada alumno...",
-  "Consolidando EN1, EN2 y EN3...",
-  "Verificando los resultados...",
-  "Preparando la tabla final...",
-];
-
-
-// =====================================================
-// COMPONENTE
-// =====================================================
+const STORAGE_KEY = "historial-consolidacion";
 
 export default function ConsolidacionPage() {
 
   // =====================================================
-  // CARPETAS
+  // ESTADOS
   // =====================================================
 
   const [carpetas, setCarpetas] = useState({
@@ -91,52 +35,32 @@ export default function ConsolidacionPage() {
     EN3: "",
   });
 
-
-  // =====================================================
-  // RESULTADO
-  // =====================================================
-
   const [resultado, setResultado] = useState(null);
-
-
-  // =====================================================
-  // ESTADOS
-  // =====================================================
 
   const [cargando, setCargando] = useState(false);
 
   const [error, setError] = useState("");
 
   const [paso, setPaso] = useState(
-    "Esperando inicio..."
+    "Preparando consolidación..."
   );
 
   const [mensajeProceso, setMensajeProceso] = useState(
     "Preparando análisis..."
   );
 
-  const [tiempoInicio, setTiempoInicio] =
-    useState(null);
+  const [etapaActual, setEtapaActual] = useState(0);
 
-  const [tiempoTranscurrido, setTiempoTranscurrido] =
-    useState(0);
+  const [tiempoInicio, setTiempoInicio] = useState(null);
 
-  const [etapaActual, setEtapaActual] =
-    useState(0);
+  const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
 
+  const [busqueda, setBusqueda] = useState("");
 
-  // =====================================================
-  // TABLA
-  // =====================================================
-
-  const [paginaActual, setPaginaActual] =
-    useState(1);
+  const [paginaActual, setPaginaActual] = useState(1);
 
   const [elementosPorPagina, setElementosPorPagina] =
     useState(10);
-
-  const [busqueda, setBusqueda] =
-    useState("");
 
 
   // =====================================================
@@ -151,81 +75,17 @@ export default function ConsolidacionPage() {
 
     const intervalo = setInterval(() => {
 
-      const ahora = Date.now();
-
-      const segundos = Math.floor(
-        (ahora - tiempoInicio) / 1000
+      setTiempoTranscurrido(
+        Math.floor(
+          (Date.now() - tiempoInicio) / 1000
+        )
       );
-
-      setTiempoTranscurrido(segundos);
 
     }, 1000);
 
     return () => clearInterval(intervalo);
 
   }, [cargando, tiempoInicio]);
-
-
-  // =====================================================
-  // MENSAJES AUTOMÁTICOS
-  // =====================================================
-
-  useEffect(() => {
-
-    if (!cargando) {
-      return;
-    }
-
-    let indice = 0;
-
-    setMensajeProceso(
-      MENSAJES_PROCESAMIENTO[0]
-    );
-
-    const intervalo = setInterval(() => {
-
-      indice =
-        (indice + 1) %
-        MENSAJES_PROCESAMIENTO.length;
-
-      setMensajeProceso(
-        MENSAJES_PROCESAMIENTO[indice]
-      );
-
-    }, 3500);
-
-    return () => clearInterval(intervalo);
-
-  }, [cargando]);
-
-
-  // =====================================================
-  // ETAPAS VISUALES
-  // =====================================================
-
-  useEffect(() => {
-
-    if (!cargando) {
-      return;
-    }
-
-    const intervalo = setInterval(() => {
-
-      setEtapaActual((anterior) => {
-
-        if (anterior >= 3) {
-          return anterior;
-        }
-
-        return anterior + 1;
-
-      });
-
-    }, 5000);
-
-    return () => clearInterval(intervalo);
-
-  }, [cargando]);
 
 
   // =====================================================
@@ -294,6 +154,113 @@ export default function ConsolidacionPage() {
 
 
   // =====================================================
+  // GUARDAR CONSOLIDACIÓN EN HISTORIAL
+  // =====================================================
+// =====================================================
+// GUARDAR CONSOLIDACIÓN EN HISTORIAL
+// =====================================================
+
+function guardarEnHistorial(data) {
+  try {
+    const guardado = localStorage.getItem(STORAGE_KEY);
+
+    let historialAnterior = [];
+
+    if (guardado) {
+      try {
+        const parseado = JSON.parse(guardado);
+
+        if (Array.isArray(parseado)) {
+          historialAnterior = parseado;
+        }
+      } catch (errorLectura) {
+        console.error(
+          "❌ Error leyendo historial anterior:",
+          errorLectura
+        );
+
+        historialAnterior = [];
+      }
+    }
+
+    const ahora = new Date();
+
+    const nuevaConsolidacion = {
+      id: `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 9)}`,
+
+      fecha: ahora.toLocaleDateString("es-PE"),
+
+      hora: ahora.toLocaleTimeString("es-PE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+
+      timestamp: ahora.toISOString(),
+
+      carpetas: {
+        ...carpetas,
+      },
+
+      totalAlumnos:
+        data?.totalAlumnos ??
+        data?.consolidado?.length ??
+        0,
+
+      resultado: data,
+
+      consolidado: Array.isArray(data?.consolidado)
+        ? data.consolidado
+        : [],
+    };
+
+    const historialNuevo = [
+      nuevaConsolidacion,
+      ...historialAnterior,
+    ];
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(historialNuevo)
+    );
+
+    // Notificar a otras páginas/componentes
+    window.dispatchEvent(
+      new Event("historialConsolidacionActualizado")
+    );
+
+    console.log("=================================");
+    console.log("✅ CONSOLIDACIÓN GUARDADA");
+    console.log("Clave:", STORAGE_KEY);
+    console.log(
+      "Total de consolidaciones:",
+      historialNuevo.length
+    );
+    console.log(
+      "Nueva consolidación:",
+      nuevaConsolidacion
+    );
+    console.log(
+      "Historial completo:",
+      historialNuevo
+    );
+    console.log(
+      "LocalStorage:",
+      localStorage.getItem(STORAGE_KEY)
+    );
+    console.log("=================================");
+  } catch (err) {
+    console.error(
+      "❌ ERROR GUARDANDO HISTORIAL:",
+      err
+    );
+  }
+}
+
+
+  // =====================================================
   // EJECUTAR CONSOLIDACIÓN
   // =====================================================
 
@@ -312,7 +279,6 @@ export default function ConsolidacionPage() {
       carpetas
     );
 
-
     setError("");
 
     setResultado(null);
@@ -320,11 +286,6 @@ export default function ConsolidacionPage() {
     setPaginaActual(1);
 
     setBusqueda("");
-
-
-    // -------------------------------------------------
-    // VALIDACIÓN
-    // -------------------------------------------------
 
     const hayCarpeta =
       carpetas.EN1.trim() ||
@@ -340,13 +301,7 @@ export default function ConsolidacionPage() {
       return;
     }
 
-
-    // -------------------------------------------------
-    // INICIO
-    // -------------------------------------------------
-
-    const inicio =
-      Date.now();
+    const inicio = Date.now();
 
     setCargando(true);
 
@@ -364,24 +319,17 @@ export default function ConsolidacionPage() {
       "Preparando análisis..."
     );
 
-
     try {
 
       await esperar(500);
-
-
-      setPaso(
-        "Preparando las carpetas..."
-      );
-
-      await esperar(500);
-
 
       // -------------------------------------------------
       // EN1
       // -------------------------------------------------
 
       if (carpetas.EN1.trim()) {
+
+        setEtapaActual(0);
 
         setPaso(
           "📁 Procesando carpeta EN1..."
@@ -395,12 +343,13 @@ export default function ConsolidacionPage() {
         await esperar(300);
       }
 
-
       // -------------------------------------------------
       // EN2
       // -------------------------------------------------
 
       if (carpetas.EN2.trim()) {
+
+        setEtapaActual(1);
 
         setPaso(
           "📁 Procesando carpeta EN2..."
@@ -414,12 +363,13 @@ export default function ConsolidacionPage() {
         await esperar(300);
       }
 
-
       // -------------------------------------------------
       // EN3
       // -------------------------------------------------
 
       if (carpetas.EN3.trim()) {
+
+        setEtapaActual(2);
 
         setPaso(
           "📁 Procesando carpeta EN3..."
@@ -433,12 +383,11 @@ export default function ConsolidacionPage() {
         await esperar(300);
       }
 
-
       // -------------------------------------------------
       // BACKEND
       // -------------------------------------------------
 
-      setEtapaActual(0);
+      setEtapaActual(3);
 
       setPaso(
         "🔍 Analizando documentos..."
@@ -448,32 +397,44 @@ export default function ConsolidacionPage() {
         "El servidor está analizando los documentos..."
       );
 
-
       console.log(
         "ENVIANDO SOLICITUD AL BACKEND..."
       );
-
 
       const data =
         await consolidarEntregables({
           carpetas,
         });
 
-
       console.log(
         "CONSOLIDACIÓN TERMINADA:",
         data
       );
 
+      // -------------------------------------------------
+      // VALIDAR RESPUESTA
+      // -------------------------------------------------
+
+      if (!data) {
+
+        throw new Error(
+          "El servidor no devolvió resultados."
+        );
+
+      }
 
       // -------------------------------------------------
-      // MOSTRAR RESULTADOS EN CONSOLA
+      // VALIDAR CONSOLIDADO
       // -------------------------------------------------
 
-      if (data?.consolidado) {
+      if (
+        data.consolidado &&
+        Array.isArray(data.consolidado)
+      ) {
 
         console.log(
-          "RESULTADOS CONSOLIDADOS"
+          "RESULTADOS CONSOLIDADOS:",
+          data.consolidado
         );
 
         data.consolidado.forEach(
@@ -493,8 +454,16 @@ export default function ConsolidacionPage() {
 
           }
         );
+
       }
 
+      // -------------------------------------------------
+      // GUARDAR RESULTADO
+      // -------------------------------------------------
+
+      setResultado(data);
+
+      guardarEnHistorial(data);
 
       // -------------------------------------------------
       // FINAL
@@ -509,8 +478,6 @@ export default function ConsolidacionPage() {
       setMensajeProceso(
         "Los resultados fueron procesados correctamente."
       );
-
-      setResultado(data);
 
       setPaginaActual(1);
 
@@ -549,6 +516,7 @@ export default function ConsolidacionPage() {
       );
 
     }
+
   }
 
 
@@ -556,35 +524,37 @@ export default function ConsolidacionPage() {
   // DATOS CONSOLIDADOS
   // =====================================================
 
-  const datosConsolidados = useMemo(() => {
+  const datosConsolidados =
+    useMemo(() => {
 
-    const datos =
-      resultado?.consolidado || [];
+      const datos =
+        resultado?.consolidado || [];
 
-    return [...datos].sort(
-      (a, b) => {
+      return [...datos].sort(
+        (a, b) => {
 
-        const nombreA =
-          String(
-            a.alumno || ""
-          ).trim();
+          const nombreA =
+            String(
+              a.alumno || ""
+            ).trim();
 
-        const nombreB =
-          String(
-            b.alumno || ""
-          ).trim();
+          const nombreB =
+            String(
+              b.alumno || ""
+            ).trim();
 
-        return nombreA.localeCompare(
-          nombreB,
-          "es",
-          {
-            sensitivity: "base",
-          }
-        );
-      }
-    );
+          return nombreA.localeCompare(
+            nombreB,
+            "es",
+            {
+              sensitivity: "base",
+            }
+          );
 
-  }, [resultado]);
+        }
+      );
+
+    }, [resultado]);
 
 
   // =====================================================
@@ -600,7 +570,9 @@ export default function ConsolidacionPage() {
           .toLowerCase();
 
       if (!texto) {
+
         return datosConsolidados;
+
       }
 
       return datosConsolidados.filter(
@@ -626,6 +598,7 @@ export default function ConsolidacionPage() {
             semestre.includes(texto) ||
             informe.includes(texto)
           );
+
         }
       );
 
@@ -648,7 +621,6 @@ export default function ConsolidacionPage() {
       )
     );
 
-
   useEffect(() => {
 
     if (
@@ -659,13 +631,13 @@ export default function ConsolidacionPage() {
       setPaginaActual(
         totalPaginas
       );
+
     }
 
   }, [
     paginaActual,
     totalPaginas,
   ]);
-
 
   const indiceInicio =
     (paginaActual - 1) *
@@ -674,7 +646,6 @@ export default function ConsolidacionPage() {
   const indiceFin =
     indiceInicio +
     elementosPorPagina;
-
 
   const resultadosPagina =
     resultadosFiltrados.slice(
@@ -692,6 +663,7 @@ export default function ConsolidacionPage() {
     setBusqueda(valor);
 
     setPaginaActual(1);
+
   }
 
 
@@ -708,417 +680,8 @@ export default function ConsolidacionPage() {
     );
 
     setPaginaActual(1);
+
   }
-
-
-  // =====================================================
-  // EXPORTAR CSV
-  // =====================================================
-
-  function exportarCSV() {
-
-    if (
-      !resultadosFiltrados.length
-    ) {
-      return;
-    }
-
-
-    const encabezados = [
-      "Alumno",
-      "Semestre",
-      "Informe",
-      "EN1",
-      "EN2",
-      "EN3",
-      "Total",
-    ];
-
-
-    const filas =
-      resultadosFiltrados.map(
-        (alumno) => [
-
-          alumno.alumno,
-          alumno.semestre,
-          alumno.informe,
-          alumno.EN1,
-          alumno.EN2,
-          alumno.EN3,
-          alumno.total,
-
-        ]
-      );
-
-
-    const csv = [
-      encabezados,
-      ...filas,
-    ]
-      .map(
-        (fila) =>
-          fila
-            .map(
-              (valor) =>
-                `"${String(
-                  valor ?? ""
-                ).replace(
-                  /"/g,
-                  '""'
-                )}"`
-            )
-            .join(",")
-      )
-      .join("\n");
-
-
-    const blob =
-      new Blob(
-        [
-          "\ufeff" +
-          csv
-        ],
-        {
-          type:
-            "text/csv;charset=utf-8;",
-        }
-      );
-
-
-    const url =
-      URL.createObjectURL(
-        blob
-      );
-
-
-    const enlace =
-      document.createElement(
-        "a"
-      );
-
-    enlace.href = url;
-
-    enlace.download =
-      "consolidacion_entregables.csv";
-
-    document.body.appendChild(
-      enlace
-    );
-
-    enlace.click();
-
-    document.body.removeChild(
-      enlace
-    );
-
-    URL.revokeObjectURL(
-      url
-    );
-  }
-
-
-  // =====================================================
-  // EXPORTAR PDF
-  // =====================================================
-
-  function exportarPDF() {
-
-    if (
-      !resultadosFiltrados.length
-    ) {
-      return;
-    }
-
-
-    try {
-
-      const doc =
-        new jsPDF({
-          orientation:
-            "landscape",
-          unit: "mm",
-          format: "a4",
-        });
-
-
-      // ENCABEZADO
-
-      doc.setFillColor(
-        29,
-        54,
-        129
-      );
-
-      doc.rect(
-        0,
-        0,
-        297,
-        30,
-        "F"
-      );
-
-
-      doc.setTextColor(
-        255,
-        255,
-        255
-      );
-
-
-      doc.setFontSize(
-        18
-      );
-
-      doc.setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-      doc.text(
-        "Consolidación de Entregables",
-        14,
-        13
-      );
-
-
-      doc.setFontSize(
-        9
-      );
-
-      doc.setFont(
-        "helvetica",
-        "normal"
-      );
-
-
-      doc.text(
-        "Resultados consolidados por alumno",
-        14,
-        21
-      );
-
-
-      doc.text(
-        `Total de alumnos: ${resultadosFiltrados.length}`,
-        220,
-        13
-      );
-
-
-      doc.text(
-        `Generado: ${new Date().toLocaleString(
-          "es-PE"
-        )}`,
-        220,
-        21
-      );
-
-
-      const filasPDF =
-        resultadosFiltrados.map(
-          (alumno) => [
-
-            alumno.alumno || "-",
-            alumno.semestre || "-",
-            alumno.informe || "-",
-            alumno.EN1 ?? 0,
-            alumno.EN2 ?? 0,
-            alumno.EN3 ?? 0,
-            alumno.total ?? 0,
-
-          ]
-        );
-
-
-      autoTable(
-        doc,
-        {
-
-          startY: 37,
-
-          head: [
-            [
-              "Alumno",
-              "Semestre",
-              "Informe",
-              "EN1",
-              "EN2",
-              "EN3",
-              "TOTAL",
-            ],
-          ],
-
-          body:
-            filasPDF,
-
-          theme:
-            "grid",
-
-          styles: {
-            fontSize: 8,
-            cellPadding: 3,
-            valign:
-              "middle",
-          },
-
-          headStyles: {
-            fillColor: [
-              29,
-              54,
-              129,
-            ],
-            textColor:
-              255,
-            fontStyle:
-              "bold",
-            halign:
-              "center",
-          },
-
-          columnStyles: {
-
-            0: {
-              cellWidth: 70,
-            },
-
-            1: {
-              cellWidth: 28,
-              halign:
-                "center",
-            },
-
-            2: {
-              cellWidth: 28,
-              halign:
-                "center",
-            },
-
-            3: {
-              cellWidth: 25,
-              halign:
-                "center",
-            },
-
-            4: {
-              cellWidth: 25,
-              halign:
-                "center",
-            },
-
-            5: {
-              cellWidth: 25,
-              halign:
-                "center",
-            },
-
-            6: {
-              cellWidth: 30,
-              halign:
-                "center",
-            },
-
-          },
-
-          alternateRowStyles: {
-            fillColor: [
-              248,
-              250,
-              252,
-            ],
-          },
-
-          didParseCell(
-            data
-          ) {
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index ===
-                6
-            ) {
-
-              data.cell.styles.fontStyle =
-                "bold";
-
-              data.cell.styles.textColor =
-                [
-                  29,
-                  54,
-                  129,
-                ];
-            }
-          },
-
-          didDrawPage() {
-
-            const pageHeight =
-              doc.internal
-                .pageSize
-                .height;
-
-
-            doc.setFontSize(
-              8
-            );
-
-            doc.setTextColor(
-              100,
-              116,
-              139
-            );
-
-
-            doc.text(
-              "Sistema de consolidación de entregables",
-              14,
-              pageHeight - 8
-            );
-
-
-            doc.text(
-              `Página ${doc.internal.getNumberOfPages()}`,
-              260,
-              pageHeight - 8
-            );
-          },
-
-        }
-      );
-
-
-      doc.save(
-        "consolidacion_entregables.pdf"
-      );
-
-    } catch (err) {
-
-      console.error(
-        "ERROR GENERANDO PDF:",
-        err
-      );
-
-      setError(
-        "No se pudo generar el PDF. Verifica que jspdf y jspdf-autotable estén instalados."
-      );
-    }
-  }
-
-
-  // =====================================================
-  // CARPETAS SELECCIONADAS
-  // =====================================================
-
-  const carpetasSeleccionadas =
-    [
-      carpetas.EN1,
-      carpetas.EN2,
-      carpetas.EN3,
-    ].filter(
-      (carpeta) =>
-        carpeta.trim() !== ""
-    ).length;
 
 
   // =====================================================
@@ -1135,30 +698,58 @@ export default function ConsolidacionPage() {
       ) {
 
         return "completa";
+
       }
 
       return "pendiente";
-    }
 
+    }
 
     if (
       numero < etapaActual
     ) {
 
       return "completa";
-    }
 
+    }
 
     if (
       numero === etapaActual
     ) {
 
       return "activa";
+
     }
 
-
     return "pendiente";
+
   }
+
+
+  // =====================================================
+  // CONFIGURACIÓN VISUAL DE ETAPAS
+  // =====================================================
+
+  const etapas = [
+    {
+      codigo: 1,
+      titulo: "Procesamiento EN1",
+      descripcion: "Analizando entregables EN1",
+      color: "blue",
+    },
+    {
+      codigo: 2,
+      titulo: "Procesamiento EN2",
+      descripcion: "Analizando entregables EN2",
+      color: "violet",
+    },
+    {
+      codigo: 3,
+      titulo: "Procesamiento EN3",
+      descripcion: "Analizando entregables EN3",
+      color: "amber",
+    },
+  ];
 
 
   // =====================================================
@@ -1167,157 +758,289 @@ export default function ConsolidacionPage() {
 
   return (
 
-    <section className="max-w-7xl mx-auto space-y-8 pb-14">
+    <section
+      className="
+        min-h-screen
+        bg-slate-50/70
+        px-3
+        pb-16
+        pt-2
+        sm:px-5
+      "
+    >
+
+      <div
+        className="
+          mx-auto
+          max-w-7xl
+          space-y-7
+        "
+      >
+
+        {/* =================================================
+            HERO
+        ================================================= */}
+
+        <div
+          className="
+            relative
+            isolate
+            overflow-hidden
+            rounded-[30px]
+            bg-gradient-to-br
+            from-[#0d1b4f]
+            via-[#1D3681]
+            to-[#3654c7]
+            px-6
+            py-7
+            text-white
+            shadow-[0_20px_60px_rgba(29,54,129,0.25)]
+            sm:px-9
+            sm:py-9
+          "
+        >
+
+          {/* DECORACIÓN */}
+
+          <div
+            className="
+              absolute
+              -right-20
+              -top-24
+              h-72
+              w-72
+              rounded-full
+              bg-blue-300/10
+              blur-3xl
+            "
+          />
+
+          <div
+            className="
+              absolute
+              -bottom-32
+              -left-20
+              h-80
+              w-80
+              rounded-full
+              bg-indigo-300/10
+              blur-3xl
+            "
+          />
+
+          <div
+            className="
+              absolute
+              right-1/3
+              top-1/2
+              h-32
+              w-32
+              rounded-full
+              bg-white/5
+              blur-2xl
+            "
+          />
 
 
-      {/* =================================================
-          HERO
-      ================================================= */}
+          <div
+            className="
+              relative
+              flex
+              flex-col
+              gap-7
+              lg:flex-row
+              lg:items-center
+              lg:justify-between
+            "
+          >
 
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#10245f] via-[#1D3681] to-indigo-700 p-7 sm:p-9 text-white shadow-xl">
+            {/* TITULO */}
 
-        <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
+            <div
+              className="
+                flex
+                items-start
+                gap-4
+                sm:gap-5
+              "
+            >
 
-        <div className="absolute -left-20 -bottom-32 w-72 h-72 rounded-full bg-blue-400/10 blur-3xl" />
+              <div
+                className="
+                  flex
+                  h-14
+                  w-14
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  border
+                  border-white/20
+                  bg-white/10
+                  shadow-lg
+                  backdrop-blur-md
+                  sm:h-16
+                  sm:w-16
+                "
+              >
 
-
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
-
-          <div className="flex items-start gap-5">
-
-            <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
-
-              <Database
-                size={30}
-              />
-
-            </div>
-
-
-            <div>
-
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold text-blue-100 mb-3">
-
-                <Sparkles
-                  size={14}
+                <Database
+                  size={29}
+                  strokeWidth={1.8}
                 />
-
-                Módulo docente
 
               </div>
 
 
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-
-                Consolidación
-
-              </h1>
-
-
-              <p className="mt-2 text-blue-100 max-w-2xl leading-relaxed">
-
-                Reúne automáticamente los resultados de
-                <span className="font-bold text-white">
-                  {" "}EN1, EN2 y EN3
-                </span>
-                {" "}por alumno en una sola tabla.
-
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div className="flex items-center gap-3">
-
-            <div className="rounded-2xl bg-white/10 border border-white/15 px-5 py-4 backdrop-blur">
-
-              <p className="text-xs text-blue-100">
-                Carpetas listas
-              </p>
-
-              <p className="text-2xl font-black mt-1">
-                {carpetasSeleccionadas}
-                <span className="text-base text-blue-200">
-                  {" "} / 3
-                </span>
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      {/* =================================================
-          INFORMACIÓN
-      ================================================= */}
-
-      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-5">
-
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm">
-
-          <div className="flex items-start gap-4">
-
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-
-              <FolderOpen
-                size={23}
-              />
-
-            </div>
-
-
-            <div>
-
-              <h2 className="font-black text-lg text-slate-900">
-                ¿Cómo funciona?
-              </h2>
-
-              <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-
-                Ingresa las carpetas de Google Drive
-                correspondientes a cada entregable.
-                El sistema analizará los documentos,
-                identificará a cada alumno y reunirá
-                sus puntajes.
-
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div className="mt-6 flex items-center gap-2 flex-wrap">
-
-            {["EN1", "+", "EN2", "+", "EN3"].map(
-              (texto, index) => (
+              <div>
 
                 <div
-                  key={index}
-                  className={
-                    texto === "+"
-                      ? "text-slate-300 font-black px-1"
-                      : "px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-sm font-black"
-                  }
+                  className="
+                    mb-3
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    border
+                    border-white/15
+                    bg-white/10
+                    px-3
+                    py-1.5
+                    text-[11px]
+                    font-black
+                    uppercase
+                    tracking-wider
+                    text-blue-100
+                    backdrop-blur
+                  "
                 >
-                  {texto}
+
+                  <Sparkles size={13} />
+
+                  Módulo docente
+
                 </div>
 
-              )
-            )}
 
-            <div className="text-slate-400 mx-1">
-              →
+                <h1
+                  className="
+                    text-3xl
+                    font-black
+                    tracking-tight
+                    sm:text-4xl
+                  "
+                >
+                  Consolidación
+                </h1>
+
+
+                <p
+                  className="
+                    mt-2
+                    max-w-2xl
+                    text-sm
+                    leading-relaxed
+                    text-blue-100
+                    sm:text-base
+                  "
+                >
+
+                  Reúne automáticamente los resultados de{" "}
+
+                  <span
+                    className="
+                      font-black
+                      text-white
+                    "
+                  >
+                    EN1, EN2 y EN3
+                  </span>
+
+                  {" "}por alumno en una sola tabla.
+
+                </p>
+
+              </div>
+
             </div>
 
-            <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-800 text-sm font-black">
-              Total del alumno
+
+            {/* TIEMPO */}
+
+            <div
+              className="
+                flex
+                w-full
+                items-center
+                gap-3
+                sm:w-auto
+              "
+            >
+
+              <div
+                className="
+                  flex
+                  min-w-[150px]
+                  items-center
+                  gap-3
+                  rounded-2xl
+                  border
+                  border-white/15
+                  bg-white/10
+                  px-4
+                  py-3
+                  backdrop-blur-md
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    h-10
+                    w-10
+                    items-center
+                    justify-center
+                    rounded-xl
+                    bg-white/10
+                  "
+                >
+
+                  <Clock3 size={19} />
+
+                </div>
+
+
+                <div>
+
+                  <p
+                    className="
+                      text-[10px]
+                      font-bold
+                      uppercase
+                      tracking-wider
+                      text-blue-200
+                    "
+                  >
+                    Tiempo
+                  </p>
+
+                  <p
+                    className="
+                      mt-0.5
+                      font-mono
+                      text-xl
+                      font-black
+                    "
+                  >
+                    {formatearTiempo(
+                      tiempoTranscurrido
+                    )}
+                  </p>
+
+                </div>
+
+              </div>
+
             </div>
 
           </div>
@@ -1325,313 +1048,344 @@ export default function ConsolidacionPage() {
         </div>
 
 
-        <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 sm:p-7">
+        {/* =================================================
+            CARPETAS
+        ================================================= */}
 
-          <div className="flex items-start gap-4">
+        <div
+          className="
+            overflow-hidden
+            rounded-[28px]
+            border
+            border-slate-200
+            bg-white
+            shadow-[0_10px_40px_rgba(15,23,42,0.05)]
+          "
+        >
 
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+          {/* HEADER */}
 
-              <ShieldCheck
-                size={23}
-              />
+          <div
+            className="
+              border-b
+              border-slate-100
+              bg-gradient-to-r
+              from-slate-50
+              to-white
+              px-6
+              py-6
+              sm:px-8
+            "
+          >
 
-            </div>
+            <div
+              className="
+                flex
+                items-center
+                gap-4
+              "
+            >
+
+              <div
+                className="
+                  flex
+                  h-11
+                  w-11
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-blue-100
+                  text-[#1D3681]
+                "
+              >
+
+                <FolderOpen size={21} />
+
+              </div>
 
 
-            <div>
+              <div>
 
-              <h3 className="font-black text-emerald-900">
-                Procesamiento seguro
-              </h3>
-
-              <p className="text-sm text-emerald-700 mt-2 leading-relaxed">
-
-                El procesamiento se realiza mediante
-                el servicio configurado para analizar
-                las carpetas y devolver los resultados
-                consolidados.
-
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      {/* =================================================
-          CONFIGURACIÓN DE CARPETAS
-      ================================================= */}
-
-      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
-
-        <div className="p-6 sm:p-8 border-b border-slate-100">
-
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-            <div>
-
-              <div className="flex items-center gap-3">
-
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-
-                  <Link
-                    size={19}
-                  />
-
-                </div>
-
-                <h2 className="text-xl font-black text-slate-900">
+                <h2
+                  className="
+                    text-xl
+                    font-black
+                    tracking-tight
+                    text-slate-800
+                  "
+                >
                   Carpetas de entregables
                 </h2>
 
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    text-slate-500
+                  "
+                >
+                  Ingresa las carpetas que deseas consolidar.
+                </p>
+
               </div>
-
-              <p className="text-sm text-slate-500 mt-2 ml-13">
-                Coloca la URL de Google Drive para cada entregable.
-              </p>
-
-            </div>
-
-
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl">
-
-              <div className="w-2 h-2 rounded-full bg-blue-600" />
-
-              <span className="text-xs font-bold text-slate-600">
-
-                {carpetasSeleccionadas === 0
-                  ? "Sin carpetas"
-                  : `${carpetasSeleccionadas} de 3 configuradas`}
-
-              </span>
 
             </div>
 
           </div>
 
-        </div>
 
+          <div className="p-6 sm:p-8">
 
-        <div className="p-6 sm:p-8">
+            {/* CARPETAS */}
 
-          <div className="grid lg:grid-cols-3 gap-5">
+            <div
+              className="
+                grid
+                gap-5
+                md:grid-cols-3
+              "
+            >
 
-            {ENTREGABLES.map(
-              (entregable) => {
+              {["EN1", "EN2", "EN3"].map(
+                (entregable, index) => {
 
-                const valor =
-                  carpetas[
-                    entregable.codigo
+                  const colores = [
+                    {
+                      fondo: "bg-blue-50",
+                      icono: "bg-blue-100 text-blue-700",
+                      borde: "focus-within:border-blue-300",
+                      ring: "focus-within:ring-blue-500/10",
+                    },
+                    {
+                      fondo: "bg-violet-50",
+                      icono: "bg-violet-100 text-violet-700",
+                      borde: "focus-within:border-violet-300",
+                      ring: "focus-within:ring-violet-500/10",
+                    },
+                    {
+                      fondo: "bg-amber-50",
+                      icono: "bg-amber-100 text-amber-700",
+                      borde: "focus-within:border-amber-300",
+                      ring: "focus-within:ring-amber-500/10",
+                    },
                   ];
 
-                const tieneCarpeta =
-                  valor.trim() !== "";
+                  const color =
+                    colores[index];
+
+                  return (
+
+                    <div
+                      key={entregable}
+                      className={`
+                        group
+                        rounded-2xl
+                        border
+                        border-slate-200
+                        bg-slate-50/60
+                        p-5
+                        transition-all
+                        duration-200
+                        hover:-translate-y-0.5
+                        hover:border-slate-300
+                        hover:shadow-md
+                        ${color.borde}
+                        ${color.ring}
+                        focus-within:bg-white
+                        focus-within:ring-4
+                      `}
+                    >
+
+                      <div
+                        className="
+                          mb-4
+                          flex
+                          items-center
+                          justify-between
+                        "
+                      >
+
+                        <div
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                          "
+                        >
+
+                          <div
+                            className={`
+                              flex
+                              h-10
+                              w-10
+                              items-center
+                              justify-center
+                              rounded-xl
+                              ${color.icono}
+                            `}
+                          >
+
+                            <FolderOpen size={18} />
+
+                          </div>
 
 
-                const colores = {
+                          <div>
 
-                  blue: {
-                    card: tieneCarpeta
-                      ? "border-blue-200 bg-blue-50/40"
-                      : "border-slate-200 bg-slate-50/50",
-                    icon: "bg-blue-100 text-blue-700",
-                    badge: "bg-blue-50 text-blue-700 border-blue-100",
-                  },
+                            <p
+                              className="
+                                text-sm
+                                font-black
+                                text-slate-800
+                              "
+                            >
+                              {entregable}
+                            </p>
 
-                  violet: {
-                    card: tieneCarpeta
-                      ? "border-violet-200 bg-violet-50/40"
-                      : "border-slate-200 bg-slate-50/50",
-                    icon: "bg-violet-100 text-violet-700",
-                    badge: "bg-violet-50 text-violet-700 border-violet-100",
-                  },
+                            <p
+                              className="
+                                text-[11px]
+                                text-slate-400
+                              "
+                            >
+                              Entregable
+                            </p>
 
-                  emerald: {
-                    card: tieneCarpeta
-                      ? "border-emerald-200 bg-emerald-50/40"
-                      : "border-slate-200 bg-slate-50/50",
-                    icon: "bg-emerald-100 text-emerald-700",
-                    badge: "bg-emerald-50 text-emerald-700 border-emerald-100",
-                  },
-
-                }[
-                  entregable.color
-                ];
-
-
-                return (
-
-                  <div
-                    key={
-                      entregable.codigo
-                    }
-                    className={`rounded-2xl border p-5 transition-all duration-200 hover:shadow-md ${colores.card}`}
-                  >
-
-                    <div className="flex items-start justify-between gap-3 mb-5">
-
-                      <div>
-
-                        <div className="flex items-center gap-2">
-
-                          <span className="text-xs font-black text-slate-400">
-                            {entregable.numero}
-                          </span>
-
-                          <span className="text-lg font-black text-slate-900">
-                            {entregable.codigo}
-                          </span>
+                          </div>
 
                         </div>
 
-                        <p className="text-xs text-slate-500 mt-1">
-                          {entregable.descripcion}
-                        </p>
 
-                      </div>
+                        {carpetas[entregable] && (
 
+                          <button
+                            type="button"
+                            onClick={() =>
+                              limpiarCarpeta(
+                                entregable
+                              )
+                            }
+                            title={`Limpiar ${entregable}`}
+                            className="
+                              flex
+                              h-8
+                              w-8
+                              items-center
+                              justify-center
+                              rounded-lg
+                              text-slate-400
+                              transition
+                              hover:bg-red-50
+                              hover:text-red-500
+                            "
+                          >
 
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${colores.icon}`}
-                      >
+                            <Trash2 size={15} />
 
-                        {tieneCarpeta ? (
-                          <CheckCircle2
-                            size={20}
-                          />
-                        ) : (
-                          <FolderOpen
-                            size={20}
-                          />
+                          </button>
+
                         )}
 
                       </div>
 
-                    </div>
-
-
-                    <div className="relative">
-
-                      <Link
-                        size={17}
-                        className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"
-                      />
-
 
                       <input
                         type="text"
-                        value={valor}
-                        disabled={cargando}
+                        value={
+                          carpetas[entregable]
+                        }
                         onChange={(e) =>
                           cambiarCarpeta(
-                            entregable.codigo,
+                            entregable,
                             e.target.value
                           )
                         }
-                        placeholder="Pega aquí la URL de Google Drive"
-                        className="w-full pl-11 pr-10 py-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                        placeholder={
+                          `Carpeta ${entregable}`
+                        }
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-slate-200
+                          bg-white
+                          px-4
+                          py-3
+                          text-sm
+                          font-medium
+                          text-slate-700
+                          outline-none
+                          transition
+                          placeholder:text-slate-400
+                          focus:border-transparent
+                          focus:ring-0
+                        "
                       />
 
-
-                      {tieneCarpeta && !cargando && (
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            limpiarCarpeta(
-                              entregable.codigo
-                            )
-                          }
-                          className="absolute right-3 top-3 text-slate-400 hover:text-red-500 transition"
-                          title="Limpiar"
-                        >
-
-                          <X
-                            size={17}
-                          />
-
-                        </button>
-
-                      )}
-
                     </div>
 
+                  );
 
-                    <div className="mt-4 flex items-center justify-between gap-2">
+                }
+              )}
 
-                      <div className="flex items-center gap-2">
-
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            tieneCarpeta
-                              ? "bg-emerald-500"
-                              : "bg-slate-300"
-                          }`}
-                        />
-
-                        <span className="text-xs font-semibold text-slate-500">
-
-                          {tieneCarpeta
-                            ? "Carpeta configurada"
-                            : "Esperando carpeta"}
-
-                        </span>
-
-                      </div>
+            </div>
 
 
-                      {tieneCarpeta && (
+            {/* ERROR */}
 
-                        <span
-                          className={`text-[10px] uppercase tracking-wide font-black border px-2 py-1 rounded-lg ${colores.badge}`}
-                        >
-                          Lista
-                        </span>
+            {error && (
 
-                      )}
+              <div
+                className="
+                  mt-6
+                  flex
+                  items-start
+                  gap-3
+                  rounded-2xl
+                  border
+                  border-red-200
+                  bg-red-50
+                  p-4
+                "
+              >
 
-                    </div>
-
-                  </div>
-
-                );
-
-              }
-            )}
-
-          </div>
-
-
-          {/* =================================================
-              ERROR
-          ================================================= */}
-
-          {error && (
-
-            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4">
-
-              <div className="flex items-start gap-3">
-
-                <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-
-                  <AlertCircle
-                    size={19}
-                  />
-
+                <div
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-lg
+                    bg-red-100
+                    text-red-600
+                  "
+                >
+                  !
                 </div>
 
 
-                <div className="min-w-0">
+                <div>
 
-                  <p className="font-black text-red-800">
-                    No se pudo realizar la consolidación
+                  <p
+                    className="
+                      text-sm
+                      font-black
+                      text-red-700
+                    "
+                  >
+                    No se puede continuar
                   </p>
 
-                  <p className="text-sm text-red-700 mt-1 leading-relaxed">
+                  <p
+                    className="
+                      mt-0.5
+                      text-sm
+                      text-red-600
+                    "
+                  >
                     {error}
                   </p>
 
@@ -1639,48 +1393,75 @@ export default function ConsolidacionPage() {
 
               </div>
 
-            </div>
-
-          )}
+            )}
 
 
-          {/* =================================================
-              BOTÓN
-          ================================================= */}
-
-          <div className="mt-7 flex flex-col sm:flex-row sm:items-center gap-4">
+            {/* BOTÓN */}
 
             <button
               type="button"
               onClick={
                 ejecutarConsolidacion
               }
-              disabled={
-                cargando
-              }
-              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#1D3681] hover:bg-[#14285f] text-white font-black shadow-lg shadow-blue-900/15 transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              disabled={cargando}
+              className="
+                group
+                mt-6
+                flex
+                w-full
+                items-center
+                justify-center
+                gap-3
+                rounded-2xl
+                bg-gradient-to-r
+                from-[#1D3681]
+                to-blue-700
+                px-6
+                py-4
+                text-sm
+                font-black
+                text-white
+                shadow-lg
+                shadow-blue-900/20
+                transition-all
+                duration-200
+                hover:-translate-y-0.5
+                hover:from-[#162b6b]
+                hover:to-blue-800
+                hover:shadow-xl
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+                disabled:hover:translate-y-0
+              "
             >
 
               {cargando ? (
 
                 <>
+
                   <Loader2
                     size={20}
                     className="animate-spin"
                   />
 
-                  Procesando...
+                  Procesando consolidación...
 
                 </>
 
               ) : (
 
                 <>
-                  <CheckCircle2
-                    size={20}
+
+                  <Sparkles
+                    size={19}
+                    className="
+                      transition-transform
+                      duration-200
+                      group-hover:rotate-12
+                    "
                   />
 
-                  Consolidar entregables
+                  Realizar consolidación
 
                 </>
 
@@ -1688,260 +1469,279 @@ export default function ConsolidacionPage() {
 
             </button>
 
-
-            {!cargando && (
-
-              <p className="text-xs text-slate-400 flex items-center gap-2">
-
-                <ShieldCheck
-                  size={15}
-                />
-
-                Puedes ingresar una, dos o las tres carpetas.
-
-              </p>
-
-            )}
-
           </div>
 
         </div>
 
-      </div>
+
+        {/* =================================================
+            PROCESO
+        ================================================= */}
+
+        <div
+          className="
+            overflow-hidden
+            rounded-[28px]
+            border
+            border-slate-200
+            bg-white
+            shadow-[0_10px_40px_rgba(15,23,42,0.05)]
+          "
+        >
+
+          <div
+            className="
+              border-b
+              border-slate-100
+              px-6
+              py-6
+              sm:px-8
+            "
+          >
+
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-4
+              "
+            >
+
+              <div>
+
+                <h2
+                  className="
+                    text-xl
+                    font-black
+                    tracking-tight
+                    text-slate-800
+                  "
+                >
+                  Estado del proceso
+                </h2>
+
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    text-slate-500
+                  "
+                >
+                  Seguimiento de la consolidación.
+                </p>
+
+              </div>
 
 
-      {/* =================================================
-          PROCESAMIENTO
-      ================================================= */}
+              {cargando && (
 
-      {cargando && (
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    bg-blue-50
+                    px-3
+                    py-1.5
+                    text-xs
+                    font-black
+                    text-blue-700
+                  "
+                >
 
-        <div className="rounded-[2rem] overflow-hidden border border-blue-200 bg-white shadow-xl">
-
-          <div className="relative overflow-hidden bg-gradient-to-r from-[#10245f] via-[#1D3681] to-indigo-700 p-6 sm:p-8 text-white">
-
-            <div className="absolute -right-16 -top-24 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
-
-
-            <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-
-              <div className="flex items-center gap-4">
-
-                <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
-
-                  <Sparkles
-                    size={27}
-                    className="animate-pulse"
+                  <span
+                    className="
+                      h-2
+                      w-2
+                      animate-pulse
+                      rounded-full
+                      bg-blue-600
+                    "
                   />
 
-                </div>
-
-
-                <div>
-
-                  <p className="text-xl font-black">
-                    Consolidando entregables
-                  </p>
-
-                  <p className="text-sm text-blue-100 mt-1">
-                    El servidor está procesando los documentos.
-                  </p>
+                  En proceso
 
                 </div>
 
-              </div>
+              )}
 
+              {!cargando && resultado && (
 
-              <div className="flex items-center gap-2 bg-white/10 border border-white/10 rounded-xl px-4 py-2.5">
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    bg-emerald-50
+                    px-3
+                    py-1.5
+                    text-xs
+                    font-black
+                    text-emerald-700
+                  "
+                >
 
-                <Clock3
-                  size={17}
-                />
+                  <Check size={14} />
 
-                <span className="font-mono font-bold">
-                  {formatearTiempo(
-                    tiempoTranscurrido
-                  )}
-                </span>
+                  Completado
 
-              </div>
+                </div>
 
-            </div>
-
-
-            <div className="mt-7 h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
-
-              <div
-                className="h-full w-1/3 bg-white rounded-full"
-                style={{
-                  animation:
-                    "consolidacionLoading 1.5s ease-in-out infinite",
-                }}
-              />
+              )}
 
             </div>
-
-
-            <style>
-              {`
-                @keyframes consolidacionLoading {
-                  0% {
-                    transform: translateX(-120%);
-                  }
-
-                  50% {
-                    transform: translateX(100%);
-                  }
-
-                  100% {
-                    transform: translateX(320%);
-                  }
-                }
-              `}
-            </style>
 
           </div>
 
 
           <div className="p-6 sm:p-8">
 
-            <div className="flex items-center gap-4 rounded-2xl bg-blue-50 border border-blue-100 p-5">
+            <div className="relative space-y-3">
 
-              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
-
-                <Loader2
-                  size={21}
-                  className="animate-spin"
-                />
-
-              </div>
-
-
-              <div className="min-w-0">
-
-                <p className="font-black text-blue-900">
-                  {paso}
-                </p>
-
-                <p className="text-sm text-blue-700 mt-1">
-                  {mensajeProceso}
-                </p>
-
-              </div>
-
-            </div>
-
-
-            <div className="mt-5 flex items-center justify-between gap-4 text-xs">
-
-              <div className="flex items-center gap-2 text-slate-500">
-
-                <Clock3
-                  size={15}
-                />
-
-                Tiempo transcurrido:
-
-                <span className="font-mono font-black text-slate-700">
-                  {formatearTiempo(
-                    tiempoTranscurrido
-                  )}
-                </span>
-
-              </div>
-
-
-              <span className="text-slate-400 hidden sm:block">
-                No cierres ni recargues esta página.
-              </span>
-
-            </div>
-
-
-            {/* ETAPAS */}
-
-            <div className="mt-7 space-y-3">
-
-              {ENTREGABLES.map(
-                (etapa) => {
+              {etapas.map(
+                (etapa, index) => {
 
                   const estado =
                     estadoEtapa(
-                      Number(
-                        etapa.numero
-                      ) - 1
+                      etapa.codigo - 1
                     );
 
                   const tiene =
                     carpetas[
-                      etapa.codigo
-                    ].trim() !== "";
+                      `EN${etapa.codigo}`
+                    ]?.trim();
 
+                  const iconClasses = {
+                    blue:
+                      "bg-blue-100 text-blue-700",
+                    violet:
+                      "bg-violet-100 text-violet-700",
+                    amber:
+                      "bg-amber-100 text-amber-700",
+                  };
 
                   return (
 
                     <div
-                      key={
-                        etapa.codigo
-                      }
-                      className={`flex items-center gap-4 rounded-2xl border p-4 transition-all ${
-                        !tiene
-                          ? "opacity-40 border-slate-200 bg-slate-50"
-                          : estado ===
-                            "completa"
-                          ? "border-emerald-200 bg-emerald-50"
-                          : estado ===
-                            "activa"
-                          ? "border-blue-300 bg-blue-50 shadow-sm"
-                          : "border-slate-200 bg-slate-50"
-                      }`}
+                      key={etapa.codigo}
+                      className={`
+                        relative
+                        flex
+                        items-center
+                        gap-4
+                        rounded-2xl
+                        border
+                        p-4
+                        transition-all
+                        duration-300
+                        ${
+                          !tiene
+                            ? "border-slate-200 bg-slate-50 opacity-50"
+                            : estado === "completa"
+                            ? "border-emerald-200 bg-emerald-50/70"
+                            : estado === "activa"
+                            ? "border-blue-200 bg-blue-50 shadow-sm"
+                            : "border-slate-200 bg-slate-50"
+                        }
+                      `}
                     >
 
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
-                          !tiene
-                            ? "bg-slate-200 text-slate-400"
-                            : estado ===
-                              "completa"
-                            ? "bg-emerald-600 text-white"
-                            : estado ===
-                              "activa"
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-200 text-slate-500"
-                        }`}
+                        className={`
+                          flex
+                          h-11
+                          w-11
+                          shrink-0
+                          items-center
+                          justify-center
+                          rounded-xl
+                          text-xs
+                          font-black
+                          ${
+                            !tiene
+                              ? "bg-slate-200 text-slate-400"
+                              : estado === "completa"
+                              ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                              : estado === "activa"
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                              : iconClasses[
+                                  etapa.color
+                                ]
+                          }
+                        `}
                       >
 
                         {!tiene
                           ? etapa.codigo
-                          : estado ===
-                            "completa"
-                          ? (
-                            <Check
-                              size={18}
-                            />
-                          )
-                          : etapa.codigo}
+                          : estado === "completa"
+                          ? <Check size={19} />
+                          : <FolderOpen size={18} />}
 
                       </div>
 
 
-                      <div className="flex-1">
+                      <div className="min-w-0 flex-1">
 
-                        <p className="font-bold text-slate-800">
-                          {etapa.titulo}
-                        </p>
+                        <div
+                          className="
+                            flex
+                            flex-wrap
+                            items-center
+                            gap-2
+                          "
+                        >
 
-                        <p className="text-xs text-slate-500 mt-0.5">
+                          <p
+                            className="
+                              font-black
+                              text-slate-800
+                            "
+                          >
+                            {etapa.titulo}
+                          </p>
+
+
+                          {tiene && estado === "activa" && (
+
+                            <span
+                              className="
+                                rounded-full
+                                bg-blue-100
+                                px-2
+                                py-0.5
+                                text-[9px]
+                                font-black
+                                uppercase
+                                tracking-wide
+                                text-blue-700
+                              "
+                            >
+                              Procesando
+                            </span>
+
+                          )}
+
+                        </div>
+
+
+                        <p
+                          className="
+                            mt-0.5
+                            text-xs
+                            text-slate-500
+                          "
+                        >
 
                           {!tiene
                             ? "No seleccionado"
-                            : estado ===
-                              "completa"
+                            : estado === "completa"
                             ? "Procesamiento completado"
-                            : estado ===
-                              "activa"
+                            : estado === "activa"
                             ? "Procesando documentos..."
-                            : "Pendiente"}
+                            : etapa.descripcion}
 
                         </p>
 
@@ -1949,12 +1749,15 @@ export default function ConsolidacionPage() {
 
 
                       {tiene &&
-                        estado ===
-                          "activa" && (
+                        estado === "activa" && (
 
                           <Loader2
-                            size={19}
-                            className="text-blue-600 animate-spin"
+                            size={20}
+                            className="
+                              shrink-0
+                              animate-spin
+                              text-blue-600
+                            "
                           />
 
                         )}
@@ -1970,54 +1773,105 @@ export default function ConsolidacionPage() {
               {/* CONSOLIDACIÓN */}
 
               <div
-                className={`flex items-center gap-4 rounded-2xl border p-4 ${
-                  estadoEtapa(3) ===
-                  "completa"
-                    ? "border-emerald-200 bg-emerald-50"
-                    : estadoEtapa(3) ===
-                      "activa"
-                    ? "border-blue-300 bg-blue-50 shadow-sm"
-                    : "border-slate-200 bg-slate-50"
-                }`}
+                className={`
+                  flex
+                  items-center
+                  gap-4
+                  rounded-2xl
+                  border
+                  p-4
+                  transition-all
+                  duration-300
+                  ${
+                    estadoEtapa(3) === "completa"
+                      ? "border-emerald-200 bg-emerald-50/70"
+                      : estadoEtapa(3) === "activa"
+                      ? "border-blue-200 bg-blue-50 shadow-sm"
+                      : "border-slate-200 bg-slate-50"
+                  }
+                `}
               >
 
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    estadoEtapa(3) ===
-                    "completa"
-                      ? "bg-emerald-600 text-white"
-                      : estadoEtapa(3) ===
-                        "activa"
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-200 text-slate-500"
-                  }`}
+                  className={`
+                    flex
+                    h-11
+                    w-11
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-xl
+                    ${
+                      estadoEtapa(3) === "completa"
+                        ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                        : estadoEtapa(3) === "activa"
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                        : "bg-slate-200 text-slate-500"
+                    }
+                  `}
                 >
 
                   {estadoEtapa(3) ===
                   "completa" ? (
-
-                    <Check
-                      size={19}
-                    />
-
+                    <Check size={20} />
                   ) : (
-
-                    <FileSearch
-                      size={19}
-                    />
-
+                    <FileSearch size={20} />
                   )}
 
                 </div>
 
 
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
 
-                  <p className="font-bold text-slate-800">
-                    Consolidación
-                  </p>
+                  <div
+                    className="
+                      flex
+                      flex-wrap
+                      items-center
+                      gap-2
+                    "
+                  >
 
-                  <p className="text-xs text-slate-500 mt-0.5">
+                    <p
+                      className="
+                        font-black
+                        text-slate-800
+                      "
+                    >
+                      Consolidación
+                    </p>
+
+
+                    {estadoEtapa(3) === "activa" && (
+
+                      <span
+                        className="
+                          rounded-full
+                          bg-blue-100
+                          px-2
+                          py-0.5
+                          text-[9px]
+                          font-black
+                          uppercase
+                          tracking-wide
+                          text-blue-700
+                        "
+                      >
+                        Analizando
+                      </span>
+
+                    )}
+
+                  </div>
+
+
+                  <p
+                    className="
+                      mt-0.5
+                      text-xs
+                      text-slate-500
+                    "
+                  >
 
                     {estadoEtapa(3) ===
                     "completa"
@@ -2036,8 +1890,12 @@ export default function ConsolidacionPage() {
                   "activa" && (
 
                   <Loader2
-                    size={19}
-                    className="text-blue-600 animate-spin"
+                    size={20}
+                    className="
+                      shrink-0
+                      animate-spin
+                      text-blue-600
+                    "
                   />
 
                 )}
@@ -2047,329 +1905,382 @@ export default function ConsolidacionPage() {
             </div>
 
 
-            <div className="mt-6 rounded-2xl bg-amber-50 border border-amber-100 p-4">
-
-              <div className="flex items-start gap-3">
-
-                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-
-                  <Clock3
-                    size={16}
-                  />
-
-                </div>
-
-
-                <div>
-
-                  <p className="text-sm font-black text-amber-900">
-                    El análisis puede tardar varios minutos
-                  </p>
-
-                  <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                    Cada documento puede requerir un análisis individual.
-                    Mantén esta página abierta hasta recibir los resultados.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* =================================================
-          RESUMEN
-      ================================================= */}
-
-      {resultado && (
-
-        <div>
-
-          <div className="flex items-center gap-3 mb-5">
-
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-
-              <BarChart3
-                size={20}
-              />
-
-            </div>
-
-            <div>
-
-              <h2 className="text-xl font-black text-slate-900">
-                Resumen
-              </h2>
-
-              <p className="text-sm text-slate-500">
-                Vista general de la consolidación.
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div className="grid md:grid-cols-3 gap-5">
-
-            {/* ALUMNOS */}
-
-            <div className="group bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
-
-              <div className="flex items-start justify-between">
-
-                <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-
-                  <Users
-                    size={21}
-                  />
-
-                </div>
-
-                <span className="text-xs font-bold text-slate-400">
-                  REGISTROS
-                </span>
-
-              </div>
-
-
-              <p className="text-sm text-slate-500 mt-5">
-                Alumnos encontrados
-              </p>
-
-              <p className="text-3xl font-black text-slate-900 mt-1">
-
-                {resultado.totalAlumnos ||
-                  datosConsolidados.length ||
-                  0}
-
-              </p>
-
-            </div>
-
-
-            {/* ENTREGABLES */}
-
-            <div className="group bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
-
-              <div className="flex items-start justify-between">
-
-                <div className="w-11 h-11 rounded-xl bg-violet-50 text-violet-700 flex items-center justify-center">
-
-                  <Database
-                    size={21}
-                  />
-
-                </div>
-
-                <span className="text-xs font-bold text-slate-400">
-                  EVALUACIONES
-                </span>
-
-              </div>
-
-
-              <p className="text-sm text-slate-500 mt-5">
-                Entregables procesados
-              </p>
-
-              <p className="text-lg font-black text-slate-900 mt-2">
-                EN1 · EN2 · EN3
-              </p>
-
-            </div>
-
-
-            {/* ESTADO */}
-
-            <div className="group bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
-
-              <div className="flex items-start justify-between">
-
-                <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-
-                  <ShieldCheck
-                    size={21}
-                  />
-
-                </div>
-
-                <span className="text-xs font-bold text-emerald-600">
-                  FINALIZADO
-                </span>
-
-              </div>
-
-
-              <p className="text-sm text-slate-500 mt-5">
-                Estado
-              </p>
-
-              <p className="text-lg font-black text-emerald-600 mt-2">
-                Consolidado correctamente
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* =================================================
-          TABLA
-      ================================================= */}
-
-      {resultado && (
-
-        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
-
-
-          {/* CABECERA */}
-
-          <div className="p-6 sm:p-7 border-b border-slate-200">
-
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
-
-              <div>
-
-                <div className="flex items-center gap-3">
-
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-
-                    <Database
-                      size={19}
+            {/* MENSAJE DE PROCESO */}
+
+            {cargando && (
+
+              <div
+                className="
+                  mt-6
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-blue-100
+                  bg-gradient-to-r
+                  from-blue-50
+                  to-indigo-50
+                  p-5
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    items-start
+                    gap-3
+                  "
+                >
+
+                  <div
+                    className="
+                      flex
+                      h-9
+                      w-9
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-blue-600
+                      text-white
+                    "
+                  >
+
+                    <Loader2
+                      size={17}
+                      className="animate-spin"
                     />
 
                   </div>
 
-                  <h2 className="text-xl font-black text-slate-900">
-                    Resultado de consolidación
-                  </h2>
+
+                  <div>
+
+                    <p
+                      className="
+                        font-black
+                        text-blue-900
+                      "
+                    >
+                      {paso}
+                    </p>
+
+                    <p
+                      className="
+                        mt-1
+                        text-sm
+                        leading-relaxed
+                        text-blue-600
+                      "
+                    >
+                      {mensajeProceso}
+                    </p>
+
+                  </div>
 
                 </div>
 
-                <p className="text-sm text-slate-500 mt-2 ml-13">
-                  Resultados agrupados por alumno, semestre e informe.
-                </p>
-
               </div>
 
+            )}
 
-              <div className="flex flex-wrap gap-2">
+          </div>
 
-                <button
-                  type="button"
-                  onClick={
-                    exportarCSV
-                  }
-                  disabled={
-                    !resultadosFiltrados.length
-                  }
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+        </div>
+
+
+        {/* =================================================
+            RESULTADOS
+        ================================================= */}
+
+        {resultado && (
+
+          <div
+            className="
+              overflow-hidden
+              rounded-[28px]
+              border
+              border-slate-200
+              bg-white
+              shadow-[0_10px_40px_rgba(15,23,42,0.06)]
+            "
+          >
+
+            {/* HEADER RESULTADOS */}
+
+            <div
+              className="
+                relative
+                overflow-hidden
+                border-b
+                border-slate-100
+                bg-gradient-to-r
+                from-slate-50
+                via-white
+                to-blue-50/50
+                px-6
+                py-6
+                sm:px-8
+              "
+            >
+
+              <div
+                className="
+                  absolute
+                  -right-16
+                  -top-20
+                  h-52
+                  w-52
+                  rounded-full
+                  bg-blue-100/40
+                  blur-3xl
+                "
+              />
+
+
+              <div
+                className="
+                  relative
+                  flex
+                  flex-col
+                  gap-5
+                  lg:flex-row
+                  lg:items-center
+                  lg:justify-between
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-4
+                  "
                 >
 
-                  <Download
-                    size={17}
-                  />
+                  <div
+                    className="
+                      flex
+                      h-14
+                      w-14
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-[#1D3681]
+                      text-white
+                      shadow-lg
+                      shadow-blue-900/20
+                    "
+                  >
 
-                  Exportar CSV
+                    <Users size={25} />
 
-                </button>
+                  </div>
 
 
-                <button
-                  type="button"
-                  onClick={
-                    exportarPDF
-                  }
-                  disabled={
-                    !resultadosFiltrados.length
-                  }
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  <div>
+
+                    <div
+                      className="
+                        flex
+                        flex-wrap
+                        items-center
+                        gap-2
+                      "
+                    >
+
+                      <h2
+                        className="
+                          text-xl
+                          font-black
+                          tracking-tight
+                          text-slate-800
+                        "
+                      >
+                        Resultados consolidados
+                      </h2>
+
+
+                      <span
+                        className="
+                          inline-flex
+                          items-center
+                          gap-1
+                          rounded-full
+                          bg-emerald-100
+                          px-2.5
+                          py-1
+                          text-[10px]
+                          font-black
+                          uppercase
+                          tracking-wide
+                          text-emerald-700
+                        "
+                      >
+
+                        <Check size={11} />
+
+                        Completado
+
+                      </span>
+
+                    </div>
+
+
+                    <p
+                      className="
+                        mt-1
+                        text-sm
+                        text-slate-500
+                      "
+                    >
+
+                      Se encontraron{" "}
+
+                      <span
+                        className="
+                          font-black
+                          text-slate-700
+                        "
+                      >
+                        {resultado.totalAlumnos ??
+                          datosConsolidados.length ??
+                          0}
+                      </span>
+
+                      {" "}alumnos.
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                  "
                 >
 
-                  <FileDown
-                    size={17}
-                  />
+                  <div
+                    className="
+                      rounded-2xl
+                      border
+                      border-blue-100
+                      bg-blue-50
+                      px-5
+                      py-3
+                    "
+                  >
 
-                  Exportar PDF
+                    <p
+                      className="
+                        text-[10px]
+                        font-black
+                        uppercase
+                        tracking-wider
+                        text-blue-500
+                      "
+                    >
+                      Total
+                    </p>
 
-                </button>
+
+                    <p
+                      className="
+                        mt-0.5
+                        text-2xl
+                        font-black
+                        text-[#1D3681]
+                      "
+                    >
+                      {resultado.totalAlumnos ??
+                        datosConsolidados.length ??
+                        0}
+                    </p>
+
+                  </div>
+
+                </div>
 
               </div>
 
             </div>
 
-          </div>
+
+            {/* CONTENIDO */}
+
+            <div className="p-5 sm:p-8">
+
+              {/* FILTROS */}
+
+              <div
+                className="
+                  mb-6
+                  flex
+                  flex-col
+                  gap-3
+                  md:flex-row
+                "
+              >
+
+                <div
+                  className="
+                    relative
+                    flex-1
+                  "
+                >
+
+                  <Search
+                    size={19}
+                    className="
+                      absolute
+                      left-4
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                    "
+                  />
 
 
-          {/* FILTROS */}
-
-          <div className="px-6 sm:px-7 py-4 bg-slate-50/80 border-b border-slate-200">
-
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-
-              <div className="relative w-full lg:max-w-lg">
-
-                <Search
-                  size={18}
-                  className="absolute left-3.5 top-3 text-slate-400"
-                />
-
-
-                <input
-                  type="text"
-                  value={
-                    busqueda
-                  }
-                  onChange={(e) =>
-                    cambiarBusqueda(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Buscar alumno, semestre o informe..."
-                  className="w-full pl-11 pr-10 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                />
-
-
-                {busqueda && (
-
-                  <button
-                    type="button"
-                    onClick={() =>
+                  <input
+                    type="text"
+                    value={busqueda}
+                    onChange={(e) =>
                       cambiarBusqueda(
-                        ""
+                        e.target.value
                       )
                     }
-                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
-                  >
+                    placeholder="
+                      Buscar alumno, semestre o informe...
+                    "
+                    className="
+                      w-full
+                      rounded-2xl
+                      border
+                      border-slate-200
+                      bg-slate-50
+                      py-3.5
+                      pl-11
+                      pr-4
+                      text-sm
+                      font-medium
+                      text-slate-700
+                      outline-none
+                      transition
+                      placeholder:text-slate-400
+                      hover:border-slate-300
+                      focus:border-blue-300
+                      focus:bg-white
+                      focus:ring-4
+                      focus:ring-blue-500/10
+                    "
+                  />
 
-                    <X
-                      size={17}
-                    />
-
-                  </button>
-
-                )}
-
-              </div>
-
-
-              <div className="flex items-center gap-3">
-
-                <span className="text-xs font-bold text-slate-500">
-                  Mostrar
-                </span>
+                </div>
 
 
                 <select
@@ -2381,537 +2292,644 @@ export default function ConsolidacionPage() {
                       e.target.value
                     )
                   }
-                  className="px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    bg-slate-50
+                    px-5
+                    py-3.5
+                    text-sm
+                    font-bold
+                    text-slate-600
+                    outline-none
+                    transition
+                    hover:border-slate-300
+                    focus:border-blue-300
+                    focus:bg-white
+                    focus:ring-4
+                    focus:ring-blue-500/10
+                  "
                 >
 
-                  <option value={10}>
-                    10
+                  <option value="10">
+                    10 por página
                   </option>
 
-                  <option value={25}>
-                    25
+                  <option value="20">
+                    20 por página
                   </option>
 
-                  <option value={50}>
-                    50
-                  </option>
-
-                  <option value={100}>
-                    100
+                  <option value="50">
+                    50 por página
                   </option>
 
                 </select>
 
-
-                <span className="text-xs text-slate-500">
-                  por página
-                </span>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          {/* INFORMACIÓN */}
-
-          <div className="px-6 sm:px-7 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-
-            <p className="text-xs text-slate-500">
-
-              Mostrando{" "}
-
-              <span className="font-black text-slate-700">
-
-                {resultadosFiltrados.length ===
-                0
-                  ? 0
-                  : indiceInicio + 1}
-
-              </span>
-
-              {" – "}
-
-              <span className="font-black text-slate-700">
-
-                {Math.min(
-                  indiceFin,
-                  resultadosFiltrados.length
-                )}
-
-              </span>
-
-              {" de "}
-
-              <span className="font-black text-slate-700">
-
-                {resultadosFiltrados.length}
-
-              </span>
-
-              {" resultados"}
-
-            </p>
-
-
-            {busqueda && (
-
-              <div className="inline-flex items-center gap-2 text-xs text-blue-600 font-bold">
-
-                <Search
-                  size={13}
-                />
-
-                Filtro activo
-
-              </div>
-
-            )}
-
-          </div>
-
-
-          {/* TABLA */}
-
-          {resultadosPagina.length > 0 ? (
-
-            <div className="overflow-x-auto">
-
-              <table className="w-full text-sm">
-
-                <thead>
-
-                  <tr className="bg-slate-100 border-b border-slate-200">
-
-                    <th className="text-left p-4 pl-6 font-black text-slate-700 whitespace-nowrap">
-                      Alumno
-                    </th>
-
-                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
-                      Semestre
-                    </th>
-
-                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
-                      Informe
-                    </th>
-
-                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
-                      EN1
-                    </th>
-
-                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
-                      EN2
-                    </th>
-
-                    <th className="p-4 font-black text-slate-700 whitespace-nowrap">
-                      EN3
-                    </th>
-
-                    <th className="p-4 pr-6 font-black text-blue-800 whitespace-nowrap">
-                      TOTAL
-                    </th>
-
-                  </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                  {resultadosPagina.map(
-                    (
-                      alumno,
-                      index
-                    ) => (
-
-                      <tr
-                        key={`${alumno.alumno}-${indiceInicio + index}`}
-                        className="border-b border-slate-100 last:border-0 hover:bg-blue-50/30 transition"
-                      >
-
-                        <td className="p-4 pl-6">
-
-                          <div className="flex items-center gap-3">
-
-                            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-black text-xs shrink-0">
-
-                              {String(
-                                alumno.alumno ||
-                                "?"
-                              )
-                                .charAt(0)
-                                .toUpperCase()}
-
-                            </div>
-
-
-                            <span className="font-bold text-slate-900 whitespace-nowrap">
-
-                              {alumno.alumno ||
-                                "-"}
-
-                            </span>
-
-                          </div>
-
-                        </td>
-
-
-                        <td className="p-4 text-center text-slate-600 whitespace-nowrap">
-
-                          {alumno.semestre ||
-                            "-"}
-
-                        </td>
-
-
-                        <td className="p-4 text-center text-slate-600 whitespace-nowrap">
-
-                          {alumno.informe ||
-                            "-"}
-
-                        </td>
-
-
-                        <td className="p-4 text-center font-semibold text-slate-700">
-
-                          {alumno.EN1 ??
-                            0}
-
-                        </td>
-
-
-                        <td className="p-4 text-center font-semibold text-slate-700">
-
-                          {alumno.EN2 ??
-                            0}
-
-                        </td>
-
-
-                        <td className="p-4 text-center font-semibold text-slate-700">
-
-                          {alumno.EN3 ??
-                            0}
-
-                        </td>
-
-
-                        <td className="p-4 pr-6 text-center">
-
-                          <span className="inline-flex items-center justify-center min-w-[64px] px-3 py-1.5 rounded-lg bg-blue-50 text-blue-800 font-black">
-
-                            {alumno.total ??
-                              0}
-
-                          </span>
-
-                        </td>
-
-                      </tr>
-
-                    )
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          ) : (
-
-            <div className="p-14 text-center">
-
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center mx-auto">
-
-                <FileSearch
-                  size={30}
-                />
-
               </div>
 
 
-              <p className="font-black text-slate-700 mt-5">
-                No se encontraron resultados
-              </p>
+              {/* TABLA */}
 
-              <p className="text-sm text-slate-400 mt-1">
-                Prueba con otro nombre, semestre o informe.
-              </p>
+              {resultadosFiltrados.length > 0 ? (
 
-
-              {busqueda && (
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBusqueda("");
-                    setPaginaActual(1);
-                  }}
-                  className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800"
+                <div
+                  className="
+                    overflow-hidden
+                    rounded-2xl
+                    border
+                    border-slate-200
+                  "
                 >
 
-                  <RotateCcw
-                    size={15}
-                  />
+                  <div className="overflow-x-auto">
 
-                  Limpiar búsqueda
+                    <table
+                      className="
+                        w-full
+                        min-w-[720px]
+                        text-sm
+                      "
+                    >
 
-                </button>
+                      <thead>
 
-              )}
-
-            </div>
-
-          )}
-
-
-          {/* PAGINACIÓN */}
-
-          {resultadosFiltrados.length > 0 && (
-
-            <div className="px-6 sm:px-7 py-5 border-t border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-              <button
-                type="button"
-                disabled={
-                  paginaActual === 1
-                }
-                onClick={() =>
-                  setPaginaActual(
-                    (anterior) =>
-                      Math.max(
-                        1,
-                        anterior - 1
-                      )
-                  )
-                }
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-
-                <ChevronLeft
-                  size={17}
-                />
-
-                Anterior
-
-              </button>
-
-
-              <div className="flex items-center justify-center gap-1.5 flex-wrap">
-
-                {Array.from(
-                  {
-                    length:
-                      totalPaginas,
-                  },
-                  (_, index) =>
-                    index + 1
-                )
-                  .filter(
-                    (numero) => {
-
-                      if (
-                        totalPaginas <=
-                        7
-                      ) {
-                        return true;
-                      }
-
-                      return (
-                        numero ===
-                          1 ||
-                        numero ===
-                          totalPaginas ||
-                        Math.abs(
-                          numero -
-                            paginaActual
-                        ) <= 1
-                      );
-                    }
-                  )
-                  .map(
-                    (
-                      numero,
-                      index,
-                      array
-                    ) => {
-
-                      const anteriorNumero =
-                        array[
-                          index - 1
-                        ];
-
-                      const mostrarPuntos =
-                        anteriorNumero &&
-                        numero -
-                          anteriorNumero >
-                          1;
-
-
-                      return (
-
-                        <div
-                          key={
-                            numero
-                          }
-                          className="flex items-center gap-1.5"
+                        <tr
+                          className="
+                            bg-[#1D3681]
+                            text-left
+                            text-[11px]
+                            uppercase
+                            tracking-wider
+                            text-white
+                          "
                         >
 
-                          {mostrarPuntos && (
-
-                            <span className="px-1 text-slate-400">
-                              ...
-                            </span>
-
-                          )}
-
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setPaginaActual(
-                                numero
-                              )
-                            }
-                            className={`w-10 h-10 rounded-xl font-bold text-sm transition ${
-                              paginaActual ===
-                              numero
-                                ? "bg-[#1D3681] text-white shadow-md"
-                                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                            }`}
+                          <th
+                            className="
+                              px-5
+                              py-4
+                              font-black
+                            "
                           >
+                            Alumno
+                          </th>
 
-                            {numero}
+                          <th
+                            className="
+                              px-5
+                              py-4
+                              text-center
+                              font-black
+                            "
+                          >
+                            EN1
+                          </th>
 
-                          </button>
+                          <th
+                            className="
+                              px-5
+                              py-4
+                              text-center
+                              font-black
+                            "
+                          >
+                            EN2
+                          </th>
 
-                        </div>
+                          <th
+                            className="
+                              px-5
+                              py-4
+                              text-center
+                              font-black
+                            "
+                          >
+                            EN3
+                          </th>
 
-                      );
+                          <th
+                            className="
+                              px-5
+                              py-4
+                              text-center
+                              font-black
+                            "
+                          >
+                            Total
+                          </th>
 
-                    }
-                  )}
+                        </tr>
 
-              </div>
-
-
-              <button
-                type="button"
-                disabled={
-                  paginaActual ===
-                  totalPaginas
-                }
-                onClick={() =>
-                  setPaginaActual(
-                    (anterior) =>
-                      Math.min(
-                        totalPaginas,
-                        anterior + 1
-                      )
-                  )
-                }
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-
-                Siguiente
-
-                <ChevronRight
-                  size={17}
-                />
-
-              </button>
-
-            </div>
-
-          )}
-
-
-          {/* PIE */}
-
-          {resultadosFiltrados.length > 0 && (
-
-            <div className="px-6 sm:px-7 pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-
-              <p className="text-xs text-slate-400">
-
-                Página{" "}
-
-                <span className="font-black text-slate-600">
-                  {paginaActual}
-                </span>
-
-                {" de "}
-
-                <span className="font-black text-slate-600">
-                  {totalPaginas}
-                </span>
-
-              </p>
+                      </thead>
 
 
-              {busqueda && (
+                      <tbody>
 
-                <button
-                  type="button"
-                  onClick={() => {
+                        {resultadosPagina.map(
+                          (alumno, index) => (
 
-                    setBusqueda(
-                      ""
-                    );
+                            <tr
+                              key={
+                                alumno.id ||
+                                `${alumno.alumno}-${index}`
+                              }
+                              className="
+                                border-b
+                                border-slate-100
+                                transition
+                                last:border-b-0
+                                hover:bg-blue-50/40
+                              "
+                            >
 
-                    setPaginaActual(
-                      1
-                    );
+                              {/* ALUMNO */}
 
-                  }}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800"
+                              <td
+                                className="
+                                  px-5
+                                  py-4
+                                "
+                              >
+
+                                <div
+                                  className="
+                                    flex
+                                    items-center
+                                    gap-3
+                                  "
+                                >
+
+                                  <div
+                                    className="
+                                      flex
+                                      h-9
+                                      w-9
+                                      shrink-0
+                                      items-center
+                                      justify-center
+                                      rounded-xl
+                                      bg-blue-100
+                                      text-xs
+                                      font-black
+                                      text-[#1D3681]
+                                    "
+                                  >
+
+                                    {String(
+                                      alumno.alumno ||
+                                      "A"
+                                    )
+                                      .charAt(0)
+                                      .toUpperCase()}
+
+                                  </div>
+
+
+                                  <div>
+
+                                    <p
+                                      className="
+                                        font-bold
+                                        text-slate-700
+                                      "
+                                    >
+                                      {alumno.alumno ||
+                                        "--"}
+                                    </p>
+
+
+                                    {alumno.semestre && (
+
+                                      <p
+                                        className="
+                                          mt-0.5
+                                          text-xs
+                                          text-slate-400
+                                        "
+                                      >
+                                        {alumno.semestre}
+                                      </p>
+
+                                    )}
+
+                                  </div>
+
+                                </div>
+
+                              </td>
+
+
+                              {/* EN1 */}
+
+                              <td
+                                className="
+                                  px-5
+                                  py-4
+                                  text-center
+                                "
+                              >
+
+                                <span
+                                  className="
+                                    inline-flex
+                                    min-w-[52px]
+                                    justify-center
+                                    rounded-lg
+                                    bg-blue-50
+                                    px-3
+                                    py-1.5
+                                    text-xs
+                                    font-black
+                                    text-blue-700
+                                  "
+                                >
+                                  {alumno.EN1 ??
+                                    "--"}
+                                </span>
+
+                              </td>
+
+
+                              {/* EN2 */}
+
+                              <td
+                                className="
+                                  px-5
+                                  py-4
+                                  text-center
+                                "
+                              >
+
+                                <span
+                                  className="
+                                    inline-flex
+                                    min-w-[52px]
+                                    justify-center
+                                    rounded-lg
+                                    bg-violet-50
+                                    px-3
+                                    py-1.5
+                                    text-xs
+                                    font-black
+                                    text-violet-700
+                                  "
+                                >
+                                  {alumno.EN2 ??
+                                    "--"}
+                                </span>
+
+                              </td>
+
+
+                              {/* EN3 */}
+
+                              <td
+                                className="
+                                  px-5
+                                  py-4
+                                  text-center
+                                "
+                              >
+
+                                <span
+                                  className="
+                                    inline-flex
+                                    min-w-[52px]
+                                    justify-center
+                                    rounded-lg
+                                    bg-amber-50
+                                    px-3
+                                    py-1.5
+                                    text-xs
+                                    font-black
+                                    text-amber-700
+                                  "
+                                >
+                                  {alumno.EN3 ??
+                                    "--"}
+                                </span>
+
+                              </td>
+
+
+                              {/* TOTAL */}
+
+                              <td
+                                className="
+                                  px-5
+                                  py-4
+                                  text-center
+                                "
+                              >
+
+                                <span
+                                  className="
+                                    inline-flex
+                                    min-w-[62px]
+                                    justify-center
+                                    rounded-xl
+                                    bg-emerald-50
+                                    px-3
+                                    py-1.5
+                                    text-sm
+                                    font-black
+                                    text-emerald-700
+                                  "
+                                >
+                                  {alumno.total ??
+                                    "--"}
+                                </span>
+
+                              </td>
+
+                            </tr>
+
+                          )
+                        )}
+
+                      </tbody>
+
+                    </table>
+
+                  </div>
+
+                </div>
+
+              ) : (
+
+                /* ESTADO VACÍO */
+
+                <div
+                  className="
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    rounded-2xl
+                    border
+                    border-dashed
+                    border-slate-300
+                    bg-slate-50
+                    px-6
+                    py-14
+                    text-center
+                  "
                 >
 
-                  <RotateCcw
-                    size={14}
-                  />
+                  <div
+                    className="
+                      flex
+                      h-16
+                      w-16
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-slate-200
+                      text-slate-400
+                    "
+                  >
 
-                  Limpiar filtro
+                    <Search size={27} />
 
-                </button>
+                  </div>
+
+
+                  <h3
+                    className="
+                      mt-4
+                      font-black
+                      text-slate-700
+                    "
+                  >
+                    No se encontraron resultados
+                  </h3>
+
+
+                  <p
+                    className="
+                      mt-1
+                      max-w-sm
+                      text-sm
+                      text-slate-400
+                    "
+                  >
+                    Intenta cambiar el término de búsqueda
+                    o revisa los datos consolidados.
+                  </p>
+
+                </div>
+
+              )}
+
+
+              {/* PAGINACIÓN */}
+
+              {resultadosFiltrados.length > 0 && (
+
+                <div
+                  className="
+                    mt-6
+                    flex
+                    flex-col
+                    gap-4
+                    border-t
+                    border-slate-100
+                    pt-5
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                  "
+                >
+
+                  <p
+                    className="
+                      text-sm
+                      font-medium
+                      text-slate-500
+                    "
+                  >
+
+                    Mostrando{" "}
+
+                    <span
+                      className="
+                        font-black
+                        text-slate-700
+                      "
+                    >
+                      {indiceInicio + 1}
+                    </span>
+
+                    {" "}-{" "}
+
+                    <span
+                      className="
+                        font-black
+                        text-slate-700
+                      "
+                    >
+                      {Math.min(
+                        indiceFin,
+                        resultadosFiltrados.length
+                      )}
+                    </span>
+
+                    {" "}de{" "}
+
+                    <span
+                      className="
+                        font-black
+                        text-slate-700
+                      "
+                    >
+                      {resultadosFiltrados.length}
+                    </span>
+
+                  </p>
+
+
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-2
+                    "
+                  >
+
+                    <button
+                      type="button"
+                      disabled={
+                        paginaActual === 1
+                      }
+                      onClick={() =>
+                        setPaginaActual(
+                          (p) =>
+                            Math.max(
+                              1,
+                              p - 1
+                            )
+                        )
+                      }
+                      className="
+                        inline-flex
+                        items-center
+                        gap-2
+                        rounded-xl
+                        border
+                        border-slate-200
+                        bg-white
+                        px-4
+                        py-2.5
+                        text-sm
+                        font-bold
+                        text-slate-600
+                        shadow-sm
+                        transition
+                        hover:bg-slate-50
+                        disabled:cursor-not-allowed
+                        disabled:opacity-40
+                      "
+                    >
+
+                      <ChevronLeft size={16} />
+
+                      Anterior
+
+                    </button>
+
+
+                    <div
+                      className="
+                        flex
+                        min-w-[80px]
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-[#1D3681]
+                        px-4
+                        py-2.5
+                        text-sm
+                        font-black
+                        text-white
+                        shadow-sm
+                      "
+                    >
+
+                      {paginaActual}
+
+                      <span
+                        className="
+                          mx-1
+                          text-blue-200
+                        "
+                      >
+                        /
+                      </span>
+
+                      {totalPaginas}
+
+                    </div>
+
+
+                    <button
+                      type="button"
+                      disabled={
+                        paginaActual ===
+                        totalPaginas
+                      }
+                      onClick={() =>
+                        setPaginaActual(
+                          (p) =>
+                            Math.min(
+                              totalPaginas,
+                              p + 1
+                            )
+                        )
+                      }
+                      className="
+                        inline-flex
+                        items-center
+                        gap-2
+                        rounded-xl
+                        border
+                        border-slate-200
+                        bg-white
+                        px-4
+                        py-2.5
+                        text-sm
+                        font-bold
+                        text-slate-600
+                        shadow-sm
+                        transition
+                        hover:bg-slate-50
+                        disabled:cursor-not-allowed
+                        disabled:opacity-40
+                      "
+                    >
+
+                      Siguiente
+
+                      <ChevronRight size={16} />
+
+                    </button>
+
+                  </div>
+
+                </div>
 
               )}
 
             </div>
 
-          )}
+          </div>
 
-        </div>
+        )}
 
-      )}
-
-
-      {/* =================================================
-          ANIMACIÓN EXTRA
-      ================================================= */}
-
-      <style>
-        {`
-          @keyframes pulse-soft {
-            0%, 100% {
-              opacity: 1;
-            }
-
-            50% {
-              opacity: .65;
-            }
-          }
-
-          .animate-pulse-soft {
-            animation: pulse-soft 2s ease-in-out infinite;
-          }
-        `}
-      </style>
+      </div>
 
     </section>
 
   );
+
 }

@@ -7,88 +7,379 @@ import {
   Settings,
   LogOut,
   UserCircle,
-  GraduationCap
+  GraduationCap,
+  History,
+  MessageSquare,
+  TrendingUp,
 } from "lucide-react";
 
-import {
-  useAuth
-} from "../../../auth/AuthContext";
+import { useAuth } from "../../../auth/AuthContext";
 
 
 export default function TeacherSidebar({
-
   active,
-
-  setActive
-
+  setActive,
 }) {
 
   const {
     user,
-    logout
+    logout,
   } = useAuth();
 
 
+  // =====================================================
+  // DATOS DEL DOCENTE
+  // =====================================================
 
-  const opciones = [
+  const nombreDocente =
+    user?.usuario ||
+    user?.nombre ||
+    "Docente";
+
+
+  const especialidad =
+    user?.especialidad ||
+    "Docente académico";
+
+
+  const foto =
+    user?.foto ||
+    "";
+
+
+  // =====================================================
+  // MENÚ PRINCIPAL
+  // =====================================================
+
+  const opcionesPrincipales = [
 
     {
       id: "dashboard",
       nombre: "Inicio",
-      icon: <Home size={20} />
+      icon: Home,
     },
 
     {
       id: "analyzer",
       nombre: "Analizar carpeta",
-      icon: <FolderSearch size={20} />
-    },
-
-    {
-      id: "consolidacion",
-      nombre: "Consolidación",
-      icon: <GraduationCap size={20} />
+      icon: FolderSearch,
     },
 
     {
       id: "results",
-      nombre: "Resultados",
-      icon: <ClipboardList size={20} />
+      nombre: "Resultados por carpeta",
+      icon: ClipboardList,
     },
+
+  ];
+
+
+  // =====================================================
+  // CONSOLIDACIÓN
+  // =====================================================
+
+  const opcionesConsolidacion = [
+
+    {
+      id: "consolidacion",
+      nombre: "Consolidación",
+      icon: GraduationCap,
+    },
+
+    {
+      id: "historial-consolidacion",
+      nombre: "Historial consolidación",
+      icon: History,
+    },
+
+  ];
+
+
+  // =====================================================
+  // ANÁLISIS
+  // =====================================================
+
+  const opcionesAnalisis = [
 
     {
       id: "ranking",
       nombre: "Ranking",
-      icon: <BarChart3 size={20} />
+      icon: BarChart3,
     },
 
     {
       id: "analytics",
       nombre: "Analítica",
-      icon: <BarChart3 size={20} />
+      icon: TrendingUp,
     },
 
     {
       id: "reports",
       nombre: "Reportes",
-      icon: <FileBarChart size={20} />
+      icon: FileBarChart,
     },
+
+  ];
+
+
+  // =====================================================
+  // SISTEMA
+  // =====================================================
+
+  const opcionesSistema = [
 
     {
       id: "communications",
       nombre: "Comunicación",
-      icon: <ClipboardList size={20} />
+      icon: MessageSquare,
     },
 
     {
       id: "settings",
       nombre: "Configuración",
-      icon: <Settings size={20} />
-    }
+      icon: Settings,
+    },
 
   ];
 
 
+  // =====================================================
+  // CAMBIAR SECCIÓN
+  // =====================================================
+
+  const navegar = (id) => {
+
+    if (active === id) {
+      return;
+    }
+
+    setActive(id);
+
+  };
+
+
+  // =====================================================
+  // RENDER OPCIÓN
+  // =====================================================
+
+  const renderOpcion = (item) => {
+
+    const Icon =
+      item.icon;
+
+
+    const isActive =
+      active === item.id;
+
+
+    return (
+
+      <button
+        key={item.id}
+        type="button"
+        title={item.nombre}
+        onClick={() =>
+          navegar(item.id)
+        }
+        aria-current={
+          isActive
+            ? "page"
+            : undefined
+        }
+        className={`
+          group
+          relative
+          w-full
+          flex
+          items-center
+          gap-3
+          px-3
+          py-2.5
+          rounded-xl
+          text-left
+          text-sm
+          font-semibold
+          transition-all
+          duration-200
+          outline-none
+
+          ${
+            isActive
+
+              ? `
+                bg-[#EEF3FF]
+                text-[#1D3681]
+                shadow-sm
+              `
+
+              : `
+                text-slate-600
+                dark:text-slate-300
+
+                hover:bg-slate-50
+                dark:hover:bg-slate-800/80
+
+                hover:text-slate-900
+                dark:hover:text-white
+              `
+          }
+
+          focus-visible:ring-2
+          focus-visible:ring-[#1D3681]/30
+        `}
+      >
+
+        {/* ============================================
+            INDICADOR ACTIVO
+        ============================================ */}
+
+        {isActive && (
+
+          <span
+            className="
+              absolute
+              left-0
+              top-1/2
+              -translate-y-1/2
+              w-1
+              h-6
+              rounded-r-full
+              bg-[#1D3681]
+            "
+          />
+
+        )}
+
+
+        {/* ============================================
+            ICONO
+        ============================================ */}
+
+        <Icon
+          size={19}
+          strokeWidth={
+            isActive
+              ? 2.5
+              : 2
+          }
+          className={`
+            shrink-0
+            transition-all
+            duration-200
+
+            ${
+              isActive
+
+                ? `
+                  text-[#1D3681]
+                `
+
+                : `
+                  text-slate-400
+                  group-hover:text-[#1D3681]
+                  group-hover:scale-105
+                `
+            }
+          `}
+        />
+
+
+        {/* ============================================
+            TEXTO
+        ============================================ */}
+
+        <span
+          className="
+            flex-1
+            truncate
+          "
+        >
+          {item.nombre}
+        </span>
+
+
+        {/* ============================================
+            PUNTO ACTIVO
+        ============================================ */}
+
+        {isActive && (
+
+          <span
+            className="
+              w-1.5
+              h-1.5
+              rounded-full
+              bg-[#1D3681]
+              shrink-0
+            "
+          />
+
+        )}
+
+      </button>
+
+    );
+
+  };
+
+
+  // =====================================================
+  // RENDER SECCIÓN
+  // =====================================================
+
+  const renderSeccion = (
+    titulo,
+    opciones,
+    className = ""
+  ) => (
+
+    <div
+      className={`
+        mb-7
+        ${className}
+      `}
+    >
+
+      {/* TÍTULO */}
+
+      <p
+        className="
+          px-3
+          mb-2
+          text-[10px]
+          uppercase
+          tracking-[0.14em]
+          font-bold
+          text-slate-400
+          dark:text-slate-500
+        "
+      >
+        {titulo}
+      </p>
+
+
+      {/* OPCIONES */}
+
+      <div
+        className="
+          space-y-1
+        "
+      >
+
+        {opciones.map(
+          renderOpcion
+        )}
+
+      </div>
+
+    </div>
+
+  );
+
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
 
@@ -98,26 +389,35 @@ export default function TeacherSidebar({
         left-0
         top-0
         h-screen
-        w-72
+        w-64
+
         bg-white
         dark:bg-slate-900
+
         border-r
+        border-slate-200/80
         dark:border-slate-800
-        shadow-xl
+
         z-40
+
         hidden
         xl:flex
         flex-col
       "
     >
 
-
-      {/* PERFIL DOCENTE */}
+      {/* =================================================
+          PERFIL DOCENTE
+      ================================================= */}
 
       <div
         className="
-          p-6
+          px-5
+          pt-6
+          pb-5
+
           border-b
+          border-slate-200/80
           dark:border-slate-800
         "
       >
@@ -127,53 +427,145 @@ export default function TeacherSidebar({
             flex
             items-center
             gap-3
+            min-w-0
           "
         >
 
+          {/* ============================================
+              AVATAR
+          ============================================ */}
+
           <div
             className="
-              bg-blue-100
-              text-blue-700
-              rounded-full
-              w-14
-              h-14
-              flex
-              items-center
-              justify-center
+              relative
+              shrink-0
             "
           >
 
-            <UserCircle size={32} />
+            {foto ? (
+
+              <img
+                src={foto}
+                alt={`Foto de ${nombreDocente}`}
+                className="
+                  w-11
+                  h-11
+                  rounded-xl
+                  object-cover
+
+                  border
+                  border-slate-200
+                  dark:border-slate-700
+
+                  shadow-sm
+                "
+              />
+
+            ) : (
+
+              <div
+                className="
+                  w-11
+                  h-11
+
+                  rounded-xl
+
+                  bg-[#EEF3FF]
+                  dark:bg-blue-900/40
+
+                  text-[#1D3681]
+                  dark:text-blue-300
+
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+
+                <UserCircle
+                  size={27}
+                  strokeWidth={2}
+                />
+
+              </div>
+
+            )}
+
+
+            {/* ========================================
+                ESTADO ONLINE
+            ======================================== */}
+
+            <span
+              className="
+                absolute
+                right-[-1px]
+                bottom-[-1px]
+
+                w-3
+                h-3
+
+                rounded-full
+
+                bg-emerald-500
+
+                border-2
+                border-white
+                dark:border-slate-900
+
+                shadow-sm
+              "
+              title="Sesión activa"
+            />
 
           </div>
 
 
-          <div>
+          {/* ============================================
+              INFORMACIÓN
+          ============================================ */}
+
+          <div
+            className="
+              min-w-0
+              flex-1
+            "
+          >
 
             <h2
               className="
-                font-black
-                text-gray-800
+                text-sm
+                font-extrabold
+
+                text-slate-800
                 dark:text-white
+
+                truncate
               "
+              title={nombreDocente}
             >
 
-              {
-                user?.usuario ||
-                "Docente"
-              }
+              {nombreDocente}
 
             </h2>
 
 
             <p
               className="
-                text-sm
-                text-gray-500
+                mt-0.5
+
+                text-xs
+                font-medium
+
+                text-slate-500
+                dark:text-slate-400
+
+                truncate
               "
+              title={especialidad}
             >
 
-              Panel Docente
+              {especialidad}
 
             </p>
 
@@ -181,122 +573,288 @@ export default function TeacherSidebar({
 
         </div>
 
-      </div>
 
+        {/* ============================================
+            CORREO
+        ============================================ */}
 
+        {user?.correo && (
 
-      {/* MENU */}
+          <div
+            className="
+              mt-4
+              px-3
+              py-2
 
-      <div
-        className="
-          flex-1
-          p-5
-          space-y-2
-          overflow-y-auto
-        "
-      >
+              rounded-lg
 
-        {
+              bg-slate-50
+              dark:bg-slate-800/70
 
-          opciones.map(item => (
+              border
+              border-slate-100
+              dark:border-slate-800
+            "
+          >
 
-            <button
-
-              key={item.id}
-
-              onClick={() =>
-                setActive(item.id)
-              }
-
-              className={`
-
-                w-full
-
-                flex
-
-                items-center
-
-                gap-3
-
-                px-4
-
-                py-3
-
-                rounded-xl
-
+            <p
+              className="
+                text-[10px]
+                uppercase
+                tracking-wider
                 font-bold
+                text-slate-400
+                dark:text-slate-500
+              "
+            >
+              Cuenta
+            </p>
 
-                transition
 
-                ${
-                  active === item.id
+            <p
+              className="
+                mt-0.5
 
-                    ?
+                text-[11px]
+                font-medium
 
-                    "bg-[#1D3681] text-white shadow-md"
+                text-slate-600
+                dark:text-slate-300
 
-                    :
-
-                    "text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-slate-800"
-                }
-
-              `}
-
+                truncate
+              "
+              title={user.correo}
             >
 
-              {item.icon}
+              {user.correo}
 
-              {item.nombre}
+            </p>
 
-            </button>
+          </div>
 
-          ))
-
-        }
+        )}
 
       </div>
 
 
+      {/* =================================================
+          MENÚ
+      ================================================= */}
 
-      {/* LOGOUT */}
+      <nav
+        className="
+          flex-1
+
+          px-3
+          py-5
+
+          overflow-y-auto
+
+          scrollbar-thin
+          scrollbar-thumb-slate-200
+          dark:scrollbar-thumb-slate-700
+
+          scrollbar-track-transparent
+        "
+        aria-label="Navegación docente"
+      >
+
+        {/* PRINCIPAL */}
+
+        {renderSeccion(
+          "Principal",
+          opcionesPrincipales
+        )}
+
+
+        {/* CONSOLIDACIÓN */}
+
+        {renderSeccion(
+          "Consolidación",
+          opcionesConsolidacion
+        )}
+
+
+        {/* ANÁLISIS */}
+
+        {renderSeccion(
+          "Análisis",
+          opcionesAnalisis
+        )}
+
+
+        {/* SISTEMA */}
+
+        {renderSeccion(
+          "Sistema",
+          opcionesSistema,
+          "mb-0"
+        )}
+
+      </nav>
+
+
+      {/* =================================================
+          PARTE INFERIOR
+      ================================================= */}
 
       <div
         className="
-          p-5
+          p-4
+
           border-t
+          border-slate-200/80
           dark:border-slate-800
         "
       >
 
-        <button
+        {/* ============================================
+            ESTADO DE SESIÓN
+        ============================================ */}
 
-          onClick={logout}
-
+        <div
           className="
+            mb-3
+
+            flex
+            items-center
+            gap-2
+
+            px-3
+            py-2
+
+            rounded-xl
+
+            bg-slate-50
+            dark:bg-slate-800/60
+
+            border
+            border-slate-100
+            dark:border-slate-800
+          "
+        >
+
+          <span
+            className="
+              w-2
+              h-2
+
+              rounded-full
+
+              bg-emerald-500
+
+              shrink-0
+            "
+          />
+
+
+          <div
+            className="
+              min-w-0
+            "
+          >
+
+            <p
+              className="
+                text-[10px]
+                uppercase
+                tracking-wider
+                font-bold
+                text-slate-400
+                dark:text-slate-500
+              "
+            >
+              Sesión activa
+            </p>
+
+
+            <p
+              className="
+                text-[11px]
+                font-semibold
+                text-slate-600
+                dark:text-slate-300
+                truncate
+              "
+              title={nombreDocente}
+            >
+              {nombreDocente}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* ============================================
+            CERRAR SESIÓN
+        ============================================ */}
+
+        <button
+          type="button"
+          onClick={logout}
+          className="
+            group
+
             w-full
+
             flex
             items-center
             justify-center
             gap-2
-            bg-red-500
-            hover:bg-red-600
-            text-white
-            py-3
-            rounded-xl
-            font-bold
-            transition
-          "
 
+            py-2.5
+            px-3
+
+            rounded-xl
+
+            border
+            border-red-200
+            dark:border-red-900/50
+
+            text-red-500
+            dark:text-red-400
+
+            hover:bg-red-50
+            dark:hover:bg-red-950/30
+
+            hover:border-red-300
+            dark:hover:border-red-800
+
+            active:bg-red-100
+            dark:active:bg-red-950/50
+
+            text-sm
+            font-bold
+
+            transition-all
+            duration-200
+
+            outline-none
+
+            focus-visible:ring-2
+            focus-visible:ring-red-500/20
+          "
         >
 
-          <LogOut size={19} />
+          <LogOut
+            size={18}
+            strokeWidth={2.2}
+            className="
+              transition-transform
+              duration-200
+              group-hover:-translate-x-0.5
+            "
+          />
 
-          Cerrar sesión
+
+          <span>
+            Cerrar sesión
+          </span>
 
         </button>
 
       </div>
-
 
     </aside>
 

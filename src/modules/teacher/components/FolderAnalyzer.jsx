@@ -1,1192 +1,1234 @@
 import {
-useEffect,
-useState
+  useEffect,
+  useState,
 } from "react";
 
-
 import {
-FolderSearch,
-CheckCircle2,
-Loader2,
-FileText,
-Sparkles
+  FolderSearch,
+  CheckCircle2,
+  Loader2,
+  FileText,
+  Sparkles,
 } from "lucide-react";
 
-
 import {
-analyzeFolder
+  analyzeFolder,
 } from "../services/teacherService";
-
-
-
 
 
 export default function FolderAnalyzer({
 
-setResultados
+  setResultados,
 
-}){
+  setNoValidos,
 
+}) {
 
-const [url,setUrl]=useState("");
+  // =====================================================
+  // ESTADOS
+  // =====================================================
 
-const [loading,setLoading]=useState(false);
+  const [
+    url,
+    setUrl,
+  ] = useState("");
 
 
-const [mensaje,setMensaje]=useState(
-"Preparando análisis..."
-);
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
 
-const [progreso,setProgreso]=useState(0);
+  const [
+    mensaje,
+    setMensaje,
+  ] = useState(
+    "Preparando análisis..."
+  );
 
 
-const [archivoActual,setArchivoActual]=useState("");
+  const [
+    progreso,
+    setProgreso,
+  ] = useState(0);
 
 
+  const [
+    archivoActual,
+    setArchivoActual,
+  ] = useState("");
 
-const mensajes=[
 
-"Conectando con Google Drive...",
+  // =====================================================
+  // MENSAJES DE PROGRESO
+  // =====================================================
 
-"Buscando documentos académicos...",
+  const mensajes = [
 
-"Detectando archivos disponibles...",
+    "Conectando con Google Drive...",
 
-"Extrayendo contenido del documento...",
+    "Buscando documentos académicos...",
 
-"Analizando estructura APA...",
+    "Detectando archivos disponibles...",
 
-"Evaluando referencias bibliográficas...",
+    "Extrayendo contenido del documento...",
 
-"Calculando puntajes académicos...",
+    "Analizando estructura APA...",
 
-"Generando ranking del aula..."
+    "Evaluando referencias bibliográficas...",
 
-];
+    "Calculando puntajes académicos...",
 
+    "Generando ranking del aula...",
 
+  ];
 
 
+  // =====================================================
+  // ANIMACIÓN DE PROGRESO
+  // =====================================================
 
+  useEffect(() => {
 
-useEffect(()=>{
+    if (!loading) {
 
+      return;
 
-if(!loading){
+    }
 
-return;
 
-}
+    let i = 0;
 
+    let porcentaje = 5;
 
 
-let i=0;
+    const intervalo =
+      setInterval(() => {
 
-let porcentaje=5;
+        setMensaje(
+          mensajes[i]
+        );
 
 
+        porcentaje +=
+          Math.floor(
+            Math.random() * 7
+          ) + 3;
 
-const intervalo=setInterval(()=>{
 
+        if (
+          porcentaje > 95
+        ) {
 
+          porcentaje = 95;
 
-setMensaje(
-mensajes[i]
-);
+        }
 
 
+        setProgreso(
+          porcentaje
+        );
 
-porcentaje +=
-Math.floor(
-Math.random()*7
-)+3;
 
+        i++;
 
 
-if(porcentaje>95){
+        if (
+          i >= mensajes.length
+        ) {
 
-porcentaje=95;
+          i = 0;
 
-}
+        }
 
+      }, 1800);
 
 
-setProgreso(
-porcentaje
-);
+    return () =>
+      clearInterval(
+        intervalo
+      );
 
+  }, [loading]);
 
 
-i++;
+  // =====================================================
+  // ANALIZAR CARPETA
+  // =====================================================
 
+  async function analizar() {
 
+    if (!url.trim()) {
 
-if(i>=mensajes.length){
+      alert(
+        "Ingresa la URL de la carpeta Google Drive"
+      );
 
-i=0;
+      return;
 
-}
+    }
 
 
+    try {
 
-},1800);
+      setLoading(true);
 
+      setProgreso(5);
 
+      setMensaje(
+        "Conectando con la carpeta..."
+      );
 
+      setResultados([]);
 
-return ()=>clearInterval(intervalo);
+      // Limpiamos los documentos inválidos
+      // del análisis anterior.
 
+      if (
+        typeof setNoValidos ===
+        "function"
+      ) {
 
+        setNoValidos([]);
 
-},[loading]);
+      }
 
 
+      localStorage.removeItem(
+        "documentosInvalidos"
+      );
 
 
+      setArchivoActual(
+        "Conectando con la carpeta..."
+      );
 
 
+      // =================================================
+      // LLAMADA AL SERVICIO
+      // =================================================
 
+      const respuesta =
+        await analyzeFolder(
+          url
+        );
 
 
-async function analizar(){
+      console.log(
+        "RESPUESTA ANALISIS:",
+        respuesta
+      );
 
 
+      // =================================================
+      // OBTENER DOCUMENTOS
+      // =================================================
 
-if(!url.trim()){
+      let documentos = [];
 
 
-alert(
-"Ingresa la URL de la carpeta Google Drive"
-);
+      if (
+        Array.isArray(
+          respuesta
+        )
+      ) {
 
+        documentos =
+          respuesta;
 
-return;
+      }
 
-}
+      else if (
+        Array.isArray(
+          respuesta?.resultados
+        )
+      ) {
 
+        documentos =
+          respuesta.resultados;
 
+      }
 
+      else {
 
-try{
+        throw new Error(
+          "No se encontraron documentos"
+        );
 
+      }
 
-setLoading(true);
 
-setProgreso(5);
+      // =================================================
+      // SEPARAR DOCUMENTOS VÁLIDOS E INVÁLIDOS
+      // =================================================
+      //
+      // IMPORTANTE:
+      //
+      // Aquí contemplamos varios nombres posibles
+      // que podría devolver tu backend.
+      //
+      // Si el backend ya devuelve:
+      //
+      //   resultados
+      //   noValidos
+      //
+      // también los usamos.
+      //
+      // =================================================
 
-setResultados([]);
+      let documentosValidos =
+        documentos;
 
-setArchivoActual(
-"Conectando con la carpeta..."
-);
 
+      let documentosInvalidos =
+        [];
 
 
+      // -------------------------------------------------
+      // CASO 1:
+      // El backend devuelve noValidos directamente
+      // -------------------------------------------------
 
+      if (
+        !Array.isArray(
+          respuesta
+        ) &&
+        Array.isArray(
+          respuesta?.noValidos
+        )
+      ) {
 
+        documentosInvalidos =
+          respuesta.noValidos;
 
-const respuesta =
-await analyzeFolder(url);
+      }
 
 
+      // -------------------------------------------------
+      // CASO 2:
+      // El backend devuelve documentos inválidos
+      // con otro nombre
+      // -------------------------------------------------
 
+      else if (
+        !Array.isArray(
+          respuesta
+        ) &&
+        Array.isArray(
+          respuesta?.documentosInvalidos
+        )
+      ) {
 
+        documentosInvalidos =
+          respuesta.documentosInvalidos;
 
-console.log(
-"RESPUESTA ANALISIS:",
-respuesta
-);
+      }
 
 
+      // -------------------------------------------------
+      // CASO 3:
+      // Cada documento viene marcado como válido/inválido
+      // -------------------------------------------------
 
+      const documentosMarcados =
+        documentos.filter(
+          (item) => {
 
+            return (
+              item?.valido === false ||
+              item?.valido === "false" ||
+              item?.valido === 0 ||
+              item?.estado === "invalido" ||
+              item?.estado === "inválido" ||
+              item?.estado === "NO_VALIDO" ||
+              item?.esValido === false
+            );
 
+          }
+        );
 
-let documentos=[];
 
+      if (
+        documentosMarcados.length > 0
+      ) {
 
+        documentosInvalidos = [
+          ...documentosInvalidos,
+          ...documentosMarcados,
+        ];
 
-if(Array.isArray(respuesta)){
+      }
 
 
-documentos=respuesta;
+      // -------------------------------------------------
+      // ELIMINAR DUPLICADOS
+      // -------------------------------------------------
 
+      documentosInvalidos =
+        documentosInvalidos.filter(
+          (
+            item,
+            index,
+            array
+          ) => {
 
-}
+            const nombre =
+              item?.nombre ??
+              item?.name ??
+              item?.archivo ??
+              `documento-${index}`;
 
-else if(
 
-Array.isArray(
-respuesta.resultados
-)
+            return (
+              array.findIndex(
+                (otro) => {
 
-){
+                  const otroNombre =
+                    otro?.nombre ??
+                    otro?.name ??
+                    otro?.archivo ??
+                    "";
 
 
-documentos=
-respuesta.resultados;
+                  return (
+                    otroNombre ===
+                    nombre
+                  );
 
+                }
+              ) === index
+            );
 
-}
+          }
+        );
 
-else{
 
+      // =================================================
+      // SI HAY DOCUMENTOS MARCADOS COMO INVÁLIDOS
+      // LOS SACAMOS DE RESULTADOS
+      // =================================================
 
-throw new Error(
-"No se encontraron documentos"
-);
+      if (
+        documentosInvalidos.length > 0
+      ) {
 
+        const nombresInvalidos =
+          new Set(
+            documentosInvalidos.map(
+              (item) =>
+                String(
+                  item?.nombre ??
+                  item?.name ??
+                  item?.archivo ??
+                  ""
+                ).trim()
+            )
+          );
 
-}
 
+        documentosValidos =
+          documentos.filter(
+            (item) => {
 
+              const nombre =
+                String(
+                  item?.nombre ??
+                  item?.name ??
+                  item?.archivo ??
+                  ""
+                ).trim();
 
 
+              return !nombresInvalidos.has(
+                nombre
+              );
 
+            }
+          );
 
+      }
 
-/*
-SIMULACION VISUAL
-DE PROCESAMIENTO
-*/
 
-documentos.forEach(
+      // =================================================
+      // NORMALIZAR DOCUMENTOS INVÁLIDOS
+      // =================================================
 
-(item,index)=>{
+      const noValidosFinales =
+        documentosInvalidos.map(
+          (item) => {
 
+            return {
 
-setTimeout(()=>{
+              nombre:
+                item?.nombre ??
+                item?.name ??
+                item?.archivo ??
+                "Documento sin nombre",
 
+              entregable:
+                item?.entregable ??
+                item?.tipoEntregable ??
+                item?.entregableEsperado ??
+                "-",
 
-setArchivoActual(
+              entregableDetectado:
+                item?.entregableDetectado ??
+                item?.tipoDetectado ??
+                item?.detectado ??
+                "",
 
-`Analizando ${index+1}/${documentos.length}: ${item.nombre}`
+              fechaHoraAnalisis:
+                item?.fechaHoraAnalisis ??
+                item?.fechaHora ??
+                item?.fecha ??
+                new Date().toISOString(),
 
-);
+              motivo:
+                item?.motivo ??
+                item?.razon ??
+                item?.error ??
+                "Documento no válido para la consolidación.",
 
+            };
 
-setProgreso(
+          }
+        );
 
-Math.round(
 
-((index+1)
-/documentos.length)
-*
-100
+      console.log(
+        "DOCUMENTOS VÁLIDOS:",
+        documentosValidos
+      );
 
-)
 
-);
+      console.log(
+        "DOCUMENTOS NO VÁLIDOS:",
+        noValidosFinales
+      );
 
 
+      // =================================================
+      // GUARDAR DOCUMENTOS NO VÁLIDOS
+      // =================================================
 
-},index*600);
+      if (
+        typeof setNoValidos ===
+        "function"
+      ) {
 
+        setNoValidos(
+          noValidosFinales
+        );
 
+      }
 
-}
 
-);
+      localStorage.setItem(
+        "documentosInvalidos",
+        JSON.stringify(
+          noValidosFinales
+        )
+      );
 
 
+      // =================================================
+      // SIMULACIÓN VISUAL
+      // =================================================
 
+      documentosValidos.forEach(
+        (
+          item,
+          index
+        ) => {
 
+          setTimeout(
+            () => {
 
+              setArchivoActual(
 
+                `Analizando ${
+                  index + 1
+                }/${
+                  documentosValidos.length
+                }: ${
+                  item?.nombre ??
+                  "Documento"
+                }`
 
+              );
 
 
+              if (
+                documentosValidos.length > 0
+              ) {
 
-const resultadosFinales =
+                setProgreso(
 
-documentos.map(
+                  Math.round(
 
-item=>(
+                    (
+                      (index + 1) /
+                      documentosValidos.length
+                    ) * 100
 
-{
+                  )
 
+                );
 
-nombre:
+              }
 
-item.nombre ??
+            },
 
-"Documento sin nombre",
+            index * 600
 
+          );
 
+        }
+      );
 
 
+      // =================================================
+      // NORMALIZAR RESULTADOS VÁLIDOS
+      // =================================================
 
-resumen:
+      const resultadosFinales =
 
-item.resumen ??
+        documentosValidos.map(
 
-{
+          (item) => ({
 
-palabras:0,
+            nombre:
 
-titulos:0,
+              item?.nombre ??
 
-parrafos:0
+              "Documento sin nombre",
 
-},
 
+            resumen:
 
+              item?.resumen ??
 
+              {
 
+                palabras: 0,
 
+                titulos: 0,
 
-puntaje:
+                parrafos: 0,
 
-{
+              },
 
-obtenido:
 
-item?.puntaje?.obtenido ??
+            puntaje:
 
-0,
+              {
 
+                obtenido:
 
+                  item?.puntaje?.obtenido ??
 
-maximo:
+                  0,
 
-item?.puntaje?.maximo ??
 
-100,
+                maximo:
 
+                  item?.puntaje?.maximo ??
 
+                  100,
 
-porcentaje:
 
-Number(
+                porcentaje:
 
-item?.puntaje?.porcentaje ??
+                  Number(
 
-item?.puntaje?.porcentajeFinal ??
+                    item?.puntaje?.porcentaje ??
 
-item?.porcentaje ??
+                    item?.puntaje?.porcentajeFinal ??
 
-0
+                    item?.porcentaje ??
 
-)
+                    0
 
+                  ),
 
-},
+              },
 
 
+            criterios:
 
+              item?.criterios ??
 
+              [],
 
+          })
 
-criterios:
+        );
 
-item.criterios ??
 
-[]
+      console.log(
+        "RESULTADOS FINALES:",
+        resultadosFinales
+      );
 
 
+      // =================================================
+      // ACTUALIZAR RESULTADOS
+      // =================================================
 
-}
+      setProgreso(100);
 
 
-)
+      setMensaje(
+        "Análisis completado correctamente"
+      );
 
-);
 
+      setArchivoActual(
 
+        `${
+          documentosValidos.length
+        } documentos válidos evaluados${
+          noValidosFinales.length > 0
+            ? ` · ${noValidosFinales.length} no válidos`
+            : ""
+        }`
 
+      );
 
 
+      setResultados(
+        resultadosFinales
+      );
 
 
-console.log(
+      localStorage.setItem(
 
-"RESULTADOS FINALES",
+        "resultadosDocente",
 
-resultadosFinales
+        JSON.stringify(
+          resultadosFinales
+        )
 
-);
+      );
 
 
+    } catch (error) {
 
+      console.error(
+        "ERROR ANALIZANDO CARPETA:",
+        error
+      );
 
 
-setProgreso(100);
+      alert(
 
+        error?.message ||
 
-setMensaje(
-"Análisis completado correctamente"
-);
+        "Error analizando carpeta"
 
+      );
 
 
-setArchivoActual(
-`${documentos.length} documentos evaluados`
-);
+    } finally {
 
+      setTimeout(
+        () => {
 
+          setLoading(
+            false
+          );
 
+        },
 
+        1200
 
-setResultados(
-resultadosFinales
-);
+      );
 
+    }
 
+  }
 
-localStorage.setItem(
 
-"resultadosDocente",
+  // =====================================================
+  // RENDER
+  // =====================================================
 
-JSON.stringify(
-resultadosFinales
-)
+  return (
 
-);
+    <section
+      className="
+        space-y-8
+      "
+    >
 
+      {/* =================================================
+          HERO
+      ================================================= */}
 
+      <div
+        className="
+          bg-gradient-to-r
+          from-blue-950
+          via-blue-800
+          to-indigo-700
+          rounded-3xl
+          p-10
+          text-white
+          shadow-xl
+        "
+      >
 
+        <div
+          className="
+            flex
+            items-center
+            gap-5
+          "
+        >
 
+          <div
+            className="
+              bg-white/20
+              p-5
+              rounded-3xl
+            "
+          >
 
-}
+            <Sparkles
+              size={45}
+            />
 
+          </div>
 
-catch(error){
 
+          <div>
 
+            <h2
+              className="
+                text-3xl
+                font-black
+              "
+            >
+              Analizador académico IA
+            </h2>
 
-console.error(error);
 
+            <p
+              className="
+                text-blue-100
+                mt-2
+              "
+            >
+              Evaluación automática de documentos APA
+              desde Google Drive.
+            </p>
 
+          </div>
 
-alert(
+        </div>
 
-error.message ||
+      </div>
 
-"Error analizando carpeta"
 
-);
+      {/* =================================================
+          FORMULARIO
+      ================================================= */}
 
+      <div
+        className="
+          bg-white
+          rounded-3xl
+          border
+          shadow-lg
+          p-8
+        "
+      >
 
+        <label
+          className="
+            font-black
+            text-gray-700
+          "
+        >
+          Carpeta Google Drive
+        </label>
 
-}
 
+        <div
+          className="
+            flex
+            flex-col
+            md:flex-row
+            gap-4
+            mt-4
+          "
+        >
 
-finally{
+          <input
 
+            value={
+              url
+            }
 
-setTimeout(()=>{
+            disabled={
+              loading
+            }
 
+            onChange={
+              (e) =>
+                setUrl(
+                  e.target.value
+                )
+            }
 
-setLoading(false);
+            placeholder="
+              https://drive.google.com/drive/folders/...
+            "
 
+            className="
+              flex-1
+              border
+              rounded-2xl
+              p-4
+              focus:ring-2
+              focus:ring-blue-600
+              outline-none
+            "
 
-},1200);
+          />
 
 
-}
+          <button
 
+            disabled={
+              loading
+            }
 
+            onClick={
+              analizar
+            }
 
-}
+            className="
+              bg-blue-950
+              hover:bg-blue-900
+              disabled:opacity-50
+              text-white
+              px-8
+              py-4
+              rounded-2xl
+              font-black
+              flex
+              items-center
+              justify-center
+              gap-3
+            "
 
+          >
 
+            {loading ? (
 
+              <>
 
+                <Loader2
+                  className="
+                    animate-spin
+                  "
+                />
 
+                Analizando
 
+              </>
 
+            ) : (
 
+              <>
 
-return (
+                <FolderSearch />
 
+                Analizar carpeta
 
-<section className="space-y-8">
+              </>
 
+            )}
 
+          </button>
 
+        </div>
 
 
+        {/* =================================================
+            PROGRESO
+        ================================================= */}
 
-<div
+        {loading && (
 
-className="
-bg-gradient-to-r
-from-blue-950
-via-blue-800
-to-indigo-700
-rounded-3xl
-p-10
-text-white
-shadow-xl
-"
+          <div
+            className="
+              mt-8
+              bg-blue-50
+              border
+              border-blue-200
+              rounded-3xl
+              p-6
+            "
+          >
 
->
+            <div
+              className="
+                flex
+                justify-between
+                mb-3
+              "
+            >
 
+              <h3
+                className="
+                  font-black
+                  text-blue-950
+                "
+              >
+                Examinando documentos
+              </h3>
 
-<div className="
-flex
-items-center
-gap-5
-">
 
+              <span
+                className="
+                  font-black
+                  text-blue-700
+                "
+              >
+                {progreso}%
+              </span>
 
-<div
+            </div>
 
-className="
-bg-white/20
-p-5
-rounded-3xl
-"
 
->
+            <div
+              className="
+                h-4
+                bg-blue-100
+                rounded-full
+                overflow-hidden
+              "
+            >
 
+              <div
+                className="
+                  h-full
+                  bg-gradient-to-r
+                  from-blue-700
+                  to-indigo-600
+                  transition-all
+                  duration-700
+                "
+                style={{
+                  width:
+                    `${progreso}%`,
+                }}
+              />
 
-<Sparkles
+            </div>
 
-size={45}
 
-/>
+            <div
+              className="
+                mt-5
+                flex
+                items-center
+                gap-3
+              "
+            >
 
+              <Loader2
+                className="
+                  text-blue-700
+                  animate-spin
+                "
+              />
 
-</div>
 
+              <p
+                className="
+                  text-gray-700
+                  font-semibold
+                "
+              >
+                {mensaje}
+              </p>
 
+            </div>
 
 
+            {archivoActual && (
 
-<div>
+              <div
+                className="
+                  mt-4
+                  bg-white
+                  rounded-xl
+                  p-4
+                  flex
+                  items-center
+                  gap-3
+                  border
+                "
+              >
 
+                <FileText
+                  className="
+                    text-blue-700
+                  "
+                />
 
-<h2
 
-className="
-text-3xl
-font-black
-"
+                <p
+                  className="
+                    text-sm
+                    text-gray-600
+                    truncate
+                  "
+                >
+                  {archivoActual}
+                </p>
 
->
+              </div>
 
-Analizador académico IA
+            )}
 
-</h2>
+          </div>
 
+        )}
 
+      </div>
 
-<p
 
-className="
-text-blue-100
-mt-2
-"
+      {/* =================================================
+          CARACTERÍSTICAS
+      ================================================= */}
 
->
+      <div
+        className="
+          grid
+          md:grid-cols-3
+          gap-5
+        "
+      >
 
-Evaluación automática de documentos APA desde Google Drive.
+        <div
+          className="
+            bg-blue-50
+            rounded-2xl
+            p-5
+          "
+        >
 
-</p>
+          <CheckCircle2
+            className="
+              text-blue-700
+              mb-3
+            "
+          />
 
 
-</div>
+          <h3
+            className="
+              font-black
+            "
+          >
+            Evaluación APA
+          </h3>
 
 
+          <p
+            className="
+              text-gray-500
+              text-sm
+            "
+          >
+            Analiza formato, contenido y referencias.
+          </p>
 
-</div>
+        </div>
 
 
-</div>
+        <div
+          className="
+            bg-green-50
+            rounded-2xl
+            p-5
+          "
+        >
 
+          <CheckCircle2
+            className="
+              text-green-700
+              mb-3
+            "
+          />
 
 
+          <h3
+            className="
+              font-black
+            "
+          >
+            Ranking automático
+          </h3>
 
 
+          <p
+            className="
+              text-gray-500
+              text-sm
+            "
+          >
+            Ordena resultados por rendimiento.
+          </p>
 
+        </div>
 
 
+        <div
+          className="
+            bg-purple-50
+            rounded-2xl
+            p-5
+          "
+        >
 
-<div
+          <CheckCircle2
+            className="
+              text-purple-700
+              mb-3
+            "
+          />
 
-className="
-bg-white
-rounded-3xl
-border
-shadow-lg
-p-8
-"
 
->
+          <h3
+            className="
+              font-black
+            "
+          >
+            Reportes inteligentes
+          </h3>
 
 
+          <p
+            className="
+              text-gray-500
+              text-sm
+            "
+          >
+            Genera informes académicos.
+          </p>
 
-<label
+        </div>
 
-className="
-font-black
-text-gray-700
-"
+      </div>
 
->
+    </section>
 
-Carpeta Google Drive
-
-</label>
-
-
-
-
-
-
-<div
-
-className="
-flex
-flex-col
-md:flex-row
-gap-4
-mt-4
-"
-
->
-
-
-<input
-
-
-value={url}
-
-
-disabled={loading}
-
-
-onChange={
-
-e=>
-
-setUrl(
-e.target.value
-)
-
-}
-
-
-
-placeholder="https://drive.google.com/drive/folders/..."
-
-
-className="
-flex-1
-border
-rounded-2xl
-p-4
-focus:ring-2
-focus:ring-blue-600
-outline-none
-"
-
-
-/>
-
-
-
-
-
-
-
-<button
-
-
-disabled={loading}
-
-
-onClick={analizar}
-
-
-className="
-bg-blue-950
-hover:bg-blue-900
-disabled:opacity-50
-text-white
-px-8
-py-4
-rounded-2xl
-font-black
-flex
-items-center
-justify-center
-gap-3
-"
-
->
-
-
-
-{
-
-loading ?
-
-
-<>
-
-<Loader2
-
-className="
-animate-spin
-"
-
-/>
-
-
-Analizando
-
-</>
-
-
-
-:
-
-
-<>
-
-<FolderSearch/>
-
-
-Analizar carpeta
-
-
-</>
-
-
-}
-
-
-
-</button>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{
-
-loading &&
-
-
-<div
-
-className="
-mt-8
-bg-blue-50
-border
-border-blue-200
-rounded-3xl
-p-6
-"
-
->
-
-
-<div
-
-className="
-flex
-justify-between
-mb-3
-"
-
->
-
-
-<h3
-
-className="
-font-black
-text-blue-950
-"
-
->
-
-Examinando documentos
-
-</h3>
-
-
-
-<span
-
-className="
-font-black
-text-blue-700
-"
-
->
-
-{progreso}%
-
-</span>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-<div
-
-className="
-h-4
-bg-blue-100
-rounded-full
-overflow-hidden
-"
-
->
-
-
-<div
-
-className="
-h-full
-bg-gradient-to-r
-from-blue-700
-to-indigo-600
-transition-all
-duration-700
-"
-
-style={{
-
-width:`${progreso}%`
-
-}}
-
-
-/>
-
-
-</div>
-
-
-
-
-
-
-
-<div
-
-className="
-mt-5
-flex
-items-center
-gap-3
-"
-
->
-
-
-<Loader2
-
-className="
-text-blue-700
-animate-spin
-"
-
-/>
-
-
-<p
-
-className="
-text-gray-700
-font-semibold
-"
-
->
-
-{mensaje}
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-{
-
-archivoActual &&
-
-
-<div
-
-className="
-mt-4
-bg-white
-rounded-xl
-p-4
-flex
-items-center
-gap-3
-border
-"
-
->
-
-
-<FileText
-
-className="
-text-blue-700
-"
-
-/>
-
-
-<p
-
-className="
-text-sm
-text-gray-600
-truncate
-"
-
->
-
-{archivoActual}
-
-</p>
-
-
-</div>
-
-
-}
-
-
-
-</div>
-
-
-
-}
-
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div
-
-className="
-grid
-md:grid-cols-3
-gap-5
-"
-
->
-
-
-<div
-
-className="
-bg-blue-50
-rounded-2xl
-p-5
-"
-
->
-
-
-<CheckCircle2
-
-className="
-text-blue-700
-mb-3
-"
-
-/>
-
-
-<h3
-
-className="
-font-black
-"
-
->
-
-Evaluación APA
-
-</h3>
-
-
-<p
-
-className="
-text-gray-500
-text-sm
-"
-
->
-
-Analiza formato, contenido y referencias.
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-<div
-
-className="
-bg-green-50
-rounded-2xl
-p-5
-"
-
->
-
-
-<CheckCircle2
-
-className="
-text-green-700
-mb-3
-"
-
-/>
-
-
-<h3
-
-className="
-font-black
-"
-
->
-
-Ranking automático
-
-</h3>
-
-
-<p
-
-className="
-text-gray-500
-text-sm
-"
-
->
-
-Ordena resultados por rendimiento.
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-<div
-
-className="
-bg-purple-50
-rounded-2xl
-p-5
-"
-
->
-
-
-<CheckCircle2
-
-className="
-text-purple-700
-mb-3
-"
-
-/>
-
-
-<h3
-
-className="
-font-black
-"
-
->
-
-Reportes inteligentes
-
-</h3>
-
-
-<p
-
-className="
-text-gray-500
-text-sm
-"
-
->
-
-Genera informes académicos.
-
-</p>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-</section>
-
-
-);
-
+  );
 
 }

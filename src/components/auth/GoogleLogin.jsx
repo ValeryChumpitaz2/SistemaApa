@@ -3,74 +3,348 @@ import {
   signInWithPopup
 } from "firebase/auth";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate
+} from "react-router-dom";
 
-import { auth } from "../../auth/firebase";
+import {
+  auth
+} from "../../auth/firebase";
 
-import { useAuth } from "../../auth/AuthContext";
+import {
+  useAuth
+} from "../../auth/AuthContext";
+
+import {
+  registrarAcceso
+} from "../../modules/admin/services/estudiantesService";
 
 
-export default function GoogleLogin(){
+export default function GoogleLogin() {
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const { login } = useAuth();
+  const {
+    login
+  } = useAuth();
 
 
+  // ==================================================
+  // INGRESAR CON GOOGLE
+  // ==================================================
 
-  async function ingresar(){
+  async function ingresar() {
 
-    try{
+    try {
 
+      // ==================================================
+      // GOOGLE PROVIDER
+      // ==================================================
 
       const provider =
-      new GoogleAuthProvider();
+        new GoogleAuthProvider();
 
 
+      // ==================================================
+      // LOGIN FIREBASE
+      // ==================================================
 
       const result =
-      await signInWithPopup(
-        auth,
-        provider
+        await signInWithPopup(
+          auth,
+          provider
+        );
+
+
+      const user =
+        result.user;
+
+
+      // ==================================================
+      // DATOS DE FIREBASE / GOOGLE
+      // ==================================================
+
+      const uid =
+        user.uid || "";
+
+
+      const nombre =
+        user.displayName || "";
+
+
+      const correo =
+        user.email || "";
+
+
+      const foto =
+        user.photoURL || "";
+
+
+      // ==================================================
+      // VALIDAR CORREO
+      // ==================================================
+
+      if (!correo) {
+
+        throw new Error(
+          "Google no proporcionó un correo electrónico."
+        );
+
+      }
+
+
+      console.log(
+        "===================================="
       );
 
+      console.log(
+        "USUARIO GOOGLE"
+      );
 
+      console.log({
+
+        uid,
+
+        nombre,
+
+        correo,
+
+        foto
+
+      });
+
+
+      // ==================================================
+      // REGISTRAR ACCESO EN GOOGLE SHEETS
+      // ==================================================
+      //
+      // El backend busca el correo en la columna EMAIL.
+      //
+      // Si existe:
+      //
+      // FOTO
+      // FECHA_REGISTRO
+      // ULTIMO_ACCESO
+      // CANTIDAD_ACCESOS
+      //
+      // se actualizan.
+      //
+      // Si NO existe:
+      //
+      // el backend devuelve error.
+      //
+      // ==================================================
+
+      let estudianteSheets = null;
+
+
+      try {
+
+        estudianteSheets =
+          await registrarAcceso({
+
+            nombre:
+              nombre,
+
+            correo:
+              correo,
+
+            foto:
+              foto
+
+          });
+
+
+        console.log(
+          "===================================="
+        );
+
+        console.log(
+          "RESPUESTA GOOGLE SHEETS"
+        );
+
+        console.log(
+          estudianteSheets
+        );
+
+      }
+      catch (error) {
+
+        console.error(
+          "ERROR REGISTRANDO ACCESO:",
+          error
+        );
+
+
+        throw new Error(
+          error?.message ||
+          "No se pudo registrar el acceso del estudiante."
+        );
+
+      }
+
+
+      // ==================================================
+      // VALIDAR RESPUESTA DEL BACKEND
+      // ==================================================
+
+      if (!estudianteSheets) {
+
+        throw new Error(
+          "El servidor no devolvió información del estudiante."
+        );
+
+      }
+
+
+      // ==================================================
+      // CREAR USUARIO DE LA APLICACIÓN
+      // ==================================================
 
       const estudiante = {
 
-        nombre: result.user.displayName,
+        // Firebase
+        uid:
+          uid,
 
-        correo: result.user.email,
 
-        foto: result.user.photoURL,
+        // Datos personales
+        nombre:
+          estudianteSheets.nombre ||
+          nombre,
 
-        rol:"ESTUDIANTE"
+
+        correo:
+          estudianteSheets.correo ||
+          correo,
+
+
+        foto:
+          estudianteSheets.foto ||
+          foto,
+
+
+        // Rol
+        rol:
+          "ESTUDIANTE",
+
+
+        // Datos académicos
+        dni:
+          estudianteSheets.dni ||
+          "",
+
+
+        tutor:
+          estudianteSheets.tutor ||
+          "",
+
+
+        celular:
+          estudianteSheets.celular ||
+          "",
+
+
+        sexo:
+          estudianteSheets.sexo ||
+          "",
+
+
+        semestre:
+          estudianteSheets.semestre ||
+          "NO DEFINIDO",
+
+
+        apto:
+          estudianteSheets.apto ||
+          "",
+
+
+        // Datos de acceso
+        fechaRegistro:
+          estudianteSheets.fechaRegistro ||
+          null,
+
+
+        ultimoAcceso:
+          estudianteSheets.ultimoAcceso ||
+          null,
+
+
+        cantidadAccesos:
+          Number(
+            estudianteSheets.cantidadAccesos
+          ) || 0
 
       };
 
 
+      // ==================================================
+      // MOSTRAR RESULTADO
+      // ==================================================
 
-      login(estudiante);
+      console.log(
+        "===================================="
+      );
 
+      console.log(
+        "ESTUDIANTE FINAL:"
+      );
 
-
-      localStorage.setItem(
-        "usuario",
-        JSON.stringify(estudiante)
+      console.log(
+        estudiante
       );
 
 
+      // ==================================================
+      // GUARDAR EN CONTEXTO
+      // ==================================================
 
-      navigate("/student/dashboard");
+      login(
+        estudiante
+      );
 
 
+      // ==================================================
+      // GUARDAR EN LOCAL STORAGE
+      // ==================================================
 
-    }catch(error){
+      localStorage.setItem(
+        "usuario",
+        JSON.stringify(
+          estudiante
+        )
+      );
 
-      console.error(error);
+
+      // ==================================================
+      // REDIRECCIÓN
+      // ==================================================
+
+      navigate(
+        "/student/dashboard"
+      );
+
+    }
+    catch (error) {
+
+      console.error(
+        "===================================="
+      );
+
+      console.error(
+        "ERROR LOGIN GOOGLE:"
+      );
+
+      console.error(
+        error
+      );
+
 
       alert(
-        "Error iniciando sesión con Google"
+        error?.message ||
+        "Error iniciando sesión con Google."
       );
 
     }
@@ -78,47 +352,59 @@ export default function GoogleLogin(){
   }
 
 
+  // ==================================================
+  // UI
+  // ==================================================
 
   return (
 
     <button
 
-      onClick={ingresar}
+      type="button"
+
+      onClick={
+        ingresar
+      }
 
       className="
-      w-full
-      flex
-      items-center
-      justify-center
-      gap-3
-      bg-white
-      border
-      border-gray-300
-      p-4
-      rounded-xl
-      hover:bg-gray-50
-      transition
-      shadow-sm
+        flex
+        w-full
+        items-center
+        justify-center
+        gap-3
+        rounded-xl
+        border
+        border-gray-300
+        bg-white
+        p-4
+        shadow-sm
+        transition
+        hover:bg-gray-50
       "
 
     >
-
 
       <img
 
         src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
 
-        className="w-6 h-6"
+        alt="Google"
+
+        className="
+          h-6
+          w-6
+        "
 
       />
 
 
-      <span className="font-medium">
-
+      <span
+        className="
+          font-medium
+        "
+      >
         Continuar con Google
-
       </span>
-
 
     </button>
 

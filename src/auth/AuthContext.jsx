@@ -2,11 +2,12 @@ import {
   createContext,
   useContext,
   useEffect,
-  useState
+  useState,
 } from "react";
 
 
-const AuthContext = createContext();
+const AuthContext =
+  createContext();
 
 
 /*
@@ -25,11 +26,14 @@ AUTH PROVIDER
 ==================================================
 */
 
-export function AuthProvider({ children }) {
+export function AuthProvider({
+  children,
+}) {
 
-
-  const [user, setUser] =
-    useState(null);
+  const [
+    user,
+    setUser,
+  ] = useState(null);
 
 
   /*
@@ -41,33 +45,40 @@ export function AuthProvider({ children }) {
   useEffect(() => {
 
     const guardado =
-      localStorage.getItem("usuario");
+      localStorage.getItem(
+        "usuario"
+      );
 
 
-    if (guardado) {
-
-      try {
-
-        const usuario =
-          JSON.parse(guardado);
+    if (!guardado) {
+      return;
+    }
 
 
-        setUser(usuario);
+    try {
 
-
-      } catch (error) {
-
-        console.error(
-          "Error cargando sesión:",
-          error
+      const usuario =
+        JSON.parse(
+          guardado
         );
 
 
-        localStorage.removeItem(
-          "usuario"
-        );
+      setUser(
+        usuario
+      );
 
-      }
+
+    } catch (error) {
+
+      console.error(
+        "Error cargando sesión:",
+        error
+      );
+
+
+      localStorage.removeItem(
+        "usuario"
+      );
 
     }
 
@@ -80,19 +91,23 @@ export function AuthProvider({ children }) {
   ==================================================
   */
 
-  function registrarUsuario(usuario) {
-
+  function registrarUsuario(
+    usuario
+  ) {
 
     const usuarios =
       JSON.parse(
-        localStorage.getItem("usuarios")
+        localStorage.getItem(
+          "usuarios"
+        )
       ) || [];
 
 
     const existe =
       usuarios.find(
         u =>
-          u.correo === usuario.correo
+          u.correo ===
+          usuario.correo
       );
 
 
@@ -103,14 +118,16 @@ export function AuthProvider({ children }) {
         ...usuario,
 
         fechaRegistro:
-          new Date().toISOString()
+          new Date().toISOString(),
 
       });
 
 
       localStorage.setItem(
         "usuarios",
-        JSON.stringify(usuarios)
+        JSON.stringify(
+          usuarios
+        )
       );
 
     }
@@ -122,26 +139,20 @@ export function AuthProvider({ children }) {
   ==================================================
   LOGIN ESTUDIANTE
   ==================================================
-  
-  Este login lo utiliza Google.
-  
-  El rol de estudiante se asigna
-  porque este método está destinado
-  al acceso de estudiantes.
-  
-  ==================================================
   */
 
-  function login(usuario) {
-
+  function login(
+    usuario
+  ) {
 
     const nuevoUsuario = {
 
       ...usuario,
 
       rol:
-        usuario.rol?.toUpperCase()
-        || "ESTUDIANTE"
+        usuario.rol
+          ?.toUpperCase()
+        || "ESTUDIANTE",
 
     };
 
@@ -173,20 +184,12 @@ export function AuthProvider({ children }) {
   ==================================================
   LOGIN DOCENTE
   ==================================================
-  
-  El frontend NO decide que el usuario
-  es docente.
-  
-  Se consulta al backend.
-  
-  ==================================================
   */
 
   async function loginDocente(
     correo,
     password
   ) {
-
 
     const correoLimpio =
       String(correo || "")
@@ -218,7 +221,7 @@ export function AuthProvider({ children }) {
 
     /*
     ================================================
-    ENVIAR AL BACKEND
+    PETICIÓN AL BACKEND
     ================================================
     */
 
@@ -239,9 +242,9 @@ export function AuthProvider({ children }) {
                 correoLimpio,
 
               password:
-                passwordLimpia
+                passwordLimpia,
 
-            })
+            }),
 
         }
       );
@@ -265,13 +268,11 @@ export function AuthProvider({ children }) {
 
     /*
     ================================================
-    VALIDAR RESPUESTA
+    VALIDAR
     ================================================
     */
 
-    if (
-      !respuesta.ok
-    ) {
+    if (!respuesta.ok) {
 
       throw new Error(
 
@@ -286,6 +287,22 @@ export function AuthProvider({ children }) {
 
     /*
     ================================================
+    DATOS DEL BACKEND
+    ================================================
+    */
+
+    const nombreBackend =
+      respuesta.data?.nombre
+      || "Docente";
+
+
+    const correoBackend =
+      respuesta.data?.correo
+      || correoLimpio;
+
+
+    /*
+    ================================================
     CREAR USUARIO DOCENTE
     ================================================
     */
@@ -293,15 +310,48 @@ export function AuthProvider({ children }) {
     const docente = {
 
       nombre:
-        respuesta.data?.nombre
-        || "Docente",
+        nombreBackend,
+
+      usuario:
+        nombreBackend,
 
       correo:
-        respuesta.data?.correo
-        || correoLimpio,
+        correoBackend,
+
+      codigo:
+        respuesta.data?.codigo
+        || "",
 
       rol:
-        "DOCENTE"
+        "DOCENTE",
+
+      debeCambiarPassword:
+        Boolean(
+          respuesta.data
+            ?.debeCambiarPassword
+        ),
+
+      foto:
+        "",
+
+      institucion:
+        "Valle Grande",
+
+      especialidad:
+        "Docente académico",
+
+      configuracion: {
+
+        aprobacion:
+          70,
+
+        critico:
+          50,
+
+        notificaciones:
+          true,
+
+      },
 
     };
 
@@ -327,7 +377,7 @@ export function AuthProvider({ children }) {
 
     /*
     ================================================
-    RETORNAR DOCENTE
+    RETORNAR
     ================================================
     */
 
@@ -346,56 +396,128 @@ export function AuthProvider({ children }) {
     datos
   ) {
 
-
-    const actualizado = {
-
-      ...user,
-
-      ...datos
-
-    };
-
-
     setUser(
-      actualizado
-    );
+      usuarioActual => {
+
+        /*
+        ============================================
+        SI NO EXISTE USUARIO
+        ============================================
+        */
+
+        if (!usuarioActual) {
+
+          return usuarioActual;
+
+        }
 
 
-    localStorage.setItem(
-      "usuario",
-      JSON.stringify(
-        actualizado
-      )
-    );
+        /*
+        ============================================
+        CREAR USUARIO ACTUALIZADO
+        ============================================
+        */
+
+        const actualizado = {
+
+          ...usuarioActual,
+
+          ...datos,
+
+        };
 
 
-    /*
-    Actualizar también
-    lista local de usuarios
-    */
+        /*
+        ============================================
+        GUARDAR SESIÓN ACTUAL
+        ============================================
+        */
 
-    const usuarios =
-      obtenerUsuarios();
-
-
-    const listaNueva =
-      usuarios.map(
-        usuario =>
-
-          usuario.correo ===
-          actualizado.correo
-
-            ? actualizado
-
-            : usuario
-      );
+        localStorage.setItem(
+          "usuario",
+          JSON.stringify(
+            actualizado
+          )
+        );
 
 
-    localStorage.setItem(
-      "usuarios",
-      JSON.stringify(
-        listaNueva
-      )
+        /*
+        ============================================
+        ACTUALIZAR LISTA DE USUARIOS
+        ============================================
+        */
+
+        const usuarios =
+          JSON.parse(
+            localStorage.getItem(
+              "usuarios"
+            )
+          ) || [];
+
+
+        const listaNueva =
+          usuarios.map(
+            usuario => {
+
+              if (
+                usuario.correo ===
+                actualizado.correo
+              ) {
+
+                return {
+                  ...usuario,
+                  ...actualizado,
+                };
+
+              }
+
+
+              return usuario;
+
+            }
+          );
+
+
+        /*
+        ============================================
+        SI NO EXISTÍA, AGREGARLO
+        ============================================
+        */
+
+        const existe =
+          usuarios.some(
+            usuario =>
+              usuario.correo ===
+              actualizado.correo
+          );
+
+
+        if (!existe) {
+
+          listaNueva.push(
+            actualizado
+          );
+
+        }
+
+
+        localStorage.setItem(
+          "usuarios",
+          JSON.stringify(
+            listaNueva
+          )
+        );
+
+
+        /*
+        ============================================
+        DEVOLVER NUEVO ESTADO
+        ============================================
+        */
+
+        return actualizado;
+
+      }
     );
 
   }
@@ -409,7 +531,6 @@ export function AuthProvider({ children }) {
 
   function obtenerUsuarios() {
 
-
     return (
 
       JSON.parse(
@@ -418,9 +539,7 @@ export function AuthProvider({ children }) {
         )
       )
 
-      ||
-
-      []
+      || []
 
     );
 
@@ -434,7 +553,6 @@ export function AuthProvider({ children }) {
   */
 
   function obtenerEstudiantes() {
-
 
     return obtenerUsuarios()
       .filter(
@@ -456,7 +574,6 @@ export function AuthProvider({ children }) {
     data
   ) {
 
-
     const historial =
       JSON.parse(
         localStorage.getItem(
@@ -476,7 +593,7 @@ export function AuthProvider({ children }) {
       fecha:
         new Date().toISOString(),
 
-      ...data
+      ...data,
 
     });
 
@@ -499,7 +616,6 @@ export function AuthProvider({ children }) {
 
   function obtenerComunicaciones() {
 
-
     return (
 
       JSON.parse(
@@ -508,9 +624,7 @@ export function AuthProvider({ children }) {
         )
       )
 
-      ||
-
-      []
+      || []
 
     );
 
@@ -524,7 +638,6 @@ export function AuthProvider({ children }) {
   */
 
   function logout() {
-
 
     setUser(
       null
@@ -547,63 +660,27 @@ export function AuthProvider({ children }) {
   return (
 
     <AuthContext.Provider
-
       value={{
-
-        /*
-        Usuario actual
-        */
 
         user,
 
-
-        /*
-        Autenticación estudiante
-        */
-
         login,
-
-
-        /*
-        Autenticación docente
-        */
 
         loginDocente,
 
-
-        /*
-        Cerrar sesión
-        */
-
-        logout,
-
-
-        /*
-        Perfil
-        */
-
         updateUser,
 
-
-        /*
-        Usuarios
-        */
+        logout,
 
         obtenerUsuarios,
 
         obtenerEstudiantes,
 
-
-        /*
-        Comunicaciones
-        */
-
         guardarComunicacion,
 
-        obtenerComunicaciones
+        obtenerComunicaciones,
 
       }}
-
     >
 
       {children}
@@ -622,7 +699,6 @@ HOOK useAuth
 */
 
 export function useAuth() {
-
 
   const context =
     useContext(
