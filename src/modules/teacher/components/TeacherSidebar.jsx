@@ -11,6 +11,7 @@ import {
   History,
   MessageSquare,
   TrendingUp,
+  ClipboardCheck,
 } from "lucide-react";
 
 import { useAuth } from "../../../auth/AuthContext";
@@ -39,7 +40,7 @@ export default function TeacherSidebar({
 
   const especialidad =
     user?.especialidad ||
-    "Docente académico";
+    "Docente";
 
 
   const foto =
@@ -67,7 +68,7 @@ export default function TeacherSidebar({
 
     {
       id: "results",
-      nombre: "Resultados por carpeta",
+      nombre: "Ver resultados",
       icon: ClipboardList,
     },
 
@@ -84,6 +85,12 @@ export default function TeacherSidebar({
       id: "consolidacion",
       nombre: "Consolidación",
       icon: GraduationCap,
+    },
+
+    {
+      id: "calificar",
+      nombre: "Calificar entregables",
+      icon: ClipboardCheck,
     },
 
     {
@@ -229,9 +236,7 @@ export default function TeacherSidebar({
         `}
       >
 
-        {/* ============================================
-            INDICADOR ACTIVO
-        ============================================ */}
+        {/* INDICADOR ACTIVO */}
 
         {isActive && (
 
@@ -251,9 +256,7 @@ export default function TeacherSidebar({
         )}
 
 
-        {/* ============================================
-            ICONO
-        ============================================ */}
+        {/* ICONO */}
 
         <Icon
           size={19}
@@ -284,9 +287,7 @@ export default function TeacherSidebar({
         />
 
 
-        {/* ============================================
-            TEXTO
-        ============================================ */}
+        {/* TEXTO */}
 
         <span
           className="
@@ -298,9 +299,7 @@ export default function TeacherSidebar({
         </span>
 
 
-        {/* ============================================
-            PUNTO ACTIVO
-        ============================================ */}
+        {/* PUNTO ACTIVO */}
 
         {isActive && (
 
@@ -431,9 +430,7 @@ export default function TeacherSidebar({
           "
         >
 
-          {/* ============================================
-              AVATAR
-          ============================================ */}
+          {/* AVATAR */}
 
           <div
             className="
@@ -492,9 +489,7 @@ export default function TeacherSidebar({
             )}
 
 
-            {/* ========================================
-                ESTADO ONLINE
-            ======================================== */}
+            {/* ESTADO ONLINE */}
 
             <span
               className="
@@ -521,9 +516,7 @@ export default function TeacherSidebar({
           </div>
 
 
-          {/* ============================================
-              INFORMACIÓN
-          ============================================ */}
+          {/* INFORMACIÓN */}
 
           <div
             className="
@@ -574,9 +567,7 @@ export default function TeacherSidebar({
         </div>
 
 
-        {/* ============================================
-            CORREO
-        ============================================ */}
+        {/* CORREO */}
 
         {user?.correo && (
 
@@ -708,9 +699,7 @@ export default function TeacherSidebar({
         "
       >
 
-        {/* ============================================
-            ESTADO DE SESIÓN
-        ============================================ */}
+        {/* ESTADO DE SESIÓN */}
 
         <div
           className="
@@ -786,9 +775,7 @@ export default function TeacherSidebar({
         </div>
 
 
-        {/* ============================================
-            CERRAR SESIÓN
-        ============================================ */}
+        {/* CERRAR SESIÓN */}
 
         <button
           type="button"

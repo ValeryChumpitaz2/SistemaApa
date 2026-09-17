@@ -4,26 +4,21 @@ import {
   AlertCircle,
   Sparkles,
   ArrowRight,
-  ShieldCheck,
-  Clock3,
 } from "lucide-react";
 
-
 export default function Hero() {
-
   return (
-
     <section
       className="
         relative
         overflow-hidden
-        min-h-[calc(100vh-80px)]
+        min-h-screen
         flex
         items-center
         bg-gradient-to-br
         from-slate-950
         via-blue-950
-        to-indigo-800
+        to-indigo-900
         text-white
       "
     >
@@ -37,10 +32,10 @@ export default function Hero() {
           absolute
           -top-40
           -left-40
-          h-[28rem]
           w-[28rem]
+          h-[28rem]
           rounded-full
-          bg-blue-500/20
+          bg-blue-500/10
           blur-3xl
           pointer-events-none
         "
@@ -51,26 +46,10 @@ export default function Hero() {
           absolute
           -bottom-40
           -right-40
-          h-[30rem]
-          w-[30rem]
+          w-[28rem]
+          h-[28rem]
           rounded-full
-          bg-indigo-500/20
-          blur-3xl
-          pointer-events-none
-        "
-      />
-
-      <div
-        className="
-          absolute
-          top-1/2
-          left-1/2
-          -translate-x-1/2
-          -translate-y-1/2
-          h-72
-          w-72
-          rounded-full
-          bg-cyan-400/5
+          bg-indigo-500/10
           blur-3xl
           pointer-events-none
         "
@@ -85,17 +64,19 @@ export default function Hero() {
         className="
           relative
           z-10
-          max-w-7xl
-          mx-auto
           w-full
+          max-w-6xl
+          mx-auto
           px-6
           lg:px-8
-          py-20
-          lg:py-24
+          pt-28
+          pb-16
+          lg:pt-32
+          lg:pb-20
           grid
-          lg:grid-cols-[1.05fr_0.95fr]
-          gap-14
-          lg:gap-20
+          lg:grid-cols-[1fr_370px]
+          gap-12
+          lg:gap-16
           items-center
         "
       >
@@ -115,37 +96,22 @@ export default function Hero() {
               gap-2
               rounded-full
               border
-              border-white/15
-              bg-white/10
-              px-4
-              py-2
-              text-sm
+              border-white/10
+              bg-white/5
+              px-3.5
+              py-1.5
+              text-xs
               font-semibold
               text-blue-100
-              backdrop-blur-md
             "
           >
 
-            <span
-              className="
-                flex
-                items-center
-                justify-center
-                w-5
-                h-5
-                rounded-full
-                bg-cyan-400/20
-              "
-            >
+            <Sparkles
+              size={13}
+              className="text-cyan-300"
+            />
 
-              <Sparkles
-                size={13}
-                className="text-cyan-300"
-              />
-
-            </span>
-
-            Plataforma académica inteligente
+            Revisión académica inteligente
 
           </div>
 
@@ -154,19 +120,18 @@ export default function Hero() {
 
           <h1
             className="
-              mt-7
+              mt-6
               text-4xl
               sm:text-5xl
-              lg:text-6xl
-              xl:text-7xl
+              lg:text-[3.2rem]
               font-black
               leading-[1.05]
               tracking-tight
-              max-w-3xl
+              max-w-xl
             "
           >
 
-            Evalúa tus trabajos
+            Revisa tu documento
 
             <span
               className="
@@ -174,7 +139,7 @@ export default function Hero() {
                 text-cyan-300
               "
             >
-              antes de entregarlos.
+              antes de entregar
             </span>
 
           </h1>
@@ -184,34 +149,22 @@ export default function Hero() {
 
           <p
             className="
-              mt-7
-              max-w-2xl
+              mt-5
+              max-w-lg
               text-base
-              md:text-lg
-              text-blue-100
-              leading-8
+              leading-7
+              text-blue-100/75
             "
           >
-
-            Analiza tus documentos académicos, revisa los
-            criterios establecidos por la institución y
-            descubre qué aspectos puedes mejorar antes
-            de realizar tu entrega.
-
+            Comprueba la estructura, formato y contenido
+            de tu documento académico e identifica qué
+            aspectos necesitas mejorar.
           </p>
 
 
-          {/* BOTONES */}
+          {/* BOTÓN */}
 
-          <div
-            className="
-              mt-9
-              flex
-              flex-col
-              sm:flex-row
-              gap-3
-            "
-          >
+          <div className="mt-7">
 
             <a
               href="/login"
@@ -220,104 +173,58 @@ export default function Hero() {
                 inline-flex
                 items-center
                 justify-center
-                gap-3
-                rounded-xl
+                gap-2.5
+                rounded-lg
                 bg-white
-                text-slate-950
-                px-7
-                py-4
+                text-slate-900
+                px-5
+                py-3
+                text-sm
                 font-bold
-                shadow-xl
+                shadow-lg
                 shadow-black/10
                 transition-all
-                duration-300
+                duration-200
                 hover:bg-blue-50
                 hover:-translate-y-0.5
-                hover:shadow-2xl
               "
             >
 
               Comenzar evaluación
 
               <ArrowRight
-                size={18}
+                size={16}
                 className="
                   transition-transform
-                  duration-300
+                  duration-200
                   group-hover:translate-x-1
                 "
               />
 
             </a>
 
-
-            <a
-              href="#como-funciona"
-              className="
-                inline-flex
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-white/20
-                bg-white/5
-                px-7
-                py-4
-                font-semibold
-                text-white
-                backdrop-blur-sm
-                transition-all
-                duration-300
-                hover:bg-white/10
-                hover:border-white/30
-              "
-            >
-
-              Cómo funciona
-
-            </a>
-
           </div>
 
 
-          {/* ==================================================
-              BENEFICIOS
-          ================================================== */}
+          {/* BENEFICIOS */}
 
           <div
             className="
-              mt-10
+              mt-8
               flex
               flex-wrap
               gap-x-6
               gap-y-3
-              text-sm
-              text-blue-100
+              text-xs
+              text-blue-100/65
             "
           >
 
-            <div className="flex items-center gap-2">
+            <Beneficio texto="Revisión académica" />
 
-              <ShieldCheck
-                size={16}
-                className="text-cyan-300"
-              />
+            <Beneficio texto="Estructura y formato" />
 
-              Evaluación institucional
-
-            </div>
-
-
-            <div className="flex items-center gap-2">
-
-              <Clock3
-                size={16}
-                className="text-cyan-300"
-              />
-
-              Resultados organizados
-
-            </div>
+            <Beneficio texto="Antes de entregar" />
 
           </div>
 
@@ -325,55 +232,66 @@ export default function Hero() {
 
 
         {/* ==================================================
-            COLUMNA DERECHA
+            TARJETA
         ================================================== */}
 
-        <div className="flex justify-center lg:justify-end">
+        <div
+          className="
+            flex
+            justify-center
+            lg:justify-end
+            lg:pt-4
+          "
+        >
 
-          <div className="relative w-full max-w-md">
+          <div
+            className="
+              relative
+              w-full
+              max-w-[370px]
+            "
+          >
 
-
-            {/* BRILLO DETRÁS */}
+            {/* BRILLO */}
 
             <div
               className="
                 absolute
-                inset-0
+                inset-6
+                rounded-3xl
                 bg-cyan-400/10
                 blur-3xl
-                scale-90
+                pointer-events-none
               "
             />
 
 
-            {/* ==================================================
-                TARJETA PRINCIPAL
-            ================================================== */}
+            {/* TARJETA */}
 
             <div
               className="
                 relative
-                w-full
-                rounded-[2rem]
+                rounded-2xl
                 bg-white
                 text-slate-900
                 shadow-2xl
-                shadow-black/30
+                shadow-black/25
                 overflow-hidden
                 border
-                border-white/20
+                border-white/10
               "
             >
 
-              {/* CABECERA */}
+              {/* ==================================================
+                  DOCUMENTO
+              ================================================== */}
 
               <div
                 className="
-                  bg-slate-50
-                  px-6
-                  py-5
+                  px-5
+                  py-4
                   border-b
-                  border-slate-200
+                  border-slate-100
                 "
               >
 
@@ -381,145 +299,159 @@ export default function Hero() {
 
                   <div
                     className="
-                      w-11
-                      h-11
-                      rounded-xl
-                      bg-blue-100
-                      text-blue-700
+                      w-9
+                      h-9
+                      rounded-lg
+                      bg-blue-50
+                      text-blue-600
                       flex
                       items-center
                       justify-center
+                      shrink-0
                     "
                   >
 
-                    <FileText size={23} />
+                    <FileText size={18} />
 
                   </div>
 
 
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0">
 
-                    <h3
+                    <p
                       className="
+                        text-sm
                         font-bold
-                        text-slate-900
+                        text-slate-800
                         truncate
                       "
                     >
+                      ASE262_IS1_EN1_Estudiante
+                    </p>
 
-                      Trabajo_Final.docx
-
-                    </h3>
-
-
-                    <p className="text-sm text-slate-500">
-
-                      Resultado del análisis
-
+                    <p
+                      className="
+                        mt-0.5
+                        text-[10px]
+                        text-slate-400
+                      "
+                    >
+                      Revisado el 11/09/2026 · 10:00 AM
                     </p>
 
                   </div>
-
-
-                  <div
-                    className="
-                      w-2
-                      h-2
-                      rounded-full
-                      bg-green-500
-                    "
-                  />
 
                 </div>
 
               </div>
 
 
-              {/* RESULTADOS */}
+              {/* ==================================================
+                  RESULTADOS
+              ================================================== */}
 
-              <div className="p-6">
+              <div className="px-5 py-4">
 
-                <div className="space-y-5">
+                <p
+                  className="
+                    mb-3
+                    text-[10px]
+                    font-black
+                    uppercase
+                    tracking-wider
+                    text-blue-600
+                  "
+                >
+                  Resultado de revisión
+                </p>
+
+
+                <div className="space-y-0.5">
 
                   <Resultado
-                    nombre="Formato APA"
-                    valor="96%"
+                    nombre="Nombre de archivo"
                     correcto
                   />
 
                   <Resultado
-                    nombre="Referencias"
-                    valor="100%"
+                    nombre="Estructura de contenidos"
+                    correcto
+                  />
+
+                  <Resultado
+                    nombre="Aplicación de formatos de texto"
                     correcto
                   />
 
                   <Resultado
                     nombre="Conclusiones"
-                    valor="100%"
+                  />
+
+                  <Resultado
+                    nombre="Referencias Bibliográficas"
                     correcto
                   />
 
                   <Resultado
-                    nombre="Márgenes"
-                    valor="Revisar"
+                    nombre="Glosario"
                   />
 
                   <Resultado
-                    nombre="Estructura"
-                    valor="Correcta"
+                    nombre="Recomendaciones"
                     correcto
                   />
 
                 </div>
 
 
-                {/* SEPARADOR */}
-
-                <div className="my-6 border-t border-slate-100" />
-
-
-                {/* RESULTADO GENERAL */}
+                {/* ==================================================
+                    92%
+                ================================================== */}
 
                 <div
                   className="
-                    rounded-2xl
-                    bg-green-50
+                    mt-4
+                    rounded-xl
+                    bg-blue-50
                     border
-                    border-green-200
-                    p-5
+                    border-blue-100
+                    px-4
+                    py-3.5
                   "
                 >
 
-                  <div className="flex items-center justify-between">
+                  <div
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                    "
+                  >
 
                     <div>
 
                       <p
                         className="
-                          text-xs
-                          font-semibold
+                          text-[10px]
+                          font-bold
                           uppercase
                           tracking-wide
-                          text-green-600
+                          text-blue-500
                         "
                       >
-
-                        Resultado general
-
+                        Resultado
                       </p>
-
 
                       <p
                         className="
-                          mt-1
-                          text-4xl
+                          mt-0.5
+                          text-3xl
                           font-black
-                          text-green-700
+                          tracking-tight
+                          text-blue-700
                         "
                       >
-
                         92%
-
                       </p>
 
                     </div>
@@ -527,10 +459,10 @@ export default function Hero() {
 
                     <div
                       className="
-                        w-12
-                        h-12
+                        w-10
+                        h-10
                         rounded-full
-                        bg-green-100
+                        bg-blue-100
                         flex
                         items-center
                         justify-center
@@ -538,8 +470,8 @@ export default function Hero() {
                     >
 
                       <CheckCircle2
-                        className="text-green-600"
-                        size={27}
+                        size={22}
+                        className="text-blue-600"
                       />
 
                     </div>
@@ -549,94 +481,42 @@ export default function Hero() {
 
                   <p
                     className="
-                      mt-3
-                      text-sm
-                      text-green-700
+                      mt-1.5
+                      text-xs
+                      leading-5
+                      text-slate-600
                     "
                   >
-
-                    Documento listo para revisar.
-
+                    Vas por buen camino. Revisa los detalles
+                    del resultado e implementa las mejoras.
                   </p>
 
                 </div>
 
 
-                {/* PIE DE TARJETA */}
+                {/* ==================================================
+                    ASPECTOS POR REVISAR
+                ================================================== */}
 
                 <div
                   className="
-                    mt-5
+                    mt-3
                     flex
                     items-center
-                    justify-center
                     gap-2
                     text-xs
-                    text-slate-400
+                    font-medium
+                    text-amber-600
                   "
                 >
 
-                  <ShieldCheck size={13} />
+                  <AlertCircle size={14} />
 
-                  Evaluación automatizada
+                  <span>
+                    2 aspectos requieren revisión
+                  </span>
 
                 </div>
-
-              </div>
-
-            </div>
-
-
-            {/* ==================================================
-                BADGE FLOTANTE
-            ================================================== */}
-
-            <div
-              className="
-                absolute
-                -bottom-5
-                -left-4
-                sm:-left-8
-                flex
-                items-center
-                gap-3
-                rounded-2xl
-                bg-white
-                px-4
-                py-3
-                shadow-xl
-                border
-                border-slate-100
-              "
-            >
-
-              <div
-                className="
-                  w-9
-                  h-9
-                  rounded-xl
-                  bg-blue-100
-                  text-blue-700
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
-
-                <Sparkles size={17} />
-
-              </div>
-
-
-              <div>
-
-                <p className="text-xs text-slate-400">
-                  Análisis completado
-                </p>
-
-                <p className="text-sm font-bold text-slate-800">
-                  Resultado disponible
-                </p>
 
               </div>
 
@@ -649,36 +529,74 @@ export default function Hero() {
       </div>
 
     </section>
-
   );
-
 }
 
 
 /* ==================================================
-    COMPONENTE RESULTADO
+    BENEFICIO
+================================================== */
+
+function Beneficio({ texto }) {
+  return (
+    <div
+      className="
+        flex
+        items-center
+        gap-2
+      "
+    >
+
+      <span
+        className="
+          w-1.5
+          h-1.5
+          rounded-full
+          bg-cyan-300
+          shrink-0
+        "
+      />
+
+      <span>
+        {texto}
+      </span>
+
+    </div>
+  );
+}
+
+
+/* ==================================================
+    RESULTADO
 ================================================== */
 
 function Resultado({
   nombre,
-  valor,
   correcto = false,
 }) {
-
   return (
-
-    <div className="flex items-center justify-between gap-4">
+    <div
+      className="
+        flex
+        items-center
+        justify-between
+        gap-3
+        px-2.5
+        py-2
+        rounded-lg
+        hover:bg-slate-50
+        transition-colors
+      "
+    >
 
       <span
         className="
-          text-sm
-          font-semibold
-          text-slate-700
+          text-xs
+          font-medium
+          text-slate-600
         "
       >
-
         {nombre}
-
       </span>
 
 
@@ -686,10 +604,11 @@ function Resultado({
         className={`
           flex
           items-center
-          gap-2
-          text-sm
+          gap-1.5
+          text-xs
           font-bold
-          whitespace-nowrap
+          shrink-0
+
           ${
             correcto
               ? "text-green-600"
@@ -699,21 +618,15 @@ function Resultado({
       >
 
         {correcto ? (
-
-          <CheckCircle2 size={17} />
-
+          <CheckCircle2 size={14} />
         ) : (
-
-          <AlertCircle size={17} />
-
+          <AlertCircle size={14} />
         )}
 
-        {valor}
+        {correcto ? "OK" : "Revisar"}
 
       </span>
 
     </div>
-
   );
-
-} 
+}

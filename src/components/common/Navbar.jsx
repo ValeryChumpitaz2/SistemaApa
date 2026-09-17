@@ -1,10 +1,10 @@
-import { FileCheck, Sparkles } from "lucide-react";
+import {
+  FileCheck,
+  Sparkles,
+} from "lucide-react";
 
-
-export default function Navbar(){
-
+export default function Navbar() {
   return (
-
     <nav
       className="
         fixed
@@ -12,138 +12,85 @@ export default function Navbar(){
         w-full
         z-50
         border-b
-        border-slate-200/50
-        bg-white/80
+        border-slate-200/60
+        bg-white/85
         backdrop-blur-xl
       "
     >
-
       <div
         className="
           max-w-7xl
           mx-auto
           px-6
           lg:px-8
-          py-4
+          py-3.5
           flex
-          justify-between
           items-center
         "
       >
+        {/* LOGO */}
 
+        <div className="flex items-center gap-3">
 
-        {/* Logo */}
-
-        <div className="
-          flex
-          items-center
-          gap-3
-        ">
-
+          {/* ICONO */}
 
           <div
             className="
               relative
+              flex
+              items-center
+              justify-center
+              w-12
+              h-12
               bg-gradient-to-br
               from-blue-700
               to-indigo-600
               text-white
-              p-3
               rounded-2xl
               shadow-lg
+              shadow-blue-900/20
             "
           >
+            <FileCheck size={25} />
 
-            <FileCheck size={26}/>
+            {/* ESTRELLA */}
 
-
-            <div className="
-              absolute
-              -top-1
-              -right-1
-              bg-cyan-400
-              rounded-full
-              p-1
-            ">
-
-              <Sparkles size={10}/>
-
-            </div>
-
-
-          </div>
-
-
-
-
-          <div>
-
-            <h1
+            <div
               className="
-                font-bold
-                text-xl
+                absolute
+                -top-1
+                -right-1
+                flex
+                items-center
+                justify-center
+                w-5
+                h-5
+                bg-cyan-400
                 text-slate-900
-                leading-none
+                rounded-full
+                shadow-sm
               "
             >
-
-              APA Reviewer
-
-            </h1>
-
-
-            <span
-              className="
-                text-xs
-                text-slate-500
-              "
-            >
-
-              Sistema institucional
-
-            </span>
-
-
+              <Sparkles size={10} />
+            </div>
           </div>
 
+          {/* NOMBRE DE LA APLICACIÓN */}
+
+          <h1
+            className="
+              font-black
+              text-xl
+              text-slate-900
+              leading-none
+              tracking-tight
+            "
+          >
+            APP Reviewer
+          </h1>
 
         </div>
-
-
-
-
-
-        {/* Botón */}
-
-        <a
-          href="/login"
-          className="
-            flex
-            items-center
-            gap-2
-            bg-blue-600
-            text-white
-            px-6
-            py-3
-            rounded-xl
-            font-semibold
-            shadow-md
-            hover:bg-blue-700
-            hover:shadow-lg
-            transition-all
-          "
-        >
-
-          Ingresar
-
-        </a>
-
-
       </div>
-
-
     </nav>
-
   );
-
 }

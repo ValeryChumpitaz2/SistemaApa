@@ -1,7 +1,7 @@
 import {
+  LogIn,
   UploadCloud,
   SearchCheck,
-  BarChart3,
   FileCheck,
   ArrowRight,
   CheckCircle2,
@@ -11,9 +11,9 @@ import {
 const steps = [
 
   {
-    icon: UploadCloud,
+    icon: LogIn,
     title: "Inicia sesión",
-    text: "Ingresa a VG Smart Review utilizando tu cuenta institucional.",
+    text: "Ingresa a APP Reviewer con tu cuenta institucional.",
   },
 
   {
@@ -25,13 +25,13 @@ const steps = [
   {
     icon: SearchCheck,
     title: "Analiza tu trabajo",
-    text: "El sistema revisa el documento según los criterios establecidos.",
+    text: "El sistema revisa tu documento según los criterios establecidos.",
   },
 
   {
     icon: FileCheck,
     title: "Corrige y entrega",
-    text: "Revisa las observaciones, realiza las mejoras y prepara tu entrega.",
+    text: "Revisa las observaciones, aplica las mejoras y prepara tu entrega.",
   },
 
 ];
@@ -46,9 +46,9 @@ export default function Process() {
       className="
         relative
         overflow-hidden
-        py-24
-        md:py-28
-        bg-slate-50
+        py-20
+        md:py-24
+        bg-white
       "
     >
 
@@ -59,12 +59,12 @@ export default function Process() {
       <div
         className="
           absolute
-          -top-32
-          -right-32
+          -top-40
+          -right-40
           w-80
           h-80
           rounded-full
-          bg-blue-100/60
+          bg-blue-50
           blur-3xl
           pointer-events-none
         "
@@ -73,51 +73,74 @@ export default function Process() {
       <div
         className="
           absolute
-          -bottom-32
-          -left-32
+          -bottom-40
+          -left-40
           w-80
           h-80
           rounded-full
-          bg-indigo-100/50
+          bg-indigo-50
           blur-3xl
           pointer-events-none
         "
       />
 
 
-      <div className="relative max-w-7xl mx-auto px-6">
+      <div
+        className="
+          relative
+          max-w-6xl
+          mx-auto
+          px-6
+          lg:px-8
+        "
+      >
 
 
         {/* ==================================================
             ENCABEZADO
         ================================================== */}
 
-        <div className="text-center max-w-3xl mx-auto">
+        <div
+          className="
+            max-w-2xl
+            mx-auto
+            text-center
+          "
+        >
+
+          {/* ETIQUETA */}
 
           <span
             className="
               inline-flex
               items-center
+              gap-2
               rounded-full
-              bg-blue-100
-              text-blue-700
-              px-4
-              py-2
-              text-sm
+              border
+              border-blue-100
+              bg-blue-50
+              px-3.5
+              py-1.5
+              text-xs
               font-bold
+              text-blue-600
             "
           >
+
+            <CheckCircle2 size={14} />
 
             Proceso de revisión
 
           </span>
 
 
+          {/* TÍTULO */}
+
           <h2
             className="
               mt-5
-              text-4xl
-              md:text-5xl
+              text-3xl
+              md:text-4xl
               font-black
               tracking-tight
               text-slate-900
@@ -129,13 +152,17 @@ export default function Process() {
           </h2>
 
 
+          {/* DESCRIPCIÓN */}
+
           <p
             className="
-              mt-5
-              text-base
-              md:text-lg
-              text-slate-600
-              leading-8
+              mt-4
+              max-w-xl
+              mx-auto
+              text-sm
+              md:text-base
+              leading-7
+              text-slate-500
             "
           >
 
@@ -154,27 +181,28 @@ export default function Process() {
         <div
           className="
             relative
-            mt-16
+            mt-12
             grid
-            md:grid-cols-2
+            sm:grid-cols-2
             lg:grid-cols-4
-            gap-6
-            lg:gap-8
+            gap-4
           "
         >
 
-          {/* LÍNEA DEL PROCESO */}
+          {/* ==================================================
+              LÍNEA DEL PROCESO
+          ================================================== */}
 
           <div
             className="
               hidden
               lg:block
               absolute
-              top-[4.7rem]
+              top-10
               left-[12%]
               right-[12%]
               h-px
-              bg-blue-200
+              bg-slate-200
             "
           />
 
@@ -187,7 +215,10 @@ export default function Process() {
 
               <div
                 key={index}
-                className="relative group"
+                className="
+                  relative
+                  group
+                "
               >
 
                 {/* ==================================================
@@ -196,19 +227,29 @@ export default function Process() {
 
                 {index < steps.length - 1 && (
 
-                  <ArrowRight
+                  <div
                     className="
                       hidden
-                      lg:block
+                      lg:flex
                       absolute
                       z-20
-                      top-[4.1rem]
-                      -right-5
-                      text-blue-300
-                      bg-slate-50
+                      top-[2.15rem]
+                      -right-2
+                      w-5
+                      h-5
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-white
+                      border
+                      border-slate-200
+                      text-slate-400
                     "
-                    size={22}
-                  />
+                  >
+
+                    <ArrowRight size={11} />
+
+                  </div>
 
                 )}
 
@@ -221,21 +262,23 @@ export default function Process() {
                   className="
                     relative
                     h-full
-                    rounded-3xl
+                    rounded-2xl
                     border
                     border-slate-200
                     bg-white
-                    p-7
-                    shadow-sm
+                    p-5
                     transition-all
-                    duration-300
-                    hover:-translate-y-2
-                    hover:border-blue-300
-                    hover:shadow-xl
+                    duration-200
+                    hover:-translate-y-1
+                    hover:border-blue-200
+                    hover:shadow-lg
+                    hover:shadow-blue-900/5
                   "
                 >
 
-                  {/* NÚMERO */}
+                  {/* ==================================================
+                      CABECERA
+                  ================================================== */}
 
                   <div
                     className="
@@ -245,19 +288,24 @@ export default function Process() {
                     "
                   >
 
+                    {/* NÚMERO */}
+
                     <span
                       className="
-                        text-sm
+                        text-[11px]
                         font-black
-                        tracking-wider
+                        uppercase
+                        tracking-widest
                         text-blue-600
                       "
                     >
 
-                      PASO {String(index + 1).padStart(2, "0")}
+                      Paso {String(index + 1).padStart(2, "0")}
 
                     </span>
 
+
+                    {/* NÚMERO GRANDE */}
 
                     <span
                       className="
@@ -274,41 +322,49 @@ export default function Process() {
                   </div>
 
 
-                  {/* ICONO */}
+                  {/* ==================================================
+                      ICONO
+                  ================================================== */}
 
                   <div
                     className="
-                      mt-6
-                      relative
-                      w-16
-                      h-16
-                      rounded-2xl
-                      bg-blue-600
-                      text-white
+                      mt-5
                       flex
                       items-center
                       justify-center
-                      shadow-lg
-                      shadow-blue-600/20
+                      w-11
+                      h-11
+                      rounded-xl
+                      bg-blue-50
+                      border
+                      border-blue-100
+                      text-blue-600
                       transition-all
-                      duration-300
-                      group-hover:bg-blue-700
-                      group-hover:scale-105
+                      duration-200
+                      group-hover:bg-blue-600
+                      group-hover:border-blue-600
+                      group-hover:text-white
                     "
                   >
 
-                    <Icon size={28} strokeWidth={2} />
+                    <Icon
+                      size={20}
+                      strokeWidth={2}
+                    />
 
                   </div>
 
 
-                  {/* TÍTULO */}
+                  {/* ==================================================
+                      TÍTULO
+                  ================================================== */}
 
                   <h3
                     className="
-                      mt-6
-                      text-xl
+                      mt-5
+                      text-base
                       font-bold
+                      tracking-tight
                       text-slate-900
                     "
                   >
@@ -318,13 +374,16 @@ export default function Process() {
                   </h3>
 
 
-                  {/* DESCRIPCIÓN */}
+                  {/* ==================================================
+                      DESCRIPCIÓN
+                  ================================================== */}
 
                   <p
                     className="
-                      mt-3
-                      text-slate-600
-                      leading-7
+                      mt-2
+                      text-sm
+                      leading-6
+                      text-slate-500
                     "
                   >
 
@@ -333,26 +392,34 @@ export default function Process() {
                   </p>
 
 
-                  {/* INDICADOR */}
+                  {/* ==================================================
+                      INDICADOR
+                  ================================================== */}
 
                   <div
                     className="
-                      mt-6
+                      mt-5
+                      pt-4
+                      border-t
+                      border-slate-100
                       flex
                       items-center
                       gap-2
-                      text-xs
+                      text-[11px]
                       font-semibold
                       text-slate-400
                     "
                   >
 
                     <CheckCircle2
-                      size={15}
-                      className="text-blue-500"
+                      size={13}
+                      className="
+                        text-blue-500
+                        shrink-0
+                      "
                     />
 
-                    Proceso sencillo y organizado
+                    Proceso sencillo
 
                   </div>
 
@@ -373,39 +440,30 @@ export default function Process() {
 
         <div
           className="
-            mt-12
+            mt-10
             flex
-            flex-col
-            sm:flex-row
             items-center
             justify-center
-            gap-3
+            gap-2
             text-center
           "
         >
 
-          <div
+          <CheckCircle2
+            size={16}
+            className="text-blue-500 shrink-0"
+          />
+
+          <p
             className="
-              w-9
-              h-9
-              rounded-xl
-              bg-blue-100
-              text-blue-600
-              flex
-              items-center
-              justify-center
+              text-xs
+              md:text-sm
+              text-slate-500
             "
           >
 
-            <CheckCircle2 size={18} />
-
-          </div>
-
-
-          <p className="text-sm text-slate-500">
-
-            Obtén una revisión clara para tomar mejores decisiones
-            antes de entregar tu documento.
+            Revisa, mejora y prepara tu documento antes de realizar
+            la entrega.
 
           </p>
 

@@ -3,75 +3,39 @@ import {
   BookOpen,
   BarChart3,
   Layers,
-  ArrowUpRight,
   CheckCircle2,
 } from "lucide-react";
 
 
 const data = [
-
   {
     icon: FileText,
     number: "01",
     title: "Análisis documental",
-    text: "Procesa documentos académicos en distintos formatos y centraliza la información necesaria para su evaluación.",
-    color: "blue",
+    text: "Procesa documentos académicos y organiza la información necesaria para su evaluación.",
   },
 
   {
     icon: BookOpen,
     number: "02",
     title: "Validación académica",
-    text: "Comprueba los criterios establecidos por la institución, incluyendo formato APA, estructura y referencias.",
-    color: "indigo",
+    text: "Comprueba criterios institucionales como estructura, formato APA y referencias.",
   },
 
   {
     icon: BarChart3,
     number: "03",
     title: "Reportes claros",
-    text: "Obtén resultados organizados, observaciones y recomendaciones que facilitan la interpretación de la evaluación.",
-    color: "emerald",
+    text: "Obtén resultados organizados con observaciones y recomendaciones para mejorar.",
   },
 
   {
     icon: Layers,
     number: "04",
     title: "Revisión masiva",
-    text: "Procesa múltiples documentos de un grupo de estudiantes de manera rápida, ordenada y eficiente.",
-    color: "violet",
+    text: "Procesa múltiples documentos de estudiantes de manera rápida y ordenada.",
   },
-
 ];
-
-
-const colorStyles = {
-
-  blue: {
-    icon: "bg-blue-100 text-blue-700 group-hover:bg-blue-600 group-hover:text-white",
-    number: "text-blue-600",
-    line: "bg-blue-600",
-  },
-
-  indigo: {
-    icon: "bg-indigo-100 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white",
-    number: "text-indigo-600",
-    line: "bg-indigo-600",
-  },
-
-  emerald: {
-    icon: "bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white",
-    number: "text-emerald-600",
-    line: "bg-emerald-600",
-  },
-
-  violet: {
-    icon: "bg-violet-100 text-violet-700 group-hover:bg-violet-600 group-hover:text-white",
-    number: "text-violet-600",
-    line: "bg-violet-600",
-  },
-
-};
 
 
 export default function Features() {
@@ -81,20 +45,20 @@ export default function Features() {
     <section
       id="features"
       className="
-        py-24
-        md:py-28
-        bg-white
+        py-20
+        md:py-24
+        bg-slate-50
       "
     >
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8">
 
 
         {/* ==================================================
             ENCABEZADO
         ================================================== */}
 
-        <div className="text-center max-w-3xl mx-auto">
+        <div className="max-w-2xl mx-auto text-center">
 
           {/* ETIQUETA */}
 
@@ -107,15 +71,15 @@ export default function Features() {
               bg-blue-50
               border
               border-blue-100
-              text-blue-700
-              px-4
-              py-2
-              text-sm
+              px-3.5
+              py-1.5
+              text-xs
               font-bold
+              text-blue-600
             "
           >
 
-            <CheckCircle2 size={15} />
+            <CheckCircle2 size={14} />
 
             Todo en un solo lugar
 
@@ -129,14 +93,14 @@ export default function Features() {
               mt-5
               text-3xl
               md:text-4xl
-              lg:text-5xl
               font-black
-              text-slate-900
               tracking-tight
+              text-slate-900
             "
           >
 
             Una evaluación más clara
+
             <span className="block text-blue-600">
               y organizada
             </span>
@@ -148,18 +112,18 @@ export default function Features() {
 
           <p
             className="
-              mt-5
-              text-base
-              md:text-lg
+              mt-4
+              text-sm
+              md:text-base
+              leading-7
               text-slate-500
-              leading-relaxed
-              max-w-2xl
+              max-w-xl
               mx-auto
             "
           >
 
-            VG Smart Review reúne las herramientas necesarias
-            para analizar, evaluar y mejorar documentos académicos
+            APP Reviewer reúne las herramientas necesarias
+            para analizar y evaluar documentos académicos
             desde una sola plataforma.
 
           </p>
@@ -173,19 +137,17 @@ export default function Features() {
 
         <div
           className="
-            mt-14
-            md:mt-16
+            mt-12
             grid
             sm:grid-cols-2
             lg:grid-cols-4
-            gap-5
+            gap-4
           "
         >
 
           {data.map((item) => {
 
             const Icon = item.icon;
-            const styles = colorStyles[item.color];
 
             return (
 
@@ -195,60 +157,50 @@ export default function Features() {
                   group
                   relative
                   bg-white
-                  p-7
-                  rounded-3xl
+                  rounded-2xl
                   border
                   border-slate-200
-                  shadow-sm
-                  overflow-hidden
+                  p-5
                   transition-all
-                  duration-300
-                  hover:-translate-y-1.5
-                  hover:shadow-xl
-                  hover:shadow-slate-900/5
+                  duration-200
+                  hover:border-blue-200
+                  hover:shadow-lg
+                  hover:shadow-blue-900/5
                 "
               >
 
-                {/* LÍNEA SUPERIOR */}
-
-                <div
-                  className={`
-                    absolute
-                    top-0
-                    left-0
-                    h-1
-                    w-0
-                    ${styles.line}
-                    transition-all
-                    duration-500
-                    group-hover:w-full
-                  `}
-                />
-
-
                 {/* ==================================================
-                    CABECERA DE TARJETA
+                    CABECERA
                 ================================================== */}
 
-                <div className="flex items-start justify-between">
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                  "
+                >
 
                   {/* ICONO */}
 
                   <div
-                    className={`
-                      w-14
-                      h-14
-                      rounded-2xl
+                    className="
+                      w-11
+                      h-11
+                      rounded-xl
+                      bg-blue-50
+                      text-blue-600
                       flex
                       items-center
                       justify-center
-                      transition-all
-                      duration-300
-                      ${styles.icon}
-                    `}
+                      transition-colors
+                      duration-200
+                      group-hover:bg-blue-600
+                      group-hover:text-white
+                    "
                   >
 
-                    <Icon size={26} />
+                    <Icon size={21} />
 
                   </div>
 
@@ -256,12 +208,14 @@ export default function Features() {
                   {/* NÚMERO */}
 
                   <span
-                    className={`
-                      text-xs
+                    className="
+                      text-[11px]
                       font-black
                       tracking-widest
-                      ${styles.number}
-                    `}
+                      text-slate-300
+                      group-hover:text-blue-200
+                      transition-colors
+                    "
                   >
 
                     {item.number}
@@ -272,16 +226,15 @@ export default function Features() {
 
 
                 {/* ==================================================
-                    CONTENIDO
+                    TÍTULO
                 ================================================== */}
 
                 <h3
                   className="
-                    mt-6
-                    text-xl
+                    mt-5
+                    text-base
                     font-bold
                     text-slate-900
-                    tracking-tight
                   "
                 >
 
@@ -290,12 +243,16 @@ export default function Features() {
                 </h3>
 
 
+                {/* ==================================================
+                    DESCRIPCIÓN
+                ================================================== */}
+
                 <p
                   className="
-                    mt-3
+                    mt-2.5
                     text-sm
+                    leading-6
                     text-slate-500
-                    leading-7
                   "
                 >
 
@@ -304,39 +261,21 @@ export default function Features() {
                 </p>
 
 
-                {/* ==================================================
-                    INDICADOR
-                ================================================== */}
+                {/* LÍNEA */}
 
                 <div
                   className="
-                    mt-6
-                    flex
-                    items-center
-                    gap-2
-                    text-xs
-                    font-semibold
-                    text-slate-400
-                    group-hover:text-slate-600
-                    transition-colors
+                    mt-5
+                    h-px
+                    w-8
+                    bg-blue-500
+                    opacity-40
+                    transition-all
+                    duration-300
+                    group-hover:w-12
+                    group-hover:opacity-100
                   "
-                >
-
-                  <span>
-                    Conocer más
-                  </span>
-
-                  <ArrowUpRight
-                    size={14}
-                    className="
-                      transition-transform
-                      duration-300
-                      group-hover:translate-x-0.5
-                      group-hover:-translate-y-0.5
-                    "
-                  />
-
-                </div>
+                />
 
               </div>
 
@@ -353,22 +292,21 @@ export default function Features() {
 
         <div
           className="
-            mt-12
+            mt-10
             flex
-            flex-col
-            sm:flex-row
             items-center
             justify-center
             gap-2
-            text-sm
+            text-xs
+            md:text-sm
             text-slate-400
             text-center
           "
         >
 
           <CheckCircle2
-            size={16}
-            className="text-blue-500"
+            size={15}
+            className="text-blue-500 shrink-0"
           />
 
           <span>
@@ -383,5 +321,4 @@ export default function Features() {
     </section>
 
   );
-
 }

@@ -1,6 +1,5 @@
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyApy8CSKLc4iO_iO-7USgszRQY7nDNvaGlZ97O1Ua9YbcZIAQ3rHjNJ2BKhX5zcrZyPw/exec";
-
+"https://script.google.com/macros/s/AKfycbz5ciCIdcTDo1FjhAzhbFPg_8NTPuLr6DuaaWH2JJ5p854Llm-XR0Lsz8iBkAzGsoa0kg/exec";
 
 export async function enviarIncidencia(datos) {
 

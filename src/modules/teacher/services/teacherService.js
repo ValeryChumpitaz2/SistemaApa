@@ -3,7 +3,7 @@
 // ==================================================
 
 const API_URL =
-"https://script.google.com/macros/s/AKfycbxLM6_I-5OZGVEoH13C0tIefU-h56GNXkoTPVqTLYHAGRG-UaMEwY1vtUvNJKYnZ-JmIg/exec";
+"https://script.google.com/macros/s/AKfycbwjlLll1GYcg1i4mesnFVcKzNA5UcDA_yGgApyQUN9Tg_9LBUD2lk-tjmwHm9svN5l--Q/exec";
 
 // ==================================================
 // PETICIÓN GENERAL
@@ -19,10 +19,6 @@ async function enviarPeticion(datos) {
 
   let response;
 
-  // ==================================================
-  // REALIZAR PETICIÓN      
-  // ==================================================
-
   try {
 
     response = await fetch(
@@ -31,223 +27,140 @@ async function enviarPeticion(datos) {
         method: "POST",
 
         headers: {
-          "Content-Type": "text/plain;charset=utf-8"
+          "Content-Type":
+            "text/plain;charset=utf-8"
         },
 
-        body: JSON.stringify(datos)
+        body:
+          JSON.stringify(datos)
       }
     );
 
-  } catch (error) {
+  }
+  catch (error) {
 
     console.error(
-      "========================================"
-    );
-
-    console.error(
-      "ERROR REAL DE CONEXIÓN:"
-    );
-
-    console.error(error);
-
-    console.error(
-      "Nombre:",
-      error?.name
-    );
-
-    console.error(
-      "Mensaje:",
-      error?.message
-    );
-
-    console.error(
-      "URL:",
-      API_URL
+      "ERROR DE CONEXIÓN:",
+      error
     );
 
     throw new Error(
-      `No se pudo conectar con el servidor: ${
+      "No se pudo conectar con el servidor: " +
+      (
         error?.message ||
         "error desconocido"
-      }`
+      )
     );
+
   }
 
-
-  // ==================================================
-  // TIEMPO DE RESPUESTA
-  // ==================================================
 
   const fin =
     performance.now();
 
+
   console.log(
-    "TIEMPO DE RESPUESTA:",
+    "TIEMPO:",
     ((fin - inicio) / 1000).toFixed(2),
     "segundos"
   );
 
-
-  // ==================================================
-  // VALIDAR RESPUESTA HTTP
-  // ==================================================
 
   console.log(
     "STATUS HTTP:",
     response.status
   );
 
-  console.log(
-    "STATUS TEXT:",
-    response.statusText
-  );
-
-
-  // ==================================================
-  // RESPUESTA RAW
-  // ==================================================
 
   let texto;
+
 
   try {
 
     texto =
       await response.text();
 
-  } catch (error) {
-
-    console.error(
-      "ERROR LEYENDO RESPUESTA DEL SERVIDOR:",
-      error
-    );
+  }
+  catch (error) {
 
     throw new Error(
       "No se pudo leer la respuesta del servidor."
     );
+
   }
 
 
   console.log(
-    "========================================"
+    "RESPUESTA RAW:",
+    texto
   );
 
-  console.log(
-    "RESPUESTA RAW DEL BACK:"
-  );
 
-  console.log(texto);
-
-
-  // ==================================================
-  // VALIDAR RESPUESTA VACÍA
-  // ==================================================
-
-  if (!texto || !texto.trim()) {
-
-    console.error(
-      "El servidor devolvió una respuesta vacía."
-    );
+  if (
+    !texto ||
+    !texto.trim()
+  ) {
 
     throw new Error(
       "El servidor devolvió una respuesta vacía."
     );
+
   }
 
 
-  // ==================================================
-  // PARSEAR JSON
-  // ==================================================
-
   let json;
+
 
   try {
 
     json =
       JSON.parse(texto);
 
-  } catch (error) {
+  }
+  catch (error) {
 
     console.error(
-      "========================================"
-    );
-
-    console.error(
-      "ERROR: RESPUESTA NO VÁLIDA"
-    );
-
-    console.error(
-      "Texto recibido:"
-    );
-
-    console.error(texto);
-
-    console.error(
-      "Error JSON:",
-      error
+      "RESPUESTA NO ES JSON:",
+      texto
     );
 
     throw new Error(
       "El servidor devolvió una respuesta inválida."
     );
+
   }
 
-
-  // ==================================================
-  // VALIDAR ESTRUCTURA
-  // ==================================================
 
   if (
     typeof json !== "object" ||
     json === null
   ) {
 
-    console.error(
-      "La respuesta del servidor no es un objeto."
-    );
-
     throw new Error(
       "La respuesta del servidor tiene un formato incorrecto."
     );
+
   }
 
-
-  // ==================================================
-  // VALIDAR OK
-  // ==================================================
 
   if (!json.ok) {
 
     console.error(
-      "========================================"
+      "ERROR DEL BACK:",
+      json
     );
-
-    console.error(
-      "ERROR DEVUELTO POR EL BACK:"
-    );
-
-    console.error(json);
 
     throw new Error(
       json.mensaje ||
       json.message ||
       "Error en el servidor."
     );
+
   }
 
 
-  // ==================================================
-  // RESPUESTA CORRECTA
-  // ==================================================
-
   console.log(
-    "========================================"
-  );
-
-  console.log(
-    "RESPUESTA CORRECTA DEL BACK:"
-  );
-
-  console.log(
+    "RESPUESTA CORRECTA:",
     JSON.stringify(
       json.data,
       null,
@@ -255,24 +168,17 @@ async function enviarPeticion(datos) {
     )
   );
 
-  console.log(
-    "========================================"
-  );
-
 
   return json.data;
+
 }
 
 
 // ==================================================
-// ANALIZAR UNA CARPETA
+// ANALIZAR CARPETA
 // ==================================================
 
 export async function analyzeFolder(url) {
-
-  // ==================================================
-  // VALIDAR URL
-  // ==================================================
 
   if (
     !url ||
@@ -282,6 +188,7 @@ export async function analyzeFolder(url) {
     throw new Error(
       "No se proporcionó una URL de carpeta."
     );
+
   }
 
 
@@ -298,15 +205,12 @@ export async function analyzeFolder(url) {
   );
 
   console.log(
+    "URL:",
     urlLimpia
   );
 
 
-  // ==================================================
-  // ENVIAR AL BACKEND
-  // ==================================================
-
-  const data =
+  const resultado =
     await enviarPeticion({
 
       accion:
@@ -318,33 +222,30 @@ export async function analyzeFolder(url) {
     });
 
 
-  // ==================================================
-  // MOSTRAR RESULTADO
-  // ==================================================
-
   console.log(
     "========================================"
   );
 
   console.log(
-    "RESULTADO ANALIZAR CARPETA:"
+    "RESULTADO DE ANALIZAR CARPETA:"
   );
 
   console.log(
     JSON.stringify(
-      data,
+      resultado,
       null,
       2
     )
   );
 
 
-  return data;
+  return resultado;
+
 }
 
 
 // ==================================================
-// CONSOLIDAR EN1 + EN2 + EN3
+// CONSOLIDAR ENTREGABLES
 // ==================================================
 
 export async function consolidarEntregables(
@@ -356,14 +257,11 @@ export async function consolidarEntregables(
   );
 
   console.log(
-    "FUNCIÓN CONSOLIDAR ENTREGABLES"
+    "CONSOLIDAR ENTREGABLES"
   );
 
   console.log(
-    "ENTRADA RECIBIDA:"
-  );
-
-  console.log(
+    "ENTRADA:",
     JSON.stringify(
       entrada,
       null,
@@ -372,22 +270,18 @@ export async function consolidarEntregables(
   );
 
 
+  let carpetas = null;
+
+
   // ==================================================
-  // OBTENER CARPETAS
-  // ==================================================
-
-  let carpetas;
-
-
-  // --------------------------------------------------
-  // CASO 1
+  // CASO:
   //
-  // consolidarEntregables({
+  // {
   //   EN1: "...",
   //   EN2: "...",
   //   EN3: "..."
-  // })
-  // --------------------------------------------------
+  // }
+  // ==================================================
 
   if (
     entrada &&
@@ -404,17 +298,17 @@ export async function consolidarEntregables(
   }
 
 
-  // --------------------------------------------------
-  // CASO 2
+  // ==================================================
+  // CASO:
   //
-  // consolidarEntregables({
+  // {
   //   carpetas: {
   //     EN1: "...",
   //     EN2: "...",
   //     EN3: "..."
   //   }
-  // })
-  // --------------------------------------------------
+  // }
+  // ==================================================
 
   else if (
     entrada &&
@@ -427,20 +321,17 @@ export async function consolidarEntregables(
   }
 
 
-  // ==================================================
-  // VALIDAR CARPETAS
-  // ==================================================
-
   if (!carpetas) {
 
     throw new Error(
       "No se recibieron las carpetas."
     );
+
   }
 
 
   // ==================================================
-  // LIMPIAR URLs
+  // LIMPIAR URLS
   // ==================================================
 
   const EN1 =
@@ -461,23 +352,8 @@ export async function consolidarEntregables(
     ).trim();
 
 
-  console.log(
-    "========================================"
-  );
-
-  console.log(
-    "CARPETAS PROCESADAS:"
-  );
-
-  console.log({
-    EN1,
-    EN2,
-    EN3
-  });
-
-
   // ==================================================
-  // VALIDAR QUE EXISTA AL MENOS UNA
+  // VALIDAR
   // ==================================================
 
   if (
@@ -489,11 +365,12 @@ export async function consolidarEntregables(
     throw new Error(
       "Debes ingresar al menos una carpeta."
     );
+
   }
 
 
   // ==================================================
-  // DATOS PARA APPS SCRIPT
+  // DATOS
   // ==================================================
 
   const datos = {
@@ -518,14 +395,7 @@ export async function consolidarEntregables(
 
 
   console.log(
-    "========================================"
-  );
-
-  console.log(
-    "DATOS QUE SE ENVIARÁN AL BACK:"
-  );
-
-  console.log(
+    "DATOS PARA BACK:",
     JSON.stringify(
       datos,
       null,
@@ -535,280 +405,193 @@ export async function consolidarEntregables(
 
 
   // ==================================================
-  // LLAMAR BACKEND
+  // CONSUMIR BACKEND
   // ==================================================
 
-  try {
-
-    const resultado =
-      await enviarPeticion(
-        datos
-      );
-
-
-    // ==================================================
-    // RESPUESTA COMPLETA
-    // ==================================================
-
-    console.log(
-      "========================================"
-    );
-
-    console.log(
-      "RESPUESTA COMPLETA DE CONSOLIDACIÓN:"
-    );
-
-    console.log(
-      JSON.stringify(
-        resultado,
-        null,
-        2
-      )
+  const resultado =
+    await enviarPeticion(
+      datos
     );
 
 
-    // ==================================================
-    // VERIFICAR CONSOLIDADO
-    // ==================================================
+  // ==================================================
+  // NORMALIZAR RESPUESTA
+  // ==================================================
 
-    if (
+  const respuestaFinal = {
+
+    fechaHoraConsolidacion:
+      resultado?.fechaHoraConsolidacion ||
+      null,
+
+    totalAlumnos:
+      Number(
+        resultado?.totalAlumnos || 0
+      ),
+
+    consolidado:
       Array.isArray(
         resultado?.consolidado
       )
-    ) {
+        ? resultado.consolidado
+        : [],
 
-      console.log(
-        "========================================"
-      );
+    totalNoValidos:
+      Number(
+        resultado?.totalNoValidos || 0
+      ),
 
-      console.log(
-        "VERIFICACIÓN DE PUNTAJES"
-      );
-
-      resultado.consolidado.forEach(
-        function(alumno, index) {
-
-          console.log(
-            "----------------------------------------"
-          );
-
-          console.log(
-            "ALUMNO #" +
-            (index + 1)
-          );
-
-          console.log(
-            "Alumno:",
-            alumno.alumno
-          );
-
-          console.log(
-            "Semestre:",
-            alumno.semestre
-          );
-
-          console.log(
-            "Informe:",
-            alumno.informe
-          );
-
-          console.log(
-            "EN1:",
-            alumno.EN1
-          );
-
-          console.log(
-            "EN2:",
-            alumno.EN2
-          );
-
-          console.log(
-            "EN3:",
-            alumno.EN3
-          );
-
-          console.log(
-            "TOTAL:",
-            alumno.total
-          );
-
-        }
-      );
-
-    }
-
-
-    // ==================================================
-    // VERIFICAR DOCUMENTOS NO VÁLIDOS
-    // ==================================================
-
-    if (
+    noValidos:
       Array.isArray(
         resultado?.noValidos
       )
-    ) {
+        ? resultado.noValidos
+        : []
 
-      console.log(
-        "========================================"
-      );
-
-      console.log(
-        "DOCUMENTOS NO VÁLIDOS:"
-      );
-
-      console.log(
-        "TOTAL:",
-        resultado.noValidos.length
-      );
+  };
 
 
-      resultado.noValidos.forEach(
-        function(item, index) {
+  console.log(
+    "========================================"
+  );
 
-          console.log(
-            "----------------------------------------"
-          );
+  console.log(
+    "CONSOLIDACIÓN RECIBIDA:"
+  );
 
-          console.log(
-            "NO VÁLIDO #" +
-            (index + 1)
-          );
-
-          console.log(
-            "Nombre:",
-            item.nombre
-          );
-
-          console.log(
-            "Entregable:",
-            item.entregable
-          );
-
-          console.log(
-            "Entregable detectado:",
-            item.entregableDetectado
-          );
-
-          console.log(
-            "Fecha y hora:",
-            item.fechaHoraAnalisis
-          );
-
-          console.log(
-            "Motivo:",
-            item.motivo
-          );
-
-        }
-      );
-
-    }
+  console.log(
+    JSON.stringify(
+      respuestaFinal,
+      null,
+      2
+    )
+  );
 
 
-    // ==================================================
-    // NORMALIZAR RESPUESTA
-    // ==================================================
+  return respuestaFinal;
 
-    const respuestaFinal = {
-
-      // ----------------------------------------------
-      // FECHA/HORA
-      // ----------------------------------------------
-
-      fechaHoraConsolidacion:
-        resultado?.fechaHoraConsolidacion ||
-        null,
+}
 
 
-      // ----------------------------------------------
-      // ALUMNOS
-      // ----------------------------------------------
+// ==================================================
+// OBTENER NOMBRE DE DOCUMENTO
+// ==================================================
 
-      totalAlumnos:
-        Number(
-          resultado?.totalAlumnos || 0
-        ),
+export async function obtenerNombreDocumento(
+  url
+) {
 
+  if (
+    !url ||
+    !String(url).trim()
+  ) {
 
-      consolidado:
-        Array.isArray(
-          resultado?.consolidado
-        )
-          ? resultado.consolidado
-          : [],
-
-
-      // ----------------------------------------------
-      // DOCUMENTOS NO VÁLIDOS
-      // ----------------------------------------------
-
-      totalNoValidos:
-        Number(
-          resultado?.totalNoValidos || 0
-        ),
-
-
-      noValidos:
-        Array.isArray(
-          resultado?.noValidos
-        )
-          ? resultado.noValidos
-          : []
-
-    };
-
-
-    // ==================================================
-    // LOG FINAL
-    // ==================================================
-
-    console.log(
-      "========================================"
+    throw new Error(
+      "No se proporcionó la URL del documento."
     );
 
-    console.log(
-      "RESPUESTA FINAL QUE SE ENTREGA AL FRONT:"
-    );
-
-    console.log(
-      JSON.stringify(
-        respuestaFinal,
-        null,
-        2
-      )
-    );
-
-    console.log(
-      "========================================"
-    );
-
-
-    return respuestaFinal;
-
-  } catch (error) {
-
-    console.error(
-      "========================================"
-    );
-
-    console.error(
-      "ERROR EN CONSOLIDACIÓN"
-    );
-
-    console.error(error);
-
-    console.error(
-      "Nombre:",
-      error?.name
-    );
-
-    console.error(
-      "Mensaje:",
-      error?.message
-    );
-
-    throw error;
   }
+
+
+  const resultado =
+    await enviarPeticion({
+
+      accion:
+        "obtenerNombre",
+
+      url:
+        String(url).trim()
+
+    });
+
+
+  return resultado;
+
+}
+
+
+// ==================================================
+// ANALIZAR DOCUMENTO
+// ==================================================
+
+export async function analizarDocumento(
+  url
+) {
+
+  if (
+    !url ||
+    !String(url).trim()
+  ) {
+
+    throw new Error(
+      "No se proporcionó la URL del documento."
+    );
+
+  }
+
+
+  const resultado =
+    await enviarPeticion({
+
+      accion:
+        "analizar",
+
+      url:
+        String(url).trim()
+
+    });
+
+
+  return resultado;
+
+}
+
+
+// ==================================================
+// GUARDAR ANÁLISIS
+// ==================================================
+
+export async function guardarAnalisis(
+  datos
+) {
+
+  if (!datos) {
+
+    throw new Error(
+      "No se recibieron los datos del análisis."
+    );
+
+  }
+
+
+  return await enviarPeticion({
+
+    accion:
+      "guardarAnalisis",
+
+    ...datos
+
+  });
+
+}
+
+
+// ==================================================
+// OBTENER HISTORIAL
+// ==================================================
+
+export async function obtenerHistorial(
+  datos = {}
+) {
+
+  return await enviarPeticion({
+
+    accion:
+      "obtenerHistorial",
+
+    ...datos
+
+  });
 
 }
 
@@ -821,10 +604,6 @@ export function exportarConsolidacionCSV(
   consolidado
 ) {
 
-  // ==================================================
-  // VALIDAR DATOS
-  // ==================================================
-
   if (
     !Array.isArray(consolidado) ||
     consolidado.length === 0
@@ -833,12 +612,9 @@ export function exportarConsolidacionCSV(
     throw new Error(
       "No existen datos para exportar."
     );
+
   }
 
-
-  // ==================================================
-  // ENCABEZADOS
-  // ==================================================
 
   const encabezados = [
 
@@ -852,10 +628,6 @@ export function exportarConsolidacionCSV(
 
   ];
 
-
-  // ==================================================
-  // FILAS
-  // ==================================================
 
   const filas =
     consolidado.map(
@@ -879,10 +651,6 @@ export function exportarConsolidacionCSV(
     );
 
 
-  // ==================================================
-  // GENERAR CSV
-  // ==================================================
-
   const csv = [
 
     encabezados,
@@ -903,13 +671,11 @@ export function exportarConsolidacionCSV(
     .join("\n");
 
 
-  // ==================================================
-  // CREAR ARCHIVO
-  // ==================================================
-
   const blob =
     new Blob(
-      ["\ufeff" + csv],
+      [
+        "\ufeff" + csv
+      ],
       {
         type:
           "text/csv;charset=utf-8;"
@@ -954,16 +720,12 @@ export function exportarConsolidacionCSV(
 
 
 // ==================================================
-// EXPORTAR CSV DE DOCUMENTOS NO VÁLIDOS
+// EXPORTAR CSV NO VÁLIDOS
 // ==================================================
 
 export function exportarNoValidosCSV(
   noValidos
 ) {
-
-  // ==================================================
-  // VALIDAR DATOS
-  // ==================================================
 
   if (
     !Array.isArray(noValidos) ||
@@ -973,12 +735,9 @@ export function exportarNoValidosCSV(
     throw new Error(
       "No existen documentos no válidos para exportar."
     );
+
   }
 
-
-  // ==================================================
-  // ENCABEZADOS
-  // ==================================================
 
   const encabezados = [
 
@@ -990,10 +749,6 @@ export function exportarNoValidosCSV(
 
   ];
 
-
-  // ==================================================
-  // FILAS
-  // ==================================================
 
   const filas =
     noValidos.map(
@@ -1012,10 +767,6 @@ export function exportarNoValidosCSV(
       ]
     );
 
-
-  // ==================================================
-  // GENERAR CSV
-  // ==================================================
 
   const csv = [
 
@@ -1037,13 +788,11 @@ export function exportarNoValidosCSV(
     .join("\n");
 
 
-  // ==================================================
-  // CREAR ARCHIVO
-  // ==================================================
-
   const blob =
     new Blob(
-      ["\ufeff" + csv],
+      [
+        "\ufeff" + csv
+      ],
       {
         type:
           "text/csv;charset=utf-8;"
@@ -1080,8 +829,6 @@ export function exportarNoValidosCSV(
   );
 
 
-  URL.revokeObjectURL(
-    url
-  );
+  URL.revokeObjectURL(url);
 
 }

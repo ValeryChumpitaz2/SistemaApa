@@ -1,6 +1,6 @@
 import {
   Routes,
-  Route
+  Route,
 } from "react-router-dom";
 
 import Login from "../pages/Login";
@@ -49,27 +49,71 @@ import ProtectedRoute
 export default function AppRoutes() {
 
   return (
+
     <Routes>
 
-      {/* INICIO */}
+      {/* ==================================================
+          INICIO
+      ================================================== */}
+
       <Route
         path="/"
         element={<Landing />}
       />
 
-      {/* LOGIN */}
+
+      {/* ==================================================
+          LOGIN GENERAL
+      ================================================== */}
+
       <Route
         path="/login"
         element={<Login />}
       />
 
-      {/* RECUPERAR PASSWORD DOCENTE */}
+
+      {/* ==================================================
+          LOGIN POR TIPO DE USUARIO
+      ================================================== */}
+
+      {/* ESTUDIANTE */}
+
+      <Route
+        path="/login/estudiante"
+        element={<Login tipoInicial="ESTUDIANTE" />}
+      />
+
+
+      {/* DOCENTE */}
+
+      <Route
+        path="/login/docente"
+        element={<Login tipoInicial="DOCENTE" />}
+      />
+
+
+      {/* ADMINISTRADOR */}
+
+      <Route
+        path="/login/administrador"
+        element={<Login tipoInicial="ADMIN" />}
+      />
+
+
+      {/* ==================================================
+          RECUPERAR PASSWORD DOCENTE
+      ================================================== */}
+
       <Route
         path="/teacher/recuperar-password"
         element={<RecuperarPassword />}
       />
 
-      {/* CAMBIAR PASSWORD DOCENTE */}
+
+      {/* ==================================================
+          CAMBIAR PASSWORD DOCENTE
+      ================================================== */}
+
       <Route
         path="/teacher/cambiar-password"
         element={
@@ -79,7 +123,11 @@ export default function AppRoutes() {
         }
       />
 
-      {/* DASHBOARD DOCENTE */}
+
+      {/* ==================================================
+          DASHBOARD DOCENTE
+      ================================================== */}
+
       <Route
         path="/teacher/dashboard"
         element={
@@ -89,7 +137,11 @@ export default function AppRoutes() {
         }
       />
 
-      {/* DASHBOARD ESTUDIANTE */}
+
+      {/* ==================================================
+          DASHBOARD ESTUDIANTE
+      ================================================== */}
+
       <Route
         path="/student/dashboard"
         element={
@@ -99,9 +151,10 @@ export default function AppRoutes() {
         }
       />
 
-      {/* ==============================
+
+      {/* ==================================================
           ADMINISTRADOR
-      ============================== */}
+      ================================================== */}
 
       <Route
         path="/admin"
@@ -149,12 +202,17 @@ export default function AppRoutes() {
 
       </Route>
 
-      {/* RUTA NO ENCONTRADA */}
+
+      {/* ==================================================
+          RUTA NO ENCONTRADA
+      ================================================== */}
+
       <Route
         path="*"
         element={<Login />}
       />
 
     </Routes>
+
   );
 }

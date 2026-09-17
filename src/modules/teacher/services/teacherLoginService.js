@@ -4,7 +4,7 @@
 // ==================================================
 
 const API_URL =
-"https://script.google.com/macros/s/AKfycbwY5nEJvp-fg04DxzgHKU3PkQMGgQBpEV9Y_XF2WzgTIYiNwnC1KC_gbGL5uT6Ze4ICLg/exec";
+"https://script.google.com/macros/s/AKfycbzPR0QILVJoX-aYyyoK7X-O3kDlmScqsJ9bKU1NpbPPp9f_USwrUqMMlCLuxHH-_EdFZA/exec";
 // ==================================================
 // PETICIÓN GENERAL
 // ==================================================

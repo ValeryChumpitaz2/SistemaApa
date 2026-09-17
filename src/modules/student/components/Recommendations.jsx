@@ -6,23 +6,40 @@ import {
 
 
 export default function Recommendations({
-
   criterios = []
-
 }) {
 
+  // ==================================================
+  // NORMALIZAR CRITERIOS PENDIENTES
+  // ==================================================
+
+  const pendientes = criterios.filter((item) => {
+
+    const puntaje =
+      Number(item?.puntaje ?? 0);
+
+    const maximo =
+      Number(item?.maximo ?? 0);
+
+    // Si existe explícitamente cumple,
+    // respetamos ese valor.
+    if (
+      typeof item?.cumple === "boolean"
+    ) {
+
+      return !item.cumple;
+
+    }
+
+    // Si no existe cumple,
+    // usamos el puntaje.
+    return puntaje < maximo;
+
+  });
+
 
   // ==================================================
-  // CRITERIOS QUE NECESITAN ATENCIÓN
-  // ==================================================
-
-  const pendientes = criterios.filter(
-    item => !item.cumple
-  );
-
-
-  // ==================================================
-  // TODOS CUMPLEN
+  // TODO CORRECTO
   // ==================================================
 
   const todoCorrecto =
@@ -35,7 +52,7 @@ export default function Recommendations({
 
   return (
 
-    <div className="
+    <section className="
       bg-white
       dark:bg-slate-900
       rounded-3xl
@@ -43,7 +60,7 @@ export default function Recommendations({
       border-gray-200
       dark:border-slate-800
       shadow-sm
-      p-6
+      overflow-hidden
     ">
 
 
@@ -52,90 +69,131 @@ export default function Recommendations({
       ================================================== */}
 
       <div className="
+        px-6
+        py-5
+        border-b
+        border-gray-100
+        dark:border-slate-800
         flex
         items-center
         gap-3
-        mb-5
       ">
 
 
-        <div className="
-          bg-yellow-100
-          dark:bg-yellow-900/30
-          text-yellow-700
-          dark:text-yellow-400
-          p-3
+        <div className={`
+          p-2.5
           rounded-xl
-        ">
 
-          <AlertTriangle size={24}/>
+          ${
+            todoCorrecto
+
+              ? `
+                bg-green-100
+                text-green-700
+                dark:bg-green-900/30
+                dark:text-green-400
+              `
+
+              : `
+                bg-amber-100
+                text-amber-700
+                dark:bg-amber-900/30
+                dark:text-amber-400
+              `
+          }
+        `}>
+
+          {
+            todoCorrecto
+
+              ? <CheckCircle size={21} />
+
+              : <AlertTriangle size={21} />
+          }
 
         </div>
 
 
         <div>
 
-          <h3 className="
+          <h2 className="
             text-xl
             font-black
             text-gray-800
             dark:text-white
           ">
 
-            Recomendaciones para mejorar
+            Recomendaciones
 
-          </h3>
+          </h2>
 
 
           <p className="
             text-sm
             text-gray-500
             dark:text-gray-400
-            mt-1
+            mt-0.5
           ">
 
-            Aspectos que requieren atención en el documento.
+            {
+              todoCorrecto
+
+                ? "Todos los criterios fueron cumplidos."
+
+                : `${pendientes.length} criterio${
+                    pendientes.length === 1
+                      ? ""
+                      : "s"
+                  } requiere${
+                    pendientes.length === 1
+                      ? ""
+                      : "n"
+                  } atención.`
+            }
 
           </p>
 
         </div>
 
-
       </div>
 
 
-
       {/* ==================================================
-          TODO CORRECTO
+          CONTENIDO
       ================================================== */}
 
-      {
+      <div className="p-6">
 
-        todoCorrecto
 
-          ?
+        {/* ==================================================
+            TODO CORRECTO
+        ================================================== */}
 
-          (
+        {
+          todoCorrecto && (
 
             <div className="
               flex
               items-center
               gap-3
+              rounded-2xl
               bg-green-50
               dark:bg-green-900/20
-              text-green-700
-              dark:text-green-400
               border
               border-green-200
               dark:border-green-900
-              p-4
-              rounded-2xl
+              px-4
+              py-4
             ">
 
 
               <CheckCircle
-                size={22}
-                className="shrink-0"
+                size={21}
+                className="
+                  text-green-600
+                  dark:text-green-400
+                  shrink-0
+                "
               />
 
 
@@ -143,101 +201,89 @@ export default function Recommendations({
 
                 <p className="
                   font-bold
+                  text-green-700
+                  dark:text-green-400
                 ">
 
-                  ¡Excelente!
+                  Documento listo
 
                 </p>
 
 
                 <p className="
                   text-sm
-                  mt-1
+                  text-green-700/80
+                  dark:text-green-300/80
+                  mt-0.5
                 ">
 
-                  Todos los criterios cumplen
-                  correctamente.
+                  No hay recomendaciones pendientes
+                  para esta evaluación.
 
                 </p>
 
               </div>
 
-
             </div>
 
           )
+        }
 
 
-          :
+        {/* ==================================================
+            PENDIENTES
+        ================================================== */}
 
-          (
+        {
+          !todoCorrecto && (
 
             <div className="space-y-3">
 
-
               {
-
                 pendientes.map(
                   (item, index) => {
 
-
                     const puntaje =
                       Number(
-                        item.puntaje || 0
+                        item?.puntaje ?? 0
                       );
-
 
                     const maximo =
                       Number(
-                        item.maximo || 0
+                        item?.maximo ?? 0
                       );
 
 
-                    const noCumple =
-                      puntaje === 0;
+                    const sinPuntaje =
+                      puntaje <= 0;
+
+
+                    const recomendacion =
+                      item?.recomendacion ||
+                      item?.recomendaciones ||
+                      item?.sugerencia ||
+                      item?.sugerencias ||
+                      "Revisar este criterio antes de realizar la entrega.";
 
 
                     return (
 
                       <div
-
-                        key={index}
-
-                        className={`
+                        key={
+                          item?.criterio ||
+                          index
+                        }
+                        className="
                           rounded-2xl
-                          p-4
                           border
-
-                          ${
-                            noCumple
-
-                              ?
-
-                              `
-                                bg-red-50
-                                dark:bg-red-900/20
-                                border-red-200
-                                dark:border-red-900
-                              `
-
-                              :
-
-                              `
-                                bg-yellow-50
-                                dark:bg-yellow-900/20
-                                border-yellow-200
-                                dark:border-yellow-900
-                              `
-                          }
-
-                        `}
-
+                          border-amber-200
+                          dark:border-amber-900
+                          bg-amber-50
+                          dark:bg-amber-900/10
+                          p-4
+                        "
                       >
 
-
-                        {/* ==================================================
-                            CABECERA DE RECOMENDACIÓN
-                        ================================================== */}
 
                         <div className="
                           flex
@@ -246,130 +292,122 @@ export default function Recommendations({
                         ">
 
 
-                          {
+                          <div className="
+                            mt-0.5
+                            shrink-0
+                          ">
 
-                            noCumple
+                            {
+                              sinPuntaje
 
-                              ?
-
-                              (
+                                ?
 
                                 <XCircle
                                   size={20}
                                   className="
                                     text-red-500
-                                    shrink-0
-                                    mt-0.5
+                                    dark:text-red-400
                                   "
                                 />
 
-                              )
-
-                              :
-
-                              (
+                                :
 
                                 <AlertTriangle
                                   size={20}
                                   className="
-                                    text-yellow-600
-                                    shrink-0
-                                    mt-0.5
+                                    text-amber-600
+                                    dark:text-amber-400
                                   "
                                 />
+                            }
 
-                              )
-
-                          }
+                          </div>
 
 
-                          <div className="flex-1">
+                          <div className="
+                            min-w-0
+                            flex-1
+                          ">
 
 
                             <div className="
                               flex
-                              justify-between
-                              items-start
-                              gap-3
+                              flex-col
+                              sm:flex-row
+                              sm:items-center
+                              sm:justify-between
+                              gap-2
                             ">
 
 
-                              <p className="
-                                font-bold
+                              <h3 className="
+                                font-black
                                 text-gray-800
                                 dark:text-white
                               ">
 
-                                {item.criterio}
+                                {item?.criterio ||
+                                  `Criterio ${index + 1}`}
 
-                              </p>
+                              </h3>
 
 
                               <span className="
+                                w-fit
+                                rounded-lg
+                                bg-white
+                                dark:bg-slate-900
+                                border
+                                border-amber-200
+                                dark:border-amber-900
+                                px-2.5
+                                py-1
                                 text-xs
-                                font-bold
-                                text-gray-500
-                                dark:text-gray-400
-                                whitespace-nowrap
+                                font-black
+                                text-gray-600
+                                dark:text-gray-300
                               ">
 
                                 {puntaje} / {maximo}
 
                               </span>
 
-
                             </div>
 
 
-
-                            {/* ==================================================
-                                RECOMENDACIÓN REAL
-                            ================================================== */}
-
                             <p className="
+                              mt-2
                               text-sm
+                              leading-relaxed
                               text-gray-600
                               dark:text-gray-300
-                              mt-2
-                              leading-relaxed
                             ">
 
-                              {
-
-                                item.recomendacion ||
-
-                                "Revisar los puntos pendientes de este criterio."
-
-                              }
+                              {recomendacion}
 
                             </p>
 
-
                           </div>
 
-
                         </div>
-
 
                       </div>
 
                     );
 
                   }
-
                 )
 
               }
 
-
             </div>
 
           )
+        }
 
-      }
+      </div>
 
-
-    </div>
+    </section>
 
   );
 

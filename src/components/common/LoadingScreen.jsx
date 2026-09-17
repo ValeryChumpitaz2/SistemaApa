@@ -2,7 +2,7 @@ import {
   FileCheck2,
   Sparkles,
   ShieldCheck,
-  BrainCircuit
+  BrainCircuit,
 } from "lucide-react";
 
 
@@ -78,12 +78,11 @@ export default function LoadingScreen() {
           relative
           z-10
           w-full
-          max-w-md
+          max-w-lg
           px-6
           text-center
         "
       >
-
 
         {/* =========================
             LOGO
@@ -122,6 +121,7 @@ export default function LoadingScreen() {
               rounded-[2rem]
               bg-gradient-to-br
               from-blue-500
+              via-blue-600
               to-indigo-700
               border
               border-white/20
@@ -161,7 +161,7 @@ export default function LoadingScreen() {
               "
             >
 
-              <Sparkles size={18}/>
+              <Sparkles size={18} />
 
             </div>
 
@@ -186,17 +186,20 @@ export default function LoadingScreen() {
             "
           >
 
-  VG Smart 
+            APP
+
             <span className="text-cyan-400">
-              {" "}Review
+              {" "}REVIEWER
             </span>
 
           </h1>
 
 
+          {/* SUBTÍTULO */}
+
           <div
             className="
-              mt-3
+              mt-4
               flex
               items-center
               justify-center
@@ -205,10 +208,19 @@ export default function LoadingScreen() {
             "
           >
 
-            <ShieldCheck size={16}/>
+            <ShieldCheck
+              size={17}
+              className="text-cyan-400"
+            />
 
-            <span className="text-sm">
-  Plataforma inteligente de revisión académica
+            <span
+              className="
+                text-sm
+                sm:text-base
+                font-medium
+              "
+            >
+              Plataforma inteligente de revisión académica
             </span>
 
           </div>
@@ -217,12 +229,34 @@ export default function LoadingScreen() {
 
 
         {/* =========================
+            DESCRIPCIÓN
+        ========================= */}
+
+        <p
+          className="
+            mt-5
+            mx-auto
+            max-w-md
+            text-sm
+            leading-6
+            text-slate-400
+          "
+        >
+
+          Revisa tus entregables de Informe de Sprint,
+          valida su estructura y descubre qué aspectos
+          puedes mejorar antes de enviarlos.
+
+        </p>
+
+
+        {/* =========================
             ESTADO
         ========================= */}
 
         <div
           className="
-            mt-10
+            mt-9
             rounded-2xl
             border
             border-white/10
@@ -230,6 +264,8 @@ export default function LoadingScreen() {
             backdrop-blur-xl
             px-5
             py-5
+            shadow-xl
+            shadow-black/10
           "
         >
 
@@ -251,8 +287,12 @@ export default function LoadingScreen() {
               "
             />
 
-            <span className="font-medium">
-  Preparando tu espacio académico...
+            <span
+              className="
+                font-semibold
+              "
+            >
+              Preparando tu revisión...
             </span>
 
           </div>
@@ -308,22 +348,30 @@ export default function LoadingScreen() {
             TEXTO INFERIOR
         ========================= */}
 
-        <p
+        <div
           className="
             mt-6
+            flex
+            items-center
+            justify-center
+            gap-2
             text-xs
             text-slate-500
           "
         >
 
-          Evaluación inteligente · Criterios institucionales · VG
+          <FileCheck2 size={13} />
 
-        </p>
+          <span>
+            Informes de Sprint · Evaluación académica
+          </span>
 
+        </div>
 
       </div>
 
     </div>
 
   );
+
 }

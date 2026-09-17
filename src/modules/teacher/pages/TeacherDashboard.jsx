@@ -1,6 +1,7 @@
 import {
   FolderSearch,
   ClipboardList,
+  ClipboardCheck,
   BarChart3,
   FileBarChart,
   GraduationCap,
@@ -55,6 +56,9 @@ import ConsolidacionPage
 import HistorialConsolidacionPage
   from "./HistorialConsolidacionPage";
 
+import CalificarEntregables
+  from "../components/CalificarEntregables";
+
 import { useAuth } from "../../../auth/AuthContext";
 
 
@@ -108,7 +112,7 @@ function leerStorage(
 
 
 // =====================================================
-// HEADER DE PÁGINA
+// HEADER
 // =====================================================
 
 function PageHeader({
@@ -116,6 +120,7 @@ function PageHeader({
   title,
   description,
 }) {
+
   return (
     <header className="mb-8">
 
@@ -168,7 +173,7 @@ function PageHeader({
 
 
 // =====================================================
-// TARJETA DE ESTADÍSTICA
+// STAT CARD
 // =====================================================
 
 function StatCard({
@@ -184,6 +189,7 @@ function StatCard({
     blue: {
       icon:
         "bg-blue-50 text-[#1D3681] dark:bg-blue-900/30 dark:text-blue-300",
+
       value:
         "text-[#1D3681] dark:text-blue-300",
     },
@@ -191,6 +197,7 @@ function StatCard({
     emerald: {
       icon:
         "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300",
+
       value:
         "text-emerald-600 dark:text-emerald-300",
     },
@@ -198,6 +205,7 @@ function StatCard({
     violet: {
       icon:
         "bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-300",
+
       value:
         "text-violet-600 dark:text-violet-300",
     },
@@ -205,6 +213,7 @@ function StatCard({
     red: {
       icon:
         "bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-300",
+
       value:
         "text-red-500 dark:text-red-300",
     },
@@ -232,7 +241,14 @@ function StatCard({
       "
     >
 
-      <div className="flex items-start justify-between gap-4">
+      <div
+        className="
+          flex
+          items-start
+          justify-between
+          gap-4
+        "
+      >
 
         <div>
 
@@ -288,10 +304,12 @@ function StatCard({
             ${theme.icon}
           `}
         >
+
           <Icon
             size={21}
             strokeWidth={2.2}
           />
+
         </div>
 
       </div>
@@ -302,7 +320,7 @@ function StatCard({
 
 
 // =====================================================
-// ACCIÓN RÁPIDA
+// QUICK ACTION
 // =====================================================
 
 function QuickAction({
@@ -337,7 +355,13 @@ function QuickAction({
       "
     >
 
-      <div className="flex items-center gap-4">
+      <div
+        className="
+          flex
+          items-center
+          gap-4
+        "
+      >
 
         <div
           className="
@@ -357,13 +381,20 @@ function QuickAction({
             group-hover:scale-105
           "
         >
+
           <Icon
             size={21}
             strokeWidth={2.2}
           />
+
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div
+          className="
+            min-w-0
+            flex-1
+          "
+        >
 
           <p
             className="
@@ -409,7 +440,7 @@ function QuickAction({
 
 
 // =====================================================
-// DASHBOARD PRINCIPAL
+// DASHBOARD
 // =====================================================
 
 export default function TeacherDashboard() {
@@ -487,12 +518,10 @@ export default function TeacherDashboard() {
 
 
   // =====================================================
-  // ACTUALIZAR RESULTADOS
+  // RESULTADOS
   // =====================================================
 
-  function actualizarResultados(
-    data
-  ) {
+  function actualizarResultados(data) {
 
     const nuevosResultados =
       Array.isArray(data)
@@ -513,12 +542,10 @@ export default function TeacherDashboard() {
 
 
   // =====================================================
-  // ACTUALIZAR NO VÁLIDOS
+  // NO VÁLIDOS
   // =====================================================
 
-  function actualizarNoValidos(
-    data
-  ) {
+  function actualizarNoValidos(data) {
 
     const nuevosNoValidos =
       Array.isArray(data)
@@ -539,7 +566,7 @@ export default function TeacherDashboard() {
 
 
   // =====================================================
-  // GUARDAR CONSOLIDACIÓN
+  // CONSOLIDACIÓN
   // =====================================================
 
   function guardarConsolidacion(
@@ -626,8 +653,6 @@ export default function TeacherDashboard() {
     return (
       <section>
 
-        {/* HEADER */}
-
         <PageHeader
           eyebrow="Panel docente"
           title={
@@ -644,8 +669,6 @@ export default function TeacherDashboard() {
         />
 
 
-        {/* HERO */}
-
         <div
           className="
             relative
@@ -659,8 +682,6 @@ export default function TeacherDashboard() {
             shadow-lg
           "
         >
-
-          {/* DECORACIÓN */}
 
           <div
             className="
@@ -686,6 +707,7 @@ export default function TeacherDashboard() {
             "
           />
 
+
           <div
             className="
               relative
@@ -710,9 +732,11 @@ export default function TeacherDashboard() {
                 mb-4
               "
             >
+
               <Sparkles size={14} />
 
               Panel académico
+
             </div>
 
 
@@ -769,6 +793,7 @@ export default function TeacherDashboard() {
                 hover:-translate-y-0.5
               "
             >
+
               <FolderSearch size={18} />
 
               Analizar carpeta
@@ -782,44 +807,31 @@ export default function TeacherDashboard() {
         </div>
 
 
-        {/* ESTADÍSTICAS */}
-
         <div className="mb-8">
 
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              mb-4
-            "
-          >
+          <div className="mb-4">
 
-            <div>
+            <h2
+              className="
+                text-lg
+                font-black
+                text-slate-900
+                dark:text-white
+              "
+            >
+              Resumen académico
+            </h2>
 
-              <h2
-                className="
-                  text-lg
-                  font-black
-                  text-slate-900
-                  dark:text-white
-                "
-              >
-                Resumen académico
-              </h2>
-
-              <p
-                className="
-                  mt-1
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-400
-                "
-              >
-                Estado actual de tus evaluaciones
-              </p>
-
-            </div>
+            <p
+              className="
+                mt-1
+                text-xs
+                text-slate-500
+                dark:text-slate-400
+              "
+            >
+              Estado actual de tus evaluaciones
+            </p>
 
           </div>
 
@@ -835,29 +847,19 @@ export default function TeacherDashboard() {
 
             <StatCard
               title="Documentos"
-              value={
-                totalResultados
-              }
+              value={totalResultados}
               description="Resultados registrados"
-              icon={
-                ClipboardList
-              }
+              icon={ClipboardList}
               color="blue"
             />
 
-
             <StatCard
               title="Evaluados"
-              value={
-                totalEvaluados
-              }
+              value={totalEvaluados}
               description="Documentos procesados"
-              icon={
-                BarChart3
-              }
+              icon={BarChart3}
               color="emerald"
             />
-
 
             <StatCard
               title="Consolidaciones"
@@ -865,22 +867,15 @@ export default function TeacherDashboard() {
                 historialConsolidaciones.length
               }
               description="Procesos registrados"
-              icon={
-                GraduationCap
-              }
+              icon={GraduationCap}
               color="violet"
             />
 
-
             <StatCard
               title="No válidos"
-              value={
-                totalNoValidos
-              }
+              value={totalNoValidos}
               description="Documentos pendientes de revisión"
-              icon={
-                FileWarning
-              }
+              icon={FileWarning}
               color="red"
             />
 
@@ -889,45 +884,32 @@ export default function TeacherDashboard() {
         </div>
 
 
-        {/* GRÁFICO */}
-
         <div className="mb-8">
 
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              mb-4
-            "
-          >
+          <div className="mb-4">
 
-            <div>
+            <h2
+              className="
+                text-lg
+                font-black
+                text-slate-900
+                dark:text-white
+              "
+            >
+              Rendimiento académico
+            </h2>
 
-              <h2
-                className="
-                  text-lg
-                  font-black
-                  text-slate-900
-                  dark:text-white
-                "
-              >
-                Rendimiento académico
-              </h2>
-
-              <p
-                className="
-                  mt-1
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-400
-                "
-              >
-                Evolución de los resultados
-                registrados.
-              </p>
-
-            </div>
+            <p
+              className="
+                mt-1
+                text-xs
+                text-slate-500
+                dark:text-slate-400
+              "
+            >
+              Evolución de los resultados
+              registrados.
+            </p>
 
           </div>
 
@@ -948,17 +930,13 @@ export default function TeacherDashboard() {
           >
 
             <PerformanceChart
-              resultados={
-                resultados
-              }
+              resultados={resultados}
             />
 
           </div>
 
         </div>
 
-
-        {/* ACCIONES RÁPIDAS */}
 
         <div>
 
@@ -975,18 +953,6 @@ export default function TeacherDashboard() {
               Acciones rápidas
             </h2>
 
-            <p
-              className="
-                mt-1
-                text-xs
-                text-slate-500
-                dark:text-slate-400
-              "
-            >
-              Accede rápidamente a las
-              herramientas principales.
-            </p>
-
           </div>
 
 
@@ -1000,91 +966,63 @@ export default function TeacherDashboard() {
           >
 
             <QuickAction
-              icon={
-                FolderSearch
-              }
-              title="Analizar carpeta"
-              description="
-                Procesa documentos académicos
-                automáticamente.
-              "
+              icon={FolderSearch}
+              title="Analizar Entregable"
+              description="Analiza una carpeta de Google Drive."
               onClick={() =>
                 setActive("analyzer")
               }
             />
 
-
             <QuickAction
-              icon={
-                TrendingUp
-              }
+              icon={TrendingUp}
               title="Ver analítica"
-              description="
-                Consulta gráficos y métricas
-                académicas.
-              "
+              description="Consulta gráficos y métricas académicas."
               onClick={() =>
                 setActive("analytics")
               }
             />
 
-
             <QuickAction
-              icon={
-                FileBarChart
-              }
+              icon={FileBarChart}
               title="Generar reportes"
-              description="
-                Crea informes académicos
-                profesionales.
-              "
+              description="Crea informes académicos."
               onClick={() =>
                 setActive("reports")
               }
             />
 
-
             <QuickAction
-              icon={
-                ClipboardList
-              }
+              icon={ClipboardList}
               title="Ver resultados"
-              description="
-                Revisa las evaluaciones
-                procesadas.
-              "
+              description="Revisa las evaluaciones procesadas."
               onClick={() =>
                 setActive("results")
               }
             />
 
-
             <QuickAction
-              icon={
-                GraduationCap
-              }
+              icon={GraduationCap}
               title="Consolidación"
-              description="
-                Consolida los resultados
-                académicos.
-              "
+              description="Consolida los resultados académicos."
               onClick={() =>
-                setActive(
-                  "consolidacion"
-                )
+                setActive("consolidacion")
               }
             />
 
+            <QuickAction
+              icon={ClipboardCheck}
+              title="Calificar entregables"
+              description="Gestiona las calificaciones."
+              onClick={() =>
+                setActive("calificar")
+              }
+            />
 
             <QuickAction
-              icon={
-                History
-              }
+              icon={History}
               title="Historial"
-              description="
-                Consulta consolidaciones
-                anteriores.
-              "
+              description="Consulta consolidaciones anteriores."
               onClick={() =>
                 setActive(
                   "historial-consolidacion"
@@ -1109,18 +1047,10 @@ export default function TeacherDashboard() {
 
     switch (active) {
 
-      // =================================================
-      // DASHBOARD
-      // =================================================
-
       case "dashboard":
 
         return renderDashboard();
 
-
-      // =================================================
-      // ANALIZADOR
-      // =================================================
 
       case "analyzer":
 
@@ -1130,10 +1060,7 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Evaluación"
               title="Analizar carpeta"
-              description="
-                Analiza automáticamente los
-                documentos académicos de una carpeta.
-              "
+              description="Analiza automáticamente los documentos académicos."
             />
 
             <FolderAnalyzer
@@ -1149,10 +1076,6 @@ export default function TeacherDashboard() {
         );
 
 
-      // =================================================
-      // RESULTADOS
-      // =================================================
-
       case "results":
 
         return (
@@ -1161,12 +1084,8 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Resultados"
               title="Resultados por carpeta"
-              description="
-                Consulta y revisa los resultados
-                obtenidos durante el análisis.
-              "
+              description="Consulta y revisa los resultados obtenidos."
             />
-
 
             <div
               className="
@@ -1185,12 +1104,8 @@ export default function TeacherDashboard() {
               {resultados.length > 0 ? (
 
                 <ResultsTable
-                  resultados={
-                    resultados
-                  }
-                  onSelect={
-                    setSelected
-                  }
+                  resultados={resultados}
+                  onSelect={setSelected}
                 />
 
               ) : (
@@ -1206,26 +1121,10 @@ export default function TeacherDashboard() {
                   "
                 >
 
-                  <div
-                    className="
-                      w-16
-                      h-16
-                      rounded-2xl
-                      bg-[#EEF3FF]
-                      text-[#1D3681]
-                      flex
-                      items-center
-                      justify-center
-                      mb-5
-                    "
-                  >
-
-                    <ClipboardList
-                      size={30}
-                    />
-
-                  </div>
-
+                  <ClipboardList
+                    size={40}
+                    className="text-[#1D3681] mb-4"
+                  />
 
                   <h2
                     className="
@@ -1238,52 +1137,15 @@ export default function TeacherDashboard() {
                     Aún no hay resultados
                   </h2>
 
-
                   <p
                     className="
                       mt-2
-                      max-w-md
                       text-sm
                       text-slate-500
-                      dark:text-slate-400
                     "
                   >
-                    Analiza una carpeta para
-                    comenzar a visualizar las
-                    evaluaciones académicas.
+                    Analiza una carpeta para comenzar.
                   </p>
-
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActive(
-                        "analyzer"
-                      )
-                    }
-                    className="
-                      mt-6
-                      inline-flex
-                      items-center
-                      gap-2
-                      bg-[#1D3681]
-                      hover:bg-[#172D6D]
-                      text-white
-                      px-5
-                      py-2.5
-                      rounded-xl
-                      text-sm
-                      font-bold
-                      transition-all
-                    "
-                  >
-                    <FolderSearch
-                      size={17}
-                    />
-
-                    Analizar carpeta
-
-                  </button>
 
                 </div>
 
@@ -1295,10 +1157,6 @@ export default function TeacherDashboard() {
         );
 
 
-      // =================================================
-      // ANALÍTICA
-      // =================================================
-
       case "analytics":
 
         return (
@@ -1307,25 +1165,16 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Análisis"
               title="Analítica académica"
-              description="
-                Explora el rendimiento y las
-                tendencias de las evaluaciones.
-              "
+              description="Explora el rendimiento y las tendencias."
             />
 
             <TeacherAnalytics
-              resultados={
-                resultados
-              }
+              resultados={resultados}
             />
 
           </section>
         );
 
-
-      // =================================================
-      // RANKING
-      // =================================================
 
       case "ranking":
 
@@ -1335,12 +1184,8 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Análisis"
               title="Ranking académico"
-              description="
-                Consulta la posición y rendimiento
-                de los resultados evaluados.
-              "
+              description="Consulta el rendimiento de los resultados."
             />
-
 
             <div
               className="
@@ -1357,9 +1202,7 @@ export default function TeacherDashboard() {
             >
 
               <RankingTable
-                resultados={
-                  resultados
-                }
+                resultados={resultados}
               />
 
             </div>
@@ -1367,10 +1210,6 @@ export default function TeacherDashboard() {
           </section>
         );
 
-
-      // =================================================
-      // CONSOLIDACIÓN
-      // =================================================
 
       case "consolidacion":
 
@@ -1380,12 +1219,8 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Consolidación"
               title="Consolidación"
-              description="
-                Consolida los resultados académicos
-                de tus evaluaciones.
-              "
+              description="Consolida los resultados académicos."
             />
-
 
             <div
               className="
@@ -1413,9 +1248,32 @@ export default function TeacherDashboard() {
         );
 
 
-      // =================================================
-      // HISTORIAL
-      // =================================================
+      // =====================================================
+      // CALIFICAR ENTREGABLES
+      // =====================================================
+
+      case "calificar":
+
+        return (
+          <section>
+
+            <PageHeader
+              eyebrow="Evaluación"
+              title="Calificar entregables"
+              description="
+                Selecciona el semestre y el curso
+                para gestionar las calificaciones.
+              "
+            />
+
+            <CalificarEntregables
+              resultados={resultados}
+              user={user}
+            />
+
+          </section>
+        );
+
 
       case "historial-consolidacion":
 
@@ -1425,12 +1283,8 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Consolidación"
               title="Historial de consolidación"
-              description="
-                Consulta los procesos de consolidación
-                realizados anteriormente.
-              "
+              description="Consulta los procesos anteriores."
             />
-
 
             <div
               className="
@@ -1454,10 +1308,6 @@ export default function TeacherDashboard() {
         );
 
 
-      // =================================================
-      // REPORTES
-      // =================================================
-
       case "reports":
 
         return (
@@ -1466,12 +1316,8 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Documentación"
               title="Reportes académicos"
-              description="
-                Genera informes profesionales a partir
-                de los resultados de evaluación.
-              "
+              description="Genera informes profesionales."
             />
-
 
             <div
               className="
@@ -1480,8 +1326,6 @@ export default function TeacherDashboard() {
                 gap-5
               "
             >
-
-              {/* REPORTE GENERAL */}
 
               <div
                 className="
@@ -1496,28 +1340,10 @@ export default function TeacherDashboard() {
                 "
               >
 
-                <div
-                  className="
-                    w-11
-                    h-11
-                    rounded-xl
-                    bg-emerald-50
-                    dark:bg-emerald-900/30
-                    text-emerald-600
-                    dark:text-emerald-300
-                    flex
-                    items-center
-                    justify-center
-                    mb-5
-                  "
-                >
-
-                  <FileBarChart
-                    size={21}
-                  />
-
-                </div>
-
+                <FileBarChart
+                  size={24}
+                  className="text-emerald-600 mb-4"
+                />
 
                 <h2
                   className="
@@ -1530,33 +1356,23 @@ export default function TeacherDashboard() {
                   Reporte general
                 </h2>
 
-
                 <p
                   className="
                     mt-2
                     mb-6
                     text-sm
-                    leading-6
                     text-slate-500
-                    dark:text-slate-400
                   "
                 >
-                  Obtén un resumen completo
-                  del rendimiento académico
-                  registrado.
+                  Resumen completo del rendimiento académico.
                 </p>
 
-
                 <GeneralReportButton
-                  resultados={
-                    resultados
-                  }
+                  resultados={resultados}
                 />
 
               </div>
 
-
-              {/* REPORTE DETALLADO */}
 
               <div
                 className="
@@ -1571,28 +1387,10 @@ export default function TeacherDashboard() {
                 "
               >
 
-                <div
-                  className="
-                    w-11
-                    h-11
-                    rounded-xl
-                    bg-violet-50
-                    dark:bg-violet-900/30
-                    text-violet-600
-                    dark:text-violet-300
-                    flex
-                    items-center
-                    justify-center
-                    mb-5
-                  "
-                >
-
-                  <ClipboardList
-                    size={21}
-                  />
-
-                </div>
-
+                <ClipboardList
+                  size={24}
+                  className="text-violet-600 mb-4"
+                />
 
                 <h2
                   className="
@@ -1605,27 +1403,19 @@ export default function TeacherDashboard() {
                   Reporte detallado
                 </h2>
 
-
                 <p
                   className="
                     mt-2
                     mb-6
                     text-sm
-                    leading-6
                     text-slate-500
-                    dark:text-slate-400
                   "
                 >
-                  Consulta un análisis
-                  individual y detallado
-                  de cada evaluación.
+                  Análisis individual de cada evaluación.
                 </p>
 
-
                 <DetailReportButton
-                  resultados={
-                    resultados
-                  }
+                  resultados={resultados}
                 />
 
               </div>
@@ -1636,10 +1426,6 @@ export default function TeacherDashboard() {
         );
 
 
-      // =================================================
-      // COMUNICACIONES
-      // =================================================
-
       case "communications":
 
         return (
@@ -1648,12 +1434,8 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Sistema"
               title="Centro de comunicaciones"
-              description="
-                Gestiona las comunicaciones y
-                notificaciones del sistema.
-              "
+              description="Gestiona las comunicaciones del sistema."
             />
-
 
             <div
               className="
@@ -1668,94 +1450,35 @@ export default function TeacherDashboard() {
               "
             >
 
-              <div
+              <button
+                type="button"
+                onClick={() =>
+                  setMaintenance(true)
+                }
                 className="
-                  flex
-                  flex-col
-                  sm:flex-row
-                  sm:items-center
-                  sm:justify-between
-                  gap-5
+                  bg-[#1D3681]
+                  text-white
+                  px-5
+                  py-2.5
+                  rounded-xl
+                  font-bold
                 "
               >
-
-                <div>
-
-                  <h2
-                    className="
-                      text-lg
-                      font-black
-                      text-slate-800
-                      dark:text-white
-                    "
-                  >
-                    Estado del módulo
-                  </h2>
-
-                  <p
-                    className="
-                      mt-1
-                      text-sm
-                      text-slate-500
-                      dark:text-slate-400
-                    "
-                  >
-                    Este módulo se encuentra
-                    actualmente en mantenimiento.
-                  </p>
-
-                </div>
-
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMaintenance(
-                      true
-                    )
-                  }
-                  className="
-                    inline-flex
-                    items-center
-                    justify-center
-                    gap-2
-                    bg-[#1D3681]
-                    hover:bg-[#172D6D]
-                    text-white
-                    px-5
-                    py-2.5
-                    rounded-xl
-                    text-sm
-                    font-bold
-                    transition-all
-                  "
-                >
-                  Ver estado
-                </button>
-
-              </div>
+                Ver estado
+              </button>
 
             </div>
 
-
             <MaintenanceModal
-              open={
-                maintenance
-              }
+              open={maintenance}
               onClose={() =>
-                setMaintenance(
-                  false
-                )
+                setMaintenance(false)
               }
             />
 
           </section>
         );
 
-
-      // =================================================
-      // CONFIGURACIÓN
-      // =================================================
 
       case "settings":
 
@@ -1765,10 +1488,7 @@ export default function TeacherDashboard() {
             <PageHeader
               eyebrow="Sistema"
               title="Configuración"
-              description="
-                Personaliza las preferencias de
-                tu panel docente.
-              "
+              description="Personaliza las preferencias de tu panel."
             />
 
             <TeacherSettings />
@@ -1776,10 +1496,6 @@ export default function TeacherDashboard() {
           </section>
         );
 
-
-      // =================================================
-      // DEFAULT
-      // =================================================
 
       default:
 
@@ -1791,7 +1507,7 @@ export default function TeacherDashboard() {
 
 
   // =====================================================
-  // RENDER PRINCIPAL
+  // RENDER
   // =====================================================
 
   return (
@@ -1803,19 +1519,11 @@ export default function TeacherDashboard() {
       "
     >
 
-      {/* SIDEBAR */}
-
       <TeacherSidebar
-        active={
-          active
-        }
-        setActive={
-          setActive
-        }
+        active={active}
+        setActive={setActive}
       />
 
-
-      {/* CONTENIDO */}
 
       <main
         className="
@@ -1841,18 +1549,12 @@ export default function TeacherDashboard() {
       </main>
 
 
-      {/* MODAL DETALLE */}
-
       {selected && (
 
         <DetailModal
-          analysis={
-            selected
-          }
+          analysis={selected}
           onClose={() =>
-            setSelected(
-              null
-            )
+            setSelected(null)
           }
         />
 

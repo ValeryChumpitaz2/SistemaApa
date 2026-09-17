@@ -3,8 +3,10 @@ import {
   Sparkles,
   CheckCircle2,
   ShieldCheck,
+  FileCheck2,
+  GraduationCap,
+  BarChart3,
 } from "lucide-react";
-
 
 export default function FinalCTA() {
 
@@ -12,91 +14,82 @@ export default function FinalCTA() {
 
     <section
       className="
+        relative
+        overflow-hidden
+        bg-slate-50
         py-20
-        md:py-24
-        px-6
-        bg-white
+        md:py-28
       "
     >
+
+      {/* ==================================================
+          DECORACIÓN DE FONDO
+      ================================================== */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          left-1/2
+          top-0
+          h-[500px]
+          w-[700px]
+          -translate-x-1/2
+          rounded-full
+          bg-blue-100/50
+          blur-3xl
+        "
+      />
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -bottom-40
+          -left-40
+          h-80
+          w-80
+          rounded-full
+          bg-indigo-100/50
+          blur-3xl
+        "
+      />
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -right-40
+          top-20
+          h-80
+          w-80
+          rounded-full
+          bg-cyan-100/40
+          blur-3xl
+        "
+      />
+
+
+      {/* ==================================================
+          CONTENEDOR
+      ================================================== */}
 
       <div
         className="
           relative
-          max-w-6xl
+          z-10
           mx-auto
-          overflow-hidden
-          rounded-[2rem]
-          bg-gradient-to-br
-          from-slate-950
-          via-blue-950
-          to-indigo-800
+          max-w-6xl
           px-6
-          py-14
-          md:px-14
-          md:py-16
-          text-white
-          shadow-2xl
-          shadow-blue-950/20
+          lg:px-8
         "
       >
 
         {/* ==================================================
-            DECORACIÓN
+            CABECERA
         ================================================== */}
 
-        <div
-          className="
-            absolute
-            -top-32
-            -right-32
-            w-96
-            h-96
-            rounded-full
-            border
-            border-white/10
-          "
-        />
-
-        <div
-          className="
-            absolute
-            -top-20
-            -right-20
-            w-64
-            h-64
-            rounded-full
-            bg-cyan-400/20
-            blur-3xl
-          "
-        />
-
-        <div
-          className="
-            absolute
-            -bottom-32
-            -left-32
-            w-80
-            h-80
-            rounded-full
-            bg-blue-500/20
-            blur-3xl
-          "
-        />
-
-
-        {/* ==================================================
-            CONTENIDO
-        ================================================== */}
-
-        <div
-          className="
-            relative
-            z-10
-            max-w-3xl
-            mx-auto
-            text-center
-          "
-        >
+        <div className="mx-auto max-w-3xl text-center">
 
           {/* ETIQUETA */}
 
@@ -107,20 +100,23 @@ export default function FinalCTA() {
               gap-2
               rounded-full
               border
-              border-cyan-300/20
-              bg-white/10
-              backdrop-blur-sm
+              border-blue-100
+              bg-white
               px-4
               py-2
-              text-sm
+              text-xs
               font-bold
-              text-cyan-200
+              text-blue-700
+              shadow-sm
             "
           >
 
-            <Sparkles size={15} />
+            <Sparkles
+              size={14}
+              className="text-blue-600"
+            />
 
-            Empieza ahora
+            APP Reviewer
 
           </div>
 
@@ -130,19 +126,23 @@ export default function FinalCTA() {
           <h2
             className="
               mt-6
-              text-3xl
-              md:text-4xl
-              lg:text-5xl
+              text-4xl
               font-black
+              leading-[1.08]
               tracking-tight
-              leading-tight
+              text-slate-950
+              sm:text-5xl
+              md:text-6xl
             "
           >
 
-            Mejora tus documentos
-            <span className="block text-cyan-300">
-              antes de entregarlos
+            Revisa.
+            <span className="text-blue-600">
+              {" "}Mejora.
             </span>
+            <br />
+
+            Entrega con mayor claridad.
 
           </h2>
 
@@ -151,136 +151,290 @@ export default function FinalCTA() {
 
           <p
             className="
-              mt-5
-              text-sm
-              md:text-lg
-              text-blue-100
-              leading-relaxed
-              max-w-2xl
               mx-auto
+              mt-6
+              max-w-2xl
+              text-base
+              leading-7
+              text-slate-500
+              md:text-lg
             "
           >
 
-            Analiza tus trabajos académicos, identifica
-            oportunidades de mejora y revisa los criterios
-            establecidos por tu institución.
+            APP Reviewer te ayuda a analizar tus documentos
+            académicos e identificar aspectos que puedes
+            fortalecer antes de realizar tu entrega.
 
           </p>
 
+        </div>
 
-          {/* BENEFICIOS */}
+
+        {/* ==================================================
+            BLOQUE PRINCIPAL
+        ================================================== */}
+
+        <div
+          className="
+            relative
+            mx-auto
+            mt-12
+            max-w-5xl
+            overflow-hidden
+            rounded-3xl
+            border
+            border-slate-200
+            bg-white
+            shadow-xl
+            shadow-slate-900/5
+          "
+        >
+
+          {/* Línea superior */}
 
           <div
             className="
-              mt-7
-              flex
-              flex-wrap
-              justify-center
-              gap-x-6
-              gap-y-3
-              text-sm
-              text-blue-100
+              h-1
+              w-full
+              bg-gradient-to-r
+              from-blue-600
+              via-cyan-500
+              to-indigo-600
+            "
+          />
+
+
+          <div
+            className="
+              grid
+              lg:grid-cols-[1fr_auto]
+              lg:items-center
             "
           >
 
-            <div className="flex items-center gap-2">
+            {/* ==================================================
+                INFORMACIÓN
+            ================================================== */}
 
-              <CheckCircle2
-                size={16}
-                className="text-cyan-300"
-              />
+            <div className="p-7 sm:p-9 md:p-10">
 
-              Análisis automatizado
+              <div className="flex items-start gap-4">
+
+                {/* ICONO */}
+
+                <div
+                  className="
+                    flex
+                    h-12
+                    w-12
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-2xl
+                    bg-blue-50
+                    text-blue-600
+                  "
+                >
+
+                  <FileCheck2 size={23} />
+
+                </div>
+
+
+                <div>
+
+                  <p
+                    className="
+                      text-lg
+                      font-black
+                      text-slate-900
+                    "
+                  >
+                    Todo listo para comenzar
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+                      text-sm
+                      leading-6
+                      text-slate-500
+                    "
+                  >
+                    Accede a la plataforma y selecciona
+                    el tipo de usuario correspondiente.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              {/* ==================================================
+                  BENEFICIOS
+              ================================================== */}
+
+              <div
+                className="
+                  mt-7
+                  grid
+                  gap-4
+                  sm:grid-cols-3
+                "
+              >
+
+                <InfoItem
+                  icon={<GraduationCap size={16} />}
+                  text="Estudiantes"
+                />
+
+                <InfoItem
+                  icon={<BarChart3 size={16} />}
+                  text="Docentes"
+                />
+
+                <InfoItem
+                  icon={<ShieldCheck size={16} />}
+                  text="Administradores"
+                />
+
+              </div>
 
             </div>
 
 
-            <div className="flex items-center gap-2">
+            {/* ==================================================
+                ACCIÓN
+            ================================================== */}
 
-              <CheckCircle2
-                size={16}
-                className="text-cyan-300"
-              />
+            <div
+              className="
+                border-t
+                border-slate-100
+                bg-slate-50/70
+                p-7
+                sm:p-9
+                lg:border-l
+                lg:border-t-0
+                lg:p-10
+              "
+            >
 
-              Criterios académicos
+              <p
+                className="
+                  mb-3
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-wider
+                  text-slate-400
+                "
+              >
+                Acceso a la plataforma
+              </p>
 
-            </div>
+
+              <a
+                href="/login"
+                className="
+                  group
+                  flex
+                  min-w-[220px]
+                  items-center
+                  justify-center
+                  gap-3
+                  rounded-xl
+                  bg-blue-600
+                  px-6
+                  py-4
+                  text-sm
+                  font-black
+                  text-white
+                  shadow-lg
+                  shadow-blue-600/20
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:bg-blue-700
+                  hover:shadow-xl
+                  hover:shadow-blue-600/25
+                "
+              >
+
+                Comenzar ahora
+
+                <span
+                  className="
+                    flex
+                    h-7
+                    w-7
+                    items-center
+                    justify-center
+                    rounded-lg
+                    bg-white/15
+                    transition-transform
+                    duration-300
+                    group-hover:translate-x-1
+                  "
+                >
+
+                  <ArrowRight size={16} />
+
+                </span>
+
+              </a>
 
 
-            <div className="flex items-center gap-2">
+              <div
+                className="
+                  mt-4
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
+                  text-[11px]
+                  text-slate-400
+                "
+              >
 
-              <CheckCircle2
-                size={16}
-                className="text-cyan-300"
-              />
+                <CheckCircle2
+                  size={13}
+                  className="text-emerald-500"
+                />
 
-              Resultados organizados
+                Acceso seguro
+
+              </div>
 
             </div>
 
           </div>
 
-
-          {/* BOTÓN */}
-
-          <a
-            href="/login"
-            className="
-              group
-              mt-9
-              inline-flex
-              items-center
-              justify-center
-              gap-3
-              rounded-xl
-              bg-white
-              text-slate-950
-              px-7
-              py-4
-              text-sm
-              md:text-base
-              font-bold
-              shadow-xl
-              shadow-black/10
-              transition-all
-              duration-300
-              hover:bg-blue-50
-              hover:-translate-y-0.5
-              hover:shadow-2xl
-            "
-          >
-
-            Comenzar evaluación
-
-            <ArrowRight
-              size={18}
-              className="
-                transition-transform
-                duration-300
-                group-hover:translate-x-1
-              "
-            />
-
-          </a>
+        </div>
 
 
-          {/* SEGURIDAD */}
+        {/* ==================================================
+            FRASE FINAL
+        ================================================== */}
+
+        <div className="mt-10 text-center">
 
           <div
             className="
-              mt-6
-              flex
+              inline-flex
               items-center
-              justify-center
               gap-2
               text-xs
-              text-blue-200/80
+              font-medium
+              text-slate-400
             "
           >
 
-            <ShieldCheck size={14} />
+            <span className="h-px w-8 bg-slate-200" />
 
-            Acceso seguro para la comunidad académica de Valle Grande.
+            APP Reviewer
+
+            <span className="h-px w-8 bg-slate-200" />
 
           </div>
 
@@ -289,7 +443,47 @@ export default function FinalCTA() {
       </div>
 
     </section>
+  );
+}
+
+
+/* ==================================================
+    ITEM INFORMACIÓN
+================================================== */
+
+function InfoItem({ icon, text }) {
+
+  return (
+
+    <div
+      className="
+        flex
+        items-center
+        gap-2.5
+        rounded-xl
+        border
+        border-slate-100
+        bg-slate-50
+        px-3.5
+        py-3
+      "
+    >
+
+      <span className="text-blue-600">
+        {icon}
+      </span>
+
+      <span
+        className="
+          text-xs
+          font-bold
+          text-slate-600
+        "
+      >
+        {text}
+      </span>
+
+    </div>
 
   );
-
 }

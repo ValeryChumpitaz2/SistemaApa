@@ -8,69 +8,95 @@ import {
   ArrowRight,
   Sparkles,
   CheckCircle2,
+  ClipboardCheck,
+  Settings2,
 } from "lucide-react";
 
 import TeacherLogin from "../components/auth/TeacherLogin";
 import GoogleLogin from "../components/auth/GoogleLogin";
 import AdminLogin from "../components/auth/AdminLogin";
 
-export default function Login() {
-  const [tipo, setTipo] = useState(null);
+
+export default function Login({ tipoInicial = null }) {
+
+  const [tipo, setTipo] = useState(tipoInicial);
+
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-8 relative overflow-hidden">
+
+    <div
+      className="
+        min-h-screen
+        bg-slate-100
+        flex
+        items-center
+        justify-center
+        px-4
+        py-8
+        relative
+        overflow-hidden
+      "
+    >
 
       {/* ==================================================
-          FONDO DECORATIVO
+          FONDO
       ================================================== */}
 
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div
+        className="
+          fixed
+          inset-0
+          pointer-events-none
+          overflow-hidden
+        "
+      >
 
-        {/* Círculo superior derecho */}
         <div
           className="
             absolute
             -top-40
             -right-40
-            w-[28rem]
-            h-[28rem]
+            w-[30rem]
+            h-[30rem]
             rounded-full
             bg-blue-200/40
             blur-3xl
           "
         />
 
-        {/* Círculo inferior izquierdo */}
         <div
           className="
             absolute
             -bottom-40
             -left-40
-            w-[28rem]
-            h-[28rem]
+            w-[30rem]
+            h-[30rem]
             rounded-full
             bg-indigo-200/30
             blur-3xl
           "
         />
 
-        {/* Círculo pequeño */}
         <div
           className="
             absolute
             top-1/2
-            right-[15%]
-            w-40
-            h-40
+            left-1/2
+            -translate-x-1/2
+            -translate-y-1/2
+            w-[28rem]
+            h-[28rem]
             rounded-full
-            bg-blue-100/30
+            bg-cyan-100/30
             blur-3xl
           "
         />
+
       </div>
 
+
       {/* ==================================================
-          CONTENEDOR PRINCIPAL
+          CONTENEDOR
       ================================================== */}
 
       <div
@@ -92,6 +118,7 @@ export default function Login() {
         "
       >
 
+
         {/* ==================================================
             PANEL IZQUIERDO
         ================================================== */}
@@ -112,8 +139,6 @@ export default function Login() {
             overflow-hidden
           "
         >
-
-          {/* DECORACIÓN */}
 
           <div
             className="
@@ -154,11 +179,30 @@ export default function Login() {
             "
           />
 
-          {/* ==================================================
-              MARCA
-          ================================================== */}
+          <div
+            className="
+              absolute
+              top-1/3
+              -left-20
+              w-48
+              h-48
+              rounded-full
+              bg-cyan-400/10
+              blur-3xl
+            "
+          />
 
-          <div className="relative flex items-center gap-3">
+
+          {/* MARCA */}
+
+          <div
+            className="
+              relative
+              flex
+              items-center
+              gap-3
+            "
+          >
 
             <div
               className="
@@ -175,36 +219,71 @@ export default function Login() {
                 shadow-lg
               "
             >
+
               <ShieldCheck size={26} />
+
             </div>
 
+
             <div>
-              <p className="font-black text-xl tracking-tight">
-                VG Smart Review
+
+              <p
+                className="
+                  font-black
+                  text-xl
+                  tracking-tight
+                "
+              >
+                APP Reviewer
               </p>
 
-              <p className="text-xs text-blue-200 mt-0.5">
-                Plataforma inteligente de evaluación
+              <p
+                className="
+                  text-xs
+                  text-blue-200
+                  mt-0.5
+                "
+              >
+                Plataforma inteligente de revisión académica
               </p>
+
             </div>
 
           </div>
 
-          {/* ==================================================
-              CONTENIDO CENTRAL
-          ================================================== */}
+
+          {/* CONTENIDO */}
 
           <div className="relative max-w-md">
 
             <div
               className="
-                w-14
-                h-1
-                bg-blue-400
+                inline-flex
+                items-center
+                gap-2
+                px-3
+                py-1.5
                 rounded-full
-                mb-7
+                bg-white/10
+                border
+                border-white/10
+                text-xs
+                font-semibold
+                text-blue-100
+                backdrop-blur-sm
+                mb-6
               "
-            />
+            >
+
+              <Sparkles
+                size={13}
+                className="text-cyan-300"
+              />
+
+              Revisión académica inteligente
+
+            </div>
+
 
             <h2
               className="
@@ -215,12 +294,21 @@ export default function Login() {
                 tracking-tight
               "
             >
-              Evaluación académica
 
-              <span className="block text-blue-300 mt-1">
-                inteligente.
+              Mejora tus
+
+              <span
+                className="
+                  block
+                  text-cyan-300
+                  mt-1
+                "
+              >
+                Informes de Sprint.
               </span>
+
             </h2>
+
 
             <p
               className="
@@ -231,70 +319,38 @@ export default function Login() {
                 max-w-sm
               "
             >
-              Analiza tus documentos, revisa los criterios de evaluación
-              y mejora tus entregables académicos de manera rápida,
-              organizada y eficiente.
+              Lee y analiza tus entregables, valida la estructura,
+              los formatos y los criterios de revisión antes de
+              realizar tu entrega por Google Classroom.
             </p>
+
 
             {/* CARACTERÍSTICAS */}
 
             <div className="mt-8 space-y-3">
 
-              <div className="flex items-center gap-3 text-sm text-blue-100">
-                <div
-                  className="
-                    w-8
-                    h-8
-                    rounded-lg
-                    bg-white/10
-                    flex
-                    items-center
-                    justify-center
-                  "
-                >
-                  <CheckCircle2 size={16} />
-                </div>
+              <Feature
+                icon={<CheckCircle2 size={16} />}
+                text="Revisión automatizada de Informes de Sprint"
+              />
 
-                <span>Revisión automatizada</span>
-              </div>
+              <Feature
+                icon={<ClipboardCheck size={16} />}
+                text="Criterios de revisión basados en Normas APA"
+              />
 
-              <div className="flex items-center gap-3 text-sm text-blue-100">
-                <div
-                  className="
-                    w-8
-                    h-8
-                    rounded-lg
-                    bg-white/10
-                    flex
-                    items-center
-                    justify-center
-                  "
-                >
-                  <CheckCircle2 size={16} />
-                </div>
+              <Feature
+                icon={<CheckCircle2 size={16} />}
+                text="Resultados claros para identificar mejoras"
+              />
 
-                <span>Criterios de evaluación organizados</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm text-blue-100">
-                <div
-                  className="
-                    w-8
-                    h-8
-                    rounded-lg
-                    bg-white/10
-                    flex
-                    items-center
-                    justify-center
-                  "
-                >
-                  <CheckCircle2 size={16} />
-                </div>
-
-                <span>Historial de consolidaciones</span>
-              </div>
+              <Feature
+                icon={<ShieldCheck size={16} />}
+                text="Historial de revisiones para analizar tu progreso"
+              />
 
             </div>
+
 
             {/* BADGE */}
 
@@ -304,39 +360,50 @@ export default function Login() {
                 inline-flex
                 items-center
                 gap-2
-                px-3
-                py-2
+                px-4
+                py-2.5
                 rounded-full
-                bg-white/10
+                bg-cyan-400/10
                 border
-                border-white/10
+                border-cyan-300/10
                 text-xs
-                text-blue-100
+                text-cyan-100
                 backdrop-blur-sm
               "
             >
-              <Sparkles size={14} className="text-blue-300" />
 
-              Sistema académico inteligente
+              <ShieldCheck
+                size={14}
+                className="text-cyan-300"
+              />
+
+              Plataforma académica segura
+
             </div>
 
           </div>
 
-          {/* ==================================================
-              PIE
-          ================================================== */}
+
+          {/* PIE */}
 
           <div className="relative">
 
-            <div className="h-px bg-white/10 mb-4" />
+            <div
+              className="
+                h-px
+                bg-white/10
+                mb-4
+              "
+            />
 
             <p className="text-xs text-blue-300">
-              © 2026 Valle Grande
+              © 2026 Valle Grande · APP Reviewer
             </p>
 
           </div>
 
         </div>
+
 
         {/* ==================================================
             PANEL DERECHO
@@ -355,9 +422,8 @@ export default function Login() {
           "
         >
 
-          {/* ==================================================
-              MARCA MOBILE
-          ================================================== */}
+
+          {/* MARCA MOBILE */}
 
           <div
             className="
@@ -377,7 +443,9 @@ export default function Login() {
                   w-11
                   h-11
                   rounded-xl
-                  bg-blue-700
+                  bg-gradient-to-br
+                  from-blue-600
+                  to-indigo-700
                   text-white
                   flex
                   items-center
@@ -386,17 +454,26 @@ export default function Login() {
                   shadow-blue-700/20
                 "
               >
+
                 <ShieldCheck size={23} />
+
               </div>
+
 
               <div>
 
-                <p className="font-black text-lg text-slate-900">
-                  VG Smart Review
+                <p
+                  className="
+                    font-black
+                    text-lg
+                    text-slate-900
+                  "
+                >
+                  APP Reviewer
                 </p>
 
                 <p className="text-xs text-slate-400">
-                  Evaluación académica inteligente
+                  Revisión académica inteligente
                 </p>
 
               </div>
@@ -405,15 +482,14 @@ export default function Login() {
 
           </div>
 
+
           {/* ==================================================
-              SELECCIÓN DE TIPO
+              SELECCIÓN DE ROL
           ================================================== */}
 
           {!tipo && (
 
-            <div className="w-full max-w-lg mx-auto">
-
-              {/* ENCABEZADO */}
+            <div className="w-full max-w-xl mx-auto">
 
               <div className="mb-8">
 
@@ -432,10 +508,13 @@ export default function Login() {
                     mb-4
                   "
                 >
+
                   <Sparkles size={13} />
 
                   Acceso seguro
+
                 </div>
+
 
                 <h1
                   className="
@@ -446,377 +525,63 @@ export default function Login() {
                     tracking-tight
                   "
                 >
-                  Selecciona tu tipo
-                  <span className="block">
-                    de cuenta
-                  </span>
+                  Selecciona tu rol
                 </h1>
+
 
                 <p
                   className="
                     text-sm
+                    sm:text-base
                     text-slate-500
                     mt-3
-                    max-w-md
+                    max-w-lg
                     leading-relaxed
                   "
                 >
-                  Elige una opción para continuar con el inicio
-                  de sesión en VG Smart Review.
+                  Haz clic en el tipo de rol que tienes e inicia
+                  sesión en la plataforma.
                 </p>
 
               </div>
 
-              {/* ==================================================
-                  OPCIONES
-              ================================================== */}
 
               <div className="space-y-4">
 
-                {/* ==================================================
-                    DOCENTE
-                ================================================== */}
-
-                <button
-                  type="button"
+                <RoleCard
                   onClick={() => setTipo("DOCENTE")}
-                  className="
-                    w-full
-                    group
-                    flex
-                    items-center
-                    gap-4
-                    p-5
-                    rounded-2xl
-                    border
-                    border-slate-200
-                    bg-white
-                    text-left
-                    transition-all
-                    duration-300
-                    hover:border-blue-400
-                    hover:bg-blue-50/40
-                    hover:shadow-lg
-                    hover:-translate-y-0.5
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-blue-500/30
-                  "
-                >
+                  icon={<UserRound size={25} />}
+                  number="01"
+                  title="Soy Docente"
+                  tag="Evaluación"
+                  description="Analiza, revisa y califica los Informes de Sprint."
+                  color="blue"
+                />
 
-                  <div
-                    className="
-                      w-14
-                      h-14
-                      rounded-2xl
-                      bg-blue-100
-                      text-blue-700
-                      flex
-                      items-center
-                      justify-center
-                      shrink-0
-                      group-hover:bg-blue-600
-                      group-hover:text-white
-                      transition-all
-                      duration-300
-                    "
-                  >
-                    <UserRound size={26} />
-                  </div>
 
-                  <div className="flex-1 min-w-0">
-
-                    <div className="flex items-center gap-2">
-
-                      <p className="font-bold text-slate-900">
-                        Soy docente
-                      </p>
-
-                      <span
-                        className="
-                          hidden
-                          sm:inline-flex
-                          px-2
-                          py-0.5
-                          rounded-full
-                          bg-blue-100
-                          text-blue-700
-                          text-[10px]
-                          font-bold
-                          uppercase
-                          tracking-wide
-                        "
-                      >
-                        Evaluación
-                      </span>
-
-                    </div>
-
-                    <p className="text-sm text-slate-500 mt-1">
-                      Evalúa y gestiona trabajos académicos
-                    </p>
-
-                  </div>
-
-                  <div
-                    className="
-                      w-9
-                      h-9
-                      rounded-full
-                      flex
-                      items-center
-                      justify-center
-                      text-slate-300
-                      group-hover:text-blue-600
-                      group-hover:bg-blue-100
-                      transition-all
-                      duration-300
-                      shrink-0
-                    "
-                  >
-                    <ArrowRight
-                      size={19}
-                      className="
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-0.5
-                      "
-                    />
-                  </div>
-
-                </button>
-
-                {/* ==================================================
-                    ESTUDIANTE
-                ================================================== */}
-
-                <button
-                  type="button"
+                <RoleCard
                   onClick={() => setTipo("ESTUDIANTE")}
-                  className="
-                    w-full
-                    group
-                    flex
-                    items-center
-                    gap-4
-                    p-5
-                    rounded-2xl
-                    border
-                    border-slate-200
-                    bg-white
-                    text-left
-                    transition-all
-                    duration-300
-                    hover:border-emerald-400
-                    hover:bg-emerald-50/40
-                    hover:shadow-lg
-                    hover:-translate-y-0.5
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-emerald-500/30
-                  "
-                >
+                  icon={<GraduationCap size={26} />}
+                  number="02"
+                  title="Soy Estudiante"
+                  tag="Académico"
+                  description="Revisa tu Informe de Sprint antes de enviarlo por Classroom."
+                  color="emerald"
+                />
 
-                  <div
-                    className="
-                      w-14
-                      h-14
-                      rounded-2xl
-                      bg-emerald-100
-                      text-emerald-700
-                      flex
-                      items-center
-                      justify-center
-                      shrink-0
-                      group-hover:bg-emerald-600
-                      group-hover:text-white
-                      transition-all
-                      duration-300
-                    "
-                  >
-                    <GraduationCap size={27} />
-                  </div>
 
-                  <div className="flex-1 min-w-0">
-
-                    <div className="flex items-center gap-2">
-
-                      <p className="font-bold text-slate-900">
-                        Soy estudiante
-                      </p>
-
-                      <span
-                        className="
-                          hidden
-                          sm:inline-flex
-                          px-2
-                          py-0.5
-                          rounded-full
-                          bg-emerald-100
-                          text-emerald-700
-                          text-[10px]
-                          font-bold
-                          uppercase
-                          tracking-wide
-                        "
-                      >
-                        Académico
-                      </span>
-
-                    </div>
-
-                    <p className="text-sm text-slate-500 mt-1">
-                      Presenta tus documentos para evaluación
-                    </p>
-
-                  </div>
-
-                  <div
-                    className="
-                      w-9
-                      h-9
-                      rounded-full
-                      flex
-                      items-center
-                      justify-center
-                      text-slate-300
-                      group-hover:text-emerald-600
-                      group-hover:bg-emerald-100
-                      transition-all
-                      duration-300
-                      shrink-0
-                    "
-                  >
-                    <ArrowRight
-                      size={19}
-                      className="
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-0.5
-                      "
-                    />
-                  </div>
-
-                </button>
-
-                {/* ==================================================
-                    ADMINISTRADOR
-                ================================================== */}
-
-                <button
-                  type="button"
+                <RoleCard
                   onClick={() => setTipo("ADMIN")}
-                  className="
-                    w-full
-                    group
-                    flex
-                    items-center
-                    gap-4
-                    p-5
-                    rounded-2xl
-                    border
-                    border-slate-200
-                    bg-white
-                    text-left
-                    transition-all
-                    duration-300
-                    hover:border-violet-400
-                    hover:bg-violet-50/40
-                    hover:shadow-lg
-                    hover:-translate-y-0.5
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-violet-500/30
-                  "
-                >
-
-                  <div
-                    className="
-                      w-14
-                      h-14
-                      rounded-2xl
-                      bg-violet-100
-                      text-violet-700
-                      flex
-                      items-center
-                      justify-center
-                      shrink-0
-                      group-hover:bg-violet-600
-                      group-hover:text-white
-                      transition-all
-                      duration-300
-                    "
-                  >
-                    <ShieldCheck size={27} />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-
-                    <div className="flex items-center gap-2">
-
-                      <p className="font-bold text-slate-900">
-                        Soy administrador
-                      </p>
-
-                      <span
-                        className="
-                          hidden
-                          sm:inline-flex
-                          px-2
-                          py-0.5
-                          rounded-full
-                          bg-violet-100
-                          text-violet-700
-                          text-[10px]
-                          font-bold
-                          uppercase
-                          tracking-wide
-                        "
-                      >
-                        Gestión
-                      </span>
-
-                    </div>
-
-                    <p className="text-sm text-slate-500 mt-1">
-                      Administra docentes y accesos
-                    </p>
-
-                  </div>
-
-                  <div
-                    className="
-                      w-9
-                      h-9
-                      rounded-full
-                      flex
-                      items-center
-                      justify-center
-                      text-slate-300
-                      group-hover:text-violet-600
-                      group-hover:bg-violet-100
-                      transition-all
-                      duration-300
-                      shrink-0
-                    "
-                  >
-                    <ArrowRight
-                      size={19}
-                      className="
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-0.5
-                      "
-                    />
-                  </div>
-
-                </button>
+                  icon={<Settings2 size={25} />}
+                  number="03"
+                  title="Soy Administrador"
+                  tag="Gestión"
+                  description="Administra las funcionalidades y actualizaciones de la plataforma."
+                  color="violet"
+                />
 
               </div>
 
-              {/* ==================================================
-                  INFORMACIÓN
-              ================================================== */}
 
               <div
                 className="
@@ -829,18 +594,22 @@ export default function Login() {
                   text-slate-400
                 "
               >
+
                 <ShieldCheck size={14} />
 
                 <span>
                   Acceso seguro para la comunidad académica
                 </span>
+
               </div>
 
             </div>
+
           )}
 
+
           {/* ==================================================
-              TIPO SELECCIONADO
+              LOGIN SEGÚN ROL
           ================================================== */}
 
           {tipo && (
@@ -880,38 +649,38 @@ export default function Login() {
                     transition
                   "
                 >
+
                   <ArrowLeft size={16} />
+
                 </div>
 
                 Cambiar tipo de acceso
 
               </button>
 
-              {/* ==================================================
-                  DOCENTE
-              ================================================== */}
+
+              {/* DOCENTE */}
 
               {tipo === "DOCENTE" && (
                 <TeacherLogin />
               )}
 
-              {/* ==================================================
-                  ESTUDIANTE
-              ================================================== */}
+
+              {/* ESTUDIANTE */}
 
               {tipo === "ESTUDIANTE" && (
                 <GoogleLogin />
               )}
 
-              {/* ==================================================
-                  ADMINISTRADOR
-              ================================================== */}
+
+              {/* ADMIN */}
 
               {tipo === "ADMIN" && (
                 <AdminLogin />
               )}
 
             </div>
+
           )}
 
         </div>
@@ -919,5 +688,279 @@ export default function Login() {
       </div>
 
     </div>
+  );
+}
+
+
+/* ==================================================
+    FEATURE
+================================================== */
+
+function Feature({ icon, text }) {
+
+  return (
+
+    <div
+      className="
+        flex
+        items-center
+        gap-3
+        text-sm
+        text-blue-100
+      "
+    >
+
+      <div
+        className="
+          w-8
+          h-8
+          rounded-lg
+          bg-white/10
+          border
+          border-white/5
+          flex
+          items-center
+          justify-center
+          shrink-0
+        "
+      >
+
+        {icon}
+
+      </div>
+
+      <span>
+        {text}
+      </span>
+
+    </div>
+
+  );
+}
+
+
+/* ==================================================
+    ROLE CARD
+================================================== */
+
+function RoleCard({
+  onClick,
+  icon,
+  number,
+  title,
+  tag,
+  description,
+  color,
+}) {
+
+  const colors = {
+
+    blue: {
+      border: "hover:border-blue-400",
+      bg: "hover:bg-blue-50/50",
+      iconBg: "bg-blue-100",
+      iconText: "text-blue-700",
+      iconHover: "group-hover:bg-blue-600 group-hover:text-white",
+      arrow: "group-hover:text-blue-600",
+      arrowBg: "group-hover:bg-blue-100",
+      tagBg: "bg-blue-100",
+      tagText: "text-blue-700",
+    },
+
+    emerald: {
+      border: "hover:border-emerald-400",
+      bg: "hover:bg-emerald-50/50",
+      iconBg: "bg-emerald-100",
+      iconText: "text-emerald-700",
+      iconHover: "group-hover:bg-emerald-600 group-hover:text-white",
+      arrow: "group-hover:text-emerald-600",
+      arrowBg: "group-hover:bg-emerald-100",
+      tagBg: "bg-emerald-100",
+      tagText: "text-emerald-700",
+    },
+
+    violet: {
+      border: "hover:border-violet-400",
+      bg: "hover:bg-violet-50/50",
+      iconBg: "bg-violet-100",
+      iconText: "text-violet-700",
+      iconHover: "group-hover:bg-violet-600 group-hover:text-white",
+      arrow: "group-hover:text-violet-600",
+      arrowBg: "group-hover:bg-violet-100",
+      tagBg: "bg-violet-100",
+      tagText: "text-violet-700",
+    },
+
+  };
+
+
+  const theme = colors[color];
+
+
+  return (
+
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        w-full
+        group
+        flex
+        items-center
+        gap-4
+        p-4
+        sm:p-5
+        rounded-2xl
+        border
+        border-slate-200
+        bg-white
+        text-left
+        transition-all
+        duration-300
+        ${theme.border}
+        ${theme.bg}
+        hover:shadow-xl
+        hover:shadow-slate-200/60
+        hover:-translate-y-0.5
+        focus:outline-none
+        focus:ring-2
+        focus:ring-blue-500/20
+      `}
+    >
+
+      <div
+        className={`
+          w-14
+          h-14
+          rounded-2xl
+          ${theme.iconBg}
+          ${theme.iconText}
+          flex
+          items-center
+          justify-center
+          shrink-0
+          ${theme.iconHover}
+          transition-all
+          duration-300
+        `}
+      >
+
+        {icon}
+
+      </div>
+
+
+      <div className="flex-1 min-w-0">
+
+        <div
+          className="
+            flex
+            items-center
+            gap-2
+            flex-wrap
+          "
+        >
+
+          <p
+            className="
+              font-bold
+              text-slate-900
+              text-base
+            "
+          >
+            {title}
+          </p>
+
+
+          <span
+            className={`
+              px-2
+              py-0.5
+              rounded-full
+              ${theme.tagBg}
+              ${theme.tagText}
+              text-[10px]
+              font-bold
+              uppercase
+              tracking-wide
+            `}
+          >
+
+            {tag}
+
+          </span>
+
+        </div>
+
+
+        <p
+          className="
+            text-sm
+            text-slate-500
+            mt-1.5
+            leading-relaxed
+            pr-2
+          "
+        >
+          {description}
+        </p>
+
+      </div>
+
+
+      <div
+        className="
+          hidden
+          sm:flex
+          flex-col
+          items-end
+          gap-2
+          shrink-0
+        "
+      >
+
+        <span
+          className="
+            text-[10px]
+            font-bold
+            text-slate-300
+            tracking-widest
+          "
+        >
+          {number}
+        </span>
+
+
+        <div
+          className={`
+            w-9
+            h-9
+            rounded-full
+            flex
+            items-center
+            justify-center
+            text-slate-300
+            ${theme.arrow}
+            ${theme.arrowBg}
+            transition-all
+            duration-300
+          `}
+        >
+
+          <ArrowRight
+            size={18}
+            className="
+              transition-transform
+              duration-300
+              group-hover:translate-x-0.5
+            "
+          />
+
+        </div>
+
+      </div>
+
+    </button>
+
   );
 }

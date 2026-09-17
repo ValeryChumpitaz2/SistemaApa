@@ -4,20 +4,19 @@ import {
 } from "react";
 
 import {
-  collection,
-  onSnapshot,
-  query,
-  where
-} from "firebase/firestore";
-
-import {
   Quote,
   Star,
   MessageSquare,
-  Loader2
+  Loader2,
+  Users,
+  Sparkles
 } from "lucide-react";
 
-import { db } from "../../auth/firebase";
+import {
+  obtenerTestimonios
+} from "../../modules/student/services/testimoniosService";
+
+
 // ==================================================
 // COMPONENTE TESTIMONIOS
 // ==================================================
@@ -48,157 +47,188 @@ export default function Testimonials() {
 
   useEffect(() => {
 
-    setCargando(true);
-    setError("");
+    cargarTestimonios();
+
+  }, []);
 
 
-    // --------------------------------------------------
-    // CONSULTA
-    // --------------------------------------------------
-    //
-    // Solo obtenemos testimonios aprobados.
-    //
-    // IMPORTANTE:
-    // No utilizamos orderBy para evitar necesitar
-    // un índice compuesto de Firestore.
-    //
+  async function cargarTestimonios() {
 
-    const consulta = query(
+    try {
 
-      collection(
-        db,
-        "testimonios"
-      ),
-
-      where(
-        "visible",
-        "==",
-        true
-      )
-
-    );
+      setCargando(true);
+      setError("");
 
 
-    // --------------------------------------------------
-    // ESCUCHAR CAMBIOS EN TIEMPO REAL
-    // --------------------------------------------------
+      console.log(
+        "===================================="
+      );
 
-    const cancelar = onSnapshot(
-
-      consulta,
-
-      (snapshot) => {
-
-        try {
-
-          const datos = snapshot.docs
-
-            .map(
-              (documento) => ({
-
-                id:
-                  documento.id,
-
-                ...documento.data()
-
-              })
-            )
+      console.log(
+        "LANDING - CARGANDO TESTIMONIOS"
+      );
 
 
-            // ------------------------------------------
-            // ORDENAR POR FECHA
-            // ------------------------------------------
+      // ==================================================
+      // CONSULTAR GOOGLE APPS SCRIPT
+      // ==================================================
 
-            .sort(
-              (a, b) => {
-
-                const fechaA =
-                  a.fecha?.toDate?.() ||
-                  new Date(0);
+      const resultado =
+        await obtenerTestimonios();
 
 
-                const fechaB =
-                  b.fecha?.toDate?.() ||
-                  new Date(0);
+      console.log(
+        "RESPUESTA BACKEND TESTIMONIOS:",
+        resultado
+      );
 
 
-                return (
-                  fechaB.getTime() -
-                  fechaA.getTime()
-                );
+      // ==================================================
+      // NORMALIZAR RESPUESTA
+      // ==================================================
 
-              }
-            );
+      let datos = [];
 
 
-          setTestimonios(
-            datos
-          );
+      /*
+       * El backend puede responder:
+       *
+       * []
+       *
+       * o
+       *
+       * {
+       *   ok: true,
+       *   data: []
+       * }
+       *
+       * o
+       *
+       * {
+       *   ok: true,
+       *   testimonios: []
+       * }
+       */
 
+      if (
+        Array.isArray(resultado)
+      ) {
 
-          setCargando(
-            false
-          );
+        datos =
+          resultado;
 
+      }
+      else if (
+        Array.isArray(
+          resultado?.testimonios
+        )
+      ) {
 
-          setError("");
+        datos =
+          resultado.testimonios;
 
+      }
+      else if (
+        Array.isArray(
+          resultado?.data
+        )
+      ) {
 
-        } catch (error) {
-
-          console.error(
-            "Error procesando testimonios:",
-            error
-          );
-
-
-          setError(
-            "No se pudieron procesar los testimonios."
-          );
-
-
-          setCargando(
-            false
-          );
-
-        }
-
-      },
-
-
-      (error) => {
-
-        console.error(
-          "Error cargando testimonios:",
-          error
-        );
-
-
-        setError(
-          "No se pudieron cargar los testimonios."
-        );
-
-
-        setCargando(
-          false
-        );
+        datos =
+          resultado.data;
 
       }
 
-    );
+
+      // ==================================================
+      // SOLO APROBADOS
+      // ==================================================
+
+      datos =
+        datos.filter(
+          (item) => {
+
+            return (
+              String(
+                item.estado || ""
+              )
+                .trim()
+                .toLowerCase()
+              ===
+              "aprobado"
+            );
+
+          }
+        );
 
 
-    // --------------------------------------------------
-    // LIMPIAR LISTENER
-    // --------------------------------------------------
+      // ==================================================
+      // ORDENAR POR FECHA
+      // ==================================================
 
-    return () => {
+      datos.sort(
+        (a, b) => {
 
-      cancelar();
+          const fechaA =
+            convertirFecha(
+              a.fecha
+            );
 
-    };
 
-  }, []);
+          const fechaB =
+            convertirFecha(
+              b.fecha
+            );
+
+
+          return (
+            fechaB -
+            fechaA
+          );
+
+        }
+      );
+
+
+      // ==================================================
+      // GUARDAR
+      // ==================================================
+
+      setTestimonios(
+        datos
+      );
+
+
+      console.log(
+        "TESTIMONIOS APROBADOS:",
+        datos
+      );
+
+
+    }
+    catch (err) {
+
+      console.error(
+        "ERROR CARGANDO TESTIMONIOS:",
+        err
+      );
+
+
+      setError(
+        err?.message ||
+        "No se pudieron cargar los testimonios."
+      );
+
+    }
+    finally {
+
+      setCargando(
+        false
+      );
+
+    }
+
+  }
 
 
   // ==================================================
@@ -211,100 +241,115 @@ export default function Testimonials() {
 
       <section
         className="
-          py-24
+          relative
+          overflow-hidden
           bg-white
+          py-20
+          md:py-24
         "
       >
 
         <div
           className="
-            max-w-7xl
+            absolute
+            left-0
+            top-0
+            h-72
+            w-72
+            rounded-full
+            bg-blue-100/40
+            blur-3xl
+          "
+        />
+
+
+        <div
+          className="
+            absolute
+            right-0
+            bottom-0
+            h-72
+            w-72
+            rounded-full
+            bg-indigo-100/40
+            blur-3xl
+          "
+        />
+
+
+        <div
+          className="
+            relative
             mx-auto
+            max-w-7xl
             px-6
           "
         >
 
+          <Encabezado />
+
+
           <div
             className="
-              text-center
-              max-w-3xl
-              mx-auto
+              mt-12
+              flex
+              flex-col
+              items-center
+              justify-center
+              rounded-3xl
+              border
+              border-slate-200
+              bg-slate-50
+              px-6
+              py-16
             "
           >
 
-            <span
+            <div
               className="
-                inline-flex
+                flex
+                h-16
+                w-16
                 items-center
-                gap-2
-                rounded-full
+                justify-center
+                rounded-2xl
                 bg-blue-100
-                px-4
-                py-2
-                text-sm
-                font-semibold
-                text-blue-700
+                text-blue-600
               "
             >
 
-              <MessageSquare
-                size={16}
+              <Loader2
+                size={30}
+                className="animate-spin"
               />
 
-              Experiencias reales
-
-            </span>
-
-
-            <h2
-              className="
-                mt-5
-                text-4xl
-                md:text-5xl
-                font-black
-                text-slate-900
-              "
-            >
-
-              Lo que dice nuestra comunidad
-
-            </h2>
+            </div>
 
 
             <p
               className="
                 mt-5
-                text-lg
-                text-slate-600
+                font-semibold
+                text-slate-700
               "
             >
 
-              Conoce las experiencias de estudiantes,
-              docentes y miembros de la comunidad
-              académica que utilizan VG Smart Review.
+              Cargando experiencias...
 
             </p>
 
 
-            <div
+            <p
               className="
-                mt-12
-                flex
-                justify-center
-                items-center
-                gap-3
+                mt-1
+                text-sm
                 text-slate-500
               "
             >
 
-              <Loader2
-                size={22}
-                className="animate-spin text-blue-600"
-              />
+              Estamos consultando nuestra comunidad.
 
-              Cargando testimonios...
-
-            </div>
+            </p>
 
           </div>
 
@@ -327,97 +372,85 @@ export default function Testimonials() {
 
       <section
         className="
-          py-24
+          relative
+          overflow-hidden
           bg-white
+          py-20
+          md:py-24
         "
       >
 
         <div
           className="
-            max-w-7xl
             mx-auto
+            max-w-7xl
             px-6
           "
         >
 
+          <Encabezado />
+
+
           <div
             className="
-              text-center
-              max-w-3xl
               mx-auto
+              mt-12
+              max-w-2xl
+              rounded-3xl
+              border
+              border-red-200
+              bg-red-50
+              p-8
+              text-center
             "
           >
 
-            <span
+            <div
               className="
-                inline-flex
+                mx-auto
+                flex
+                h-14
+                w-14
                 items-center
-                gap-2
-                rounded-full
-                bg-blue-100
-                px-4
-                py-2
-                text-sm
-                font-semibold
-                text-blue-700
+                justify-center
+                rounded-2xl
+                bg-red-100
+                text-red-600
               "
             >
 
               <MessageSquare
-                size={16}
+                size={26}
               />
 
-              Experiencias reales
-
-            </span>
+            </div>
 
 
-            <h2
+            <h3
               className="
                 mt-5
-                text-4xl
-                md:text-5xl
+                text-lg
                 font-black
-                text-slate-900
+                text-red-800
               "
             >
 
-              Lo que dice nuestra comunidad
+              No se pudieron cargar los testimonios.
 
-            </h2>
+            </h3>
 
 
             <p
               className="
-                mt-5
-                text-lg
-                text-slate-600
-              "
-            >
-
-              Conoce las experiencias de estudiantes,
-              docentes y miembros de la comunidad
-              académica que utilizan VG Smart Review.
-
-            </p>
-
-
-            <div
-              className="
-                mt-10
-                rounded-2xl
-                border
-                border-red-200
-                bg-red-50
-                px-6
-                py-5
-                text-red-700
+                mt-2
+                text-sm
+                text-red-600
               "
             >
 
               {error}
 
-            </div>
+            </p>
 
           </div>
 
@@ -442,140 +475,102 @@ export default function Testimonials() {
 
       <section
         className="
-          py-24
+          relative
+          overflow-hidden
           bg-white
+          py-20
+          md:py-24
         "
       >
 
         <div
           className="
-            max-w-7xl
+            absolute
+            left-0
+            top-0
+            h-80
+            w-80
+            rounded-full
+            bg-blue-100/40
+            blur-3xl
+          "
+        />
+
+
+        <div
+          className="
+            relative
             mx-auto
+            max-w-7xl
             px-6
           "
         >
 
+          <Encabezado />
+
+
           <div
             className="
-              text-center
-              max-w-3xl
               mx-auto
+              mt-12
+              max-w-2xl
+              rounded-3xl
+              border
+              border-slate-200
+              bg-slate-50
+              p-10
+              text-center
             "
           >
 
-            <span
+            <div
               className="
-                inline-flex
+                mx-auto
+                flex
+                h-16
+                w-16
                 items-center
-                gap-2
-                rounded-full
+                justify-center
+                rounded-2xl
                 bg-blue-100
-                px-4
-                py-2
-                text-sm
-                font-semibold
-                text-blue-700
+                text-blue-600
               "
             >
 
-              <MessageSquare
-                size={16}
+              <Users
+                size={30}
               />
 
-              Experiencias reales
-
-            </span>
+            </div>
 
 
-            <h2
+            <h3
               className="
                 mt-5
-                text-4xl
-                md:text-5xl
+                text-xl
                 font-black
                 text-slate-900
               "
             >
 
-              Lo que dice nuestra comunidad
+              Aún no hay testimonios publicados
 
-            </h2>
+            </h3>
 
 
             <p
               className="
-                mt-5
-                text-lg
-                text-slate-600
+                mx-auto
+                mt-2
+                max-w-md
+                text-slate-500
               "
             >
 
-              Conoce las experiencias de estudiantes,
-              docentes y miembros de la comunidad
-              académica que utilizan VG Smart Review.
+              Pronto aparecerán aquí las experiencias
+              de nuestra comunidad académica.
 
             </p>
-
-
-            <div
-              className="
-                mt-12
-                rounded-3xl
-                border
-                border-slate-200
-                bg-slate-50
-                p-10
-              "
-            >
-
-              <div
-                className="
-                  mx-auto
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  bg-blue-100
-                  text-blue-600
-                "
-              >
-
-                <MessageSquare
-                  size={30}
-                />
-
-              </div>
-
-
-              <h3
-                className="
-                  mt-5
-                  text-xl
-                  font-black
-                  text-slate-900
-                "
-              >
-
-                Aún no hay testimonios publicados
-
-              </h3>
-
-
-              <p
-                className="
-                  mt-2
-                  text-slate-500
-                "
-              >
-
-                Pronto aparecerán aquí las experiencias
-                de nuestra comunidad académica.
-
-              </p>
-
-            </div>
 
           </div>
 
@@ -596,111 +591,137 @@ export default function Testimonials() {
 
     <section
       className="
-        py-24
+        relative
+        overflow-hidden
         bg-white
+        py-20
+        md:py-24
       "
     >
 
+      {/* FONDOS */}
+
       <div
         className="
-          max-w-7xl
+          pointer-events-none
+          absolute
+          -left-24
+          top-20
+          h-80
+          w-80
+          rounded-full
+          bg-blue-100/50
+          blur-3xl
+        "
+      />
+
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -right-24
+          bottom-0
+          h-80
+          w-80
+          rounded-full
+          bg-indigo-100/50
+          blur-3xl
+        "
+      />
+
+
+      <div
+        className="
+          relative
           mx-auto
+          max-w-7xl
           px-6
         "
       >
 
-        {/* ==========================================
-            ENCABEZADO
-        ========================================== */}
+        <Encabezado />
+
+
+        {/* ==================================================
+            CONTADOR
+        ================================================== */}
 
         <div
           className="
-            text-center
-            max-w-3xl
-            mx-auto
+            mt-8
+            flex
+            justify-center
           "
         >
 
-          <span
+          <div
             className="
               inline-flex
               items-center
               gap-2
               rounded-full
-              bg-blue-100
-              text-blue-700
+              border
+              border-slate-200
+              bg-white
               px-4
               py-2
               text-sm
               font-semibold
+              text-slate-600
+              shadow-sm
             "
           >
 
-            <MessageSquare
+            <Users
               size={16}
+              className="text-blue-600"
             />
 
-            Experiencias reales
 
-          </span>
-
-
-          <h2
-            className="
-              mt-5
-              text-4xl
-              md:text-5xl
-              font-black
-              text-slate-900
-            "
-          >
-
-            Lo que dice nuestra comunidad
-
-          </h2>
+            {testimonios.length}
 
 
-          <p
-            className="
-              mt-5
-              text-lg
-              text-slate-600
-            "
-          >
+            {
+              testimonios.length === 1
+                ? " experiencia publicada"
+                : " experiencias publicadas"
+            }
 
-            Conoce las experiencias de estudiantes,
-            docentes y miembros de la comunidad
-            académica que utilizan VG Smart Review.
-
-          </p>
+          </div>
 
         </div>
 
 
-        {/* ==========================================
+        {/* ==================================================
             TARJETAS
-        ========================================== */}
+        ================================================== */}
 
         <div
           className="
-            mt-14
+            mt-12
             grid
+            gap-6
             md:grid-cols-2
             lg:grid-cols-3
-            gap-7
           "
         >
 
-          {testimonios.map(
-            (item) => (
+          {
+            testimonios.map(
+              (item) => (
 
-              <TestimonialCard
-                key={item.id}
-                item={item}
-              />
+                <TestimonialCard
+                  key={
+                    item.id ||
+                    `${item.nombre}-${item.fecha}`
+                  }
+                  item={item}
+                />
 
+              )
             )
-          )}
+          }
 
         </div>
 
@@ -714,37 +735,125 @@ export default function Testimonials() {
 
 
 // ==================================================
-// TARJETA DE TESTIMONIO
+// ENCABEZADO
+// ==================================================
+
+function Encabezado() {
+
+  return (
+
+    <div
+      className="
+        mx-auto
+        max-w-3xl
+        text-center
+      "
+    >
+
+      <span
+        className="
+          inline-flex
+          items-center
+          gap-2
+          rounded-full
+          bg-blue-50
+          px-4
+          py-2
+          text-sm
+          font-bold
+          text-blue-700
+          ring-1
+          ring-blue-100
+        "
+      >
+
+        <Sparkles
+          size={16}
+        />
+
+        Experiencias reales
+
+      </span>
+
+
+      <h2
+        className="
+          mt-5
+          text-4xl
+          font-black
+          tracking-tight
+          text-slate-900
+          md:text-5xl
+        "
+      >
+
+        Lo que dice nuestra comunidad
+
+      </h2>
+
+
+      <p
+        className="
+          mx-auto
+          mt-5
+          max-w-2xl
+          text-base
+          leading-7
+          text-slate-600
+          md:text-lg
+        "
+      >
+
+        Conoce las experiencias de estudiantes,
+        docentes y miembros de la comunidad
+        académica que utilizan VG Smart Review.
+
+      </p>
+
+    </div>
+
+  );
+
+}
+
+
+// ==================================================
+// TARJETA
 // ==================================================
 
 function TestimonialCard({
   item
 }) {
 
-  // --------------------------------------------------
-  // NOMBRE
-  // --------------------------------------------------
-
   const nombre =
     item.nombre ||
     "Usuario";
 
 
-  // --------------------------------------------------
-  // ROL
-  // --------------------------------------------------
-
   const rol =
-    item.rol === "DOCENTE"
-      ? "Docente"
-      : item.rol === "ADMIN"
-        ? "Administrador"
-        : "Estudiante";
+    obtenerRol(
+      item.tipo ||
+      item.rol
+    );
 
 
-  // --------------------------------------------------
-  // INICIAL
-  // --------------------------------------------------
+  const comentario =
+    item.experiencia ||
+    item.comentario ||
+    "Excelente experiencia utilizando VG Smart Review.";
+
+
+  const calificacion =
+    Math.min(
+      5,
+      Math.max(
+        1,
+        Number(
+          item.calificacion
+        ) || 5
+      )
+    );
+
 
   const inicial =
     nombre
@@ -753,41 +862,47 @@ function TestimonialCard({
       .toUpperCase();
 
 
-  // --------------------------------------------------
-  // CALIFICACIÓN
-  // --------------------------------------------------
-
-  const calificacion =
-    Number(
-      item.calificacion
-    ) || 5;
-
-
-  // ==================================================
-  // RENDER
-  // ==================================================
-
   return (
 
     <article
       className="
         group
+        relative
+        flex
+        h-full
+        flex-col
+        overflow-hidden
         rounded-3xl
         border
         border-slate-200
-        bg-slate-50
-        p-8
-        transition
-        hover:-translate-y-2
-        hover:bg-white
-        hover:shadow-xl
+        bg-white
+        p-7
+        shadow-sm
+        transition-all
+        duration-300
+        hover:-translate-y-1
         hover:border-blue-200
+        hover:shadow-xl
       "
     >
 
-      {/* ==========================================
-          CABECERA
-      ========================================== */}
+      {/* BARRA SUPERIOR */}
+
+      <div
+        className="
+          absolute
+          inset-x-0
+          top-0
+          h-1
+          bg-gradient-to-r
+          from-blue-600
+          via-indigo-500
+          to-blue-400
+        "
+      />
+
+
+      {/* CABECERA */}
 
       <div
         className="
@@ -798,8 +913,6 @@ function TestimonialCard({
         "
       >
 
-        {/* ICONO */}
-
         <div
           className="
             flex
@@ -808,13 +921,16 @@ function TestimonialCard({
             items-center
             justify-center
             rounded-2xl
-            bg-blue-100
-            text-blue-700
+            bg-blue-50
+            text-blue-600
+            transition
+            group-hover:bg-blue-600
+            group-hover:text-white
           "
         >
 
           <Quote
-            size={22}
+            size={21}
           />
 
         </div>
@@ -825,7 +941,12 @@ function TestimonialCard({
         <div
           className="
             flex
+            items-center
             gap-1
+            rounded-full
+            bg-amber-50
+            px-3
+            py-2
           "
         >
 
@@ -837,7 +958,7 @@ function TestimonialCard({
                 size={15}
                 className={
                   estrella <= calificacion
-                    ? "fill-yellow-400 text-yellow-400"
+                    ? "fill-amber-400 text-amber-400"
                     : "text-slate-300"
                 }
               />
@@ -850,40 +971,90 @@ function TestimonialCard({
       </div>
 
 
-      {/* ==========================================
-          COMENTARIO
-      ========================================== */}
-
-      <p
-        className="
-          mt-6
-          text-slate-600
-          leading-7
-        "
-      >
-
-        "{item.comentario}"
-
-      </p>
-
-
-      {/* ==========================================
-          USUARIO
-      ========================================== */}
+      {/* EXPERIENCIA */}
 
       <div
         className="
-          mt-7
+          mt-6
+          flex-1
+        "
+      >
+
+        <p
+          className="
+            text-base
+            leading-7
+            text-slate-600
+          "
+        >
+
+          “{comentario}”
+
+        </p>
+
+      </div>
+
+
+      {/* AYUDA */}
+
+      {
+        item.ayuda &&
+
+        <div
+          className="
+            mt-5
+            rounded-2xl
+            bg-slate-50
+            p-4
+          "
+        >
+
+          <p
+            className="
+              text-xs
+              font-bold
+              uppercase
+              tracking-wide
+              text-blue-600
+            "
+          >
+
+            ¿Cómo ayudó?
+
+          </p>
+
+
+          <p
+            className="
+              mt-1
+              text-sm
+              leading-6
+              text-slate-600
+            "
+          >
+
+            {item.ayuda}
+
+          </p>
+
+        </div>
+
+      }
+
+
+      {/* USUARIO */}
+
+      <div
+        className="
+          mt-6
           flex
           items-center
           gap-3
           border-t
-          border-slate-200
-          pt-6
+          border-slate-100
+          pt-5
         "
       >
-
-        {/* INICIAL */}
 
         <div
           className="
@@ -894,8 +1065,11 @@ function TestimonialCard({
             items-center
             justify-center
             rounded-full
-            bg-blue-600
-            font-bold
+            bg-gradient-to-br
+            from-blue-600
+            to-indigo-600
+            text-sm
+            font-black
             text-white
           "
         >
@@ -905,12 +1079,13 @@ function TestimonialCard({
         </div>
 
 
-        {/* DATOS */}
-
-        <div>
+        <div
+          className="min-w-0"
+        >
 
           <p
             className="
+              truncate
               font-bold
               text-slate-900
             "
@@ -939,5 +1114,97 @@ function TestimonialCard({
     </article>
 
   );
+
+}
+
+
+// ==================================================
+// OBTENER ROL
+// ==================================================
+
+function obtenerRol(
+  rol
+) {
+
+  const valor =
+    String(
+      rol || ""
+    )
+      .trim()
+      .toUpperCase();
+
+
+  if (
+    valor === "DOCENTE" ||
+    valor === "TEACHER"
+  ) {
+
+    return "Docente";
+
+  }
+
+
+  if (
+    valor === "ADMIN" ||
+    valor === "ADMINISTRADOR"
+  ) {
+
+    return "Administrador";
+
+  }
+
+
+  return "Estudiante";
+
+}
+
+
+// ==================================================
+// CONVERTIR FECHA
+// ==================================================
+
+function convertirFecha(
+  fecha
+) {
+
+  if (!fecha) {
+
+    return 0;
+
+  }
+
+
+  if (
+    typeof fecha?.toDate ===
+    "function"
+  ) {
+
+    const resultado =
+      fecha.toDate();
+
+
+    return resultado.getTime();
+
+  }
+
+
+  const fechaConvertida =
+    new Date(
+      fecha
+    );
+
+
+  if (
+    Number.isNaN(
+      fechaConvertida.getTime()
+    )
+  ) {
+
+    return 0;
+
+  }
+
+
+  return fechaConvertida.getTime();
 
 }

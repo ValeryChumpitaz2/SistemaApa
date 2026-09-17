@@ -1,73 +1,210 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState
+} from "react";
 
 import {
   Star,
   Send,
+  MessageSquareText,
+  Sparkles,
   CheckCircle2,
-  MessageSquare
+  AlertCircle,
+  Loader2,
+  User,
+  Heart,
+  Quote,
+  ShieldCheck
 } from "lucide-react";
 
 import {
-  addDoc,
-  collection,
-  serverTimestamp
-} from "firebase/firestore";
+  registrarTestimonio
+} from "../services/testimoniosService";
 
-import { db } from "../../../auth/firebase";
 
 
 export default function TestimonialForm() {
 
-  const [comentario, setComentario] = useState("");
+  // ==================================================
+  // ESTADOS
+  // ==================================================
 
-  const [calificacion, setCalificacion] = useState(5);
+  const [
+    usuario,
+    setUsuario
+  ] = useState(null);
 
-  const [enviando, setEnviando] = useState(false);
+  const [
+    correo,
+    setCorreo
+  ] = useState("");
 
-  const [enviado, setEnviado] = useState(false);
+  const [
+    nombre,
+    setNombre
+  ] = useState("Estudiante");
 
-  const [error, setError] = useState("");
+  const [
+    calificacion,
+    setCalificacion
+  ] = useState(5);
+
+  const [
+    experiencia,
+    setExperiencia
+  ] = useState("");
+
+  const [
+    ayuda,
+    setAyuda
+  ] = useState("");
+
+  const [
+    enviando,
+    setEnviando
+  ] = useState(false);
+
+  const [
+    exito,
+    setExito
+  ] = useState("");
+
+  const [
+    error,
+    setError
+  ] = useState("");
+
+  const [
+    hoverEstrella,
+    setHoverEstrella
+  ] = useState(0);
+
 
 
   // ==================================================
-  // USUARIO ACTUAL
+  // CARGAR USUARIO
   // ==================================================
 
-  const usuario = (() => {
+  useEffect(() => {
+
+    cargarUsuario();
+
+  }, []);
+
+
+
+  function cargarUsuario() {
 
     try {
 
-      const guardado =
+      const usuarioGuardado =
         localStorage.getItem("usuario");
 
-      return guardado
-        ? JSON.parse(guardado)
-        : null;
 
-    } catch {
+      let usuarioLocal = null;
 
-      return null;
+
+      if (usuarioGuardado) {
+
+        try {
+
+          usuarioLocal =
+            JSON.parse(usuarioGuardado);
+
+        } catch {
+
+          usuarioLocal = null;
+
+        }
+
+      }
+
+
+      const correoLocal =
+        String(
+          usuarioLocal?.correo ||
+          usuarioLocal?.email ||
+          localStorage.getItem("correo") ||
+          ""
+        )
+          .trim()
+          .toLowerCase();
+
+
+      const nombreLocal =
+        String(
+          usuarioLocal?.nombre ||
+          usuarioLocal?.displayName ||
+          "Estudiante"
+        )
+          .trim();
+
+
+      setUsuario(usuarioLocal);
+      setCorreo(correoLocal);
+      setNombre(nombreLocal);
+
+
+      console.log(
+        "===================================="
+      );
+
+      console.log(
+        "USUARIO PARA TESTIMONIO:",
+        usuarioLocal
+      );
+
+      console.log(
+        "CORREO TESTIMONIO:",
+        correoLocal
+      );
+
+    }
+    catch (err) {
+
+      console.error(
+        "Error obteniendo usuario:",
+        err
+      );
+
+      setError(
+        "No se pudo identificar al usuario."
+      );
 
     }
 
-  })();
+  }
+
+
+
+  // ==================================================
+  // CONTADORES
+  // ==================================================
+
+  const cantidadExperiencia =
+    experiencia.length;
+
+  const cantidadAyuda =
+    ayuda.length;
+
 
 
   // ==================================================
   // ENVIAR TESTIMONIO
   // ==================================================
 
-  async function enviarTestimonio(e) {
+  async function handleSubmit(e) {
 
     e.preventDefault();
 
     setError("");
+    setExito("");
 
 
-    if (!usuario) {
+    if (!correo) {
 
       setError(
-        "No se encontró una sesión activa."
+        "No se pudo identificar tu correo. Cierra sesión y vuelve a ingresar."
       );
 
       return;
@@ -75,10 +212,12 @@ export default function TestimonialForm() {
     }
 
 
-    if (!comentario.trim()) {
+    if (
+      experiencia.trim().length < 10
+    ) {
 
       setError(
-        "Por favor, escribe tu experiencia."
+        "Cuéntanos un poco más sobre tu experiencia. Mínimo 10 caracteres."
       );
 
       return;
@@ -86,10 +225,12 @@ export default function TestimonialForm() {
     }
 
 
-    if (comentario.trim().length < 10) {
+    if (
+      ayuda.trim().length < 10
+    ) {
 
       setError(
-        "El comentario debe tener al menos 10 caracteres."
+        "Cuéntanos cómo te ayudó VG Smart Review. Mínimo 10 caracteres."
       );
 
       return;
@@ -102,65 +243,50 @@ export default function TestimonialForm() {
       setEnviando(true);
 
 
-      await addDoc(
-        collection(db, "testimonios"),
-        {
+      const resultado =
+        await registrarTestimonio({
 
-          usuarioId:
-            usuario.codigo ||
-            usuario.correo ||
-            "usuario",
+          nombre,
+          correo,
+          calificacion,
+          experiencia,
+          ayuda
 
-          nombre:
-            usuario.nombre ||
-            "Usuario",
+        });
 
-          correo:
-            usuario.correo ||
-            "",
 
-          rol:
-            usuario.rol ||
-            "USUARIO",
-
-          comentario:
-            comentario.trim(),
-
-          calificacion:
-            calificacion,
-
-          estado:
-            "PENDIENTE",
-
-          visible:
-            false,
-
-          fecha:
-            serverTimestamp()
-
-        }
+      console.log(
+        "RESPUESTA:",
+        resultado
       );
 
 
-      setComentario("");
+      setExito(
+        "¡Gracias por compartir tu experiencia! Tu testimonio fue enviado correctamente y será revisado antes de publicarse."
+      );
 
+
+      setExperiencia("");
+      setAyuda("");
       setCalificacion(5);
+      setHoverEstrella(0);
 
-      setEnviado(true);
-
-
-    } catch (error) {
+    }
+    catch (err) {
 
       console.error(
-        "Error guardando testimonio:",
-        error
+        "ERROR ENVIANDO TESTIMONIO:",
+        err
       );
+
 
       setError(
-        "No se pudo enviar tu testimonio. Inténtalo nuevamente."
+        err?.message ||
+        "No se pudo enviar el testimonio."
       );
 
-    } finally {
+    }
+    finally {
 
       setEnviando(false);
 
@@ -169,751 +295,1070 @@ export default function TestimonialForm() {
   }
 
 
-  // ==================================================
-  // MENSAJE DE ÉXITO
-  // ==================================================
-
-  if (enviado) {
-
-    return (
-
-      <div
-        className="
-          relative
-          overflow-hidden
-          rounded-3xl
-          border
-          border-green-200
-          bg-green-50
-          p-10
-          text-center
-          shadow-sm
-
-          dark:border-green-900/60
-          dark:bg-green-950/30
-        "
-      >
-
-        {/* DECORACIÓN */}
-
-        <div
-          className="
-            absolute
-            -right-10
-            -top-10
-            h-32
-            w-32
-            rounded-full
-            bg-green-200/40
-
-            dark:bg-green-500/10
-          "
-        />
-
-        <div
-          className="
-            absolute
-            -bottom-12
-            -left-12
-            h-36
-            w-36
-            rounded-full
-            bg-green-200/30
-
-            dark:bg-green-500/10
-          "
-        />
-
-
-        {/* ICONO */}
-
-        <div
-          className="
-            relative
-            mx-auto
-            flex
-            h-20
-            w-20
-            items-center
-            justify-center
-            rounded-3xl
-            bg-green-100
-            text-green-600
-            shadow-sm
-
-            dark:bg-green-900/40
-            dark:text-green-400
-          "
-        >
-
-          <CheckCircle2 size={38} />
-
-        </div>
-
-
-        <h3
-          className="
-            relative
-            mt-6
-            text-2xl
-            font-black
-            text-slate-900
-
-            dark:text-white
-          "
-        >
-
-          ¡Gracias por tu opinión! 💙
-
-        </h3>
-
-
-        <p
-          className="
-            relative
-            mx-auto
-            mt-3
-            max-w-md
-            leading-7
-            text-slate-600
-
-            dark:text-slate-300
-          "
-        >
-
-          Tu testimonio fue enviado correctamente.
-
-          <br />
-
-          Será revisado por un administrador
-          antes de publicarse.
-
-        </p>
-
-      </div>
-
-    );
-
-  }
-
 
   // ==================================================
-  // FORMULARIO
+  // RENDER
   // ==================================================
 
   return (
 
-    <form
-      onSubmit={enviarTestimonio}
-
+    <section
       className="
         relative
+        w-full
         overflow-hidden
-        rounded-3xl
+        rounded-[2rem]
         border
         border-slate-200
         bg-white
-        p-8
-        shadow-sm
-        transition-colors
-
-        dark:border-slate-800
-        dark:bg-slate-900
+        shadow-[0_20px_60px_-25px_rgba(15,23,42,0.25)]
       "
     >
 
-      {/* ==========================================
-          DECORACIÓN SUPERIOR
-      ========================================== */}
+      {/* ==================================================
+          DECORACIÓN GENERAL
+      ================================================== */}
 
       <div
         className="
+          pointer-events-none
           absolute
-          right-0
-          top-0
-          h-32
-          w-32
-          translate-x-12
-          -translate-y-12
+          -right-24
+          -top-32
+          h-80
+          w-80
           rounded-full
           bg-blue-100/60
-
-          dark:bg-blue-500/10
+          blur-3xl
         "
       />
+
 
       <div
         className="
+          pointer-events-none
           absolute
-          right-10
-          top-10
-          h-12
-          w-12
+          -bottom-32
+          left-[35%]
+          h-72
+          w-72
           rounded-full
-          bg-blue-50
-
-          dark:bg-blue-500/10
+          bg-indigo-100/40
+          blur-3xl
         "
       />
 
 
-      {/* ==========================================
-          ENCABEZADO
-      ========================================== */}
+
+      {/* ==================================================
+          CONTENIDO PRINCIPAL
+      ================================================== */}
 
       <div
         className="
           relative
-          flex
-          items-center
-          gap-4
+          grid
+          lg:min-h-[560px]
+          lg:grid-cols-[0.9fr_1.1fr]
+          xl:min-h-[520px]
         "
       >
 
-        <div
+
+        {/* ==================================================
+            COLUMNA IZQUIERDA
+        ================================================== */}
+
+        <aside
           className="
-            flex
-            h-14
-            w-14
-            shrink-0
-            items-center
-            justify-center
-            rounded-2xl
-            bg-blue-100
-            text-[#1D3681]
-
-            dark:bg-blue-900/40
-            dark:text-blue-300
-          "
-        >
-
-          <MessageSquare size={25} />
-
-        </div>
-
-
-        <div>
-
-          <h3
-            className="
-              text-xl
-              font-black
-              text-slate-900
-
-              dark:text-white
-            "
-          >
-
-            Comparte tu experiencia
-
-          </h3>
-
-
-          <p
-            className="
-              mt-1
-              text-sm
-              text-slate-500
-
-              dark:text-slate-400
-            "
-          >
-
-            Tu opinión nos ayuda a mejorar VG Smart Review.
-
-          </p>
-
-        </div>
-
-      </div>
-
-
-      {/* ==========================================
-          USUARIO
-      ========================================== */}
-
-      <div
-        className="
-          mt-7
-          flex
-          items-center
-          gap-4
-          rounded-2xl
-          border
-          border-slate-200
-          bg-slate-50
-          px-5
-          py-4
-
-          dark:border-slate-800
-          dark:bg-slate-800/60
-        "
-      >
-
-        <div
-          className="
-            flex
-            h-11
-            w-11
-            items-center
-            justify-center
-            rounded-xl
-            bg-[#1D3681]
-            text-sm
-            font-black
+            relative
+            overflow-hidden
+            bg-gradient-to-br
+            from-[#12255C]
+            via-[#1D3681]
+            to-[#3156B3]
+            px-7
+            py-8
             text-white
+            sm:px-9
+            lg:px-10
+            lg:py-9
+            xl:px-12
           "
         >
 
-          {
-            usuario?.nombre
-              ?.charAt(0)
-              ?.toUpperCase() || "U"
-          }
+          {/* DECORACIÓN */}
 
-        </div>
-
-
-        <div className="min-w-0">
-
-          <p
+          <div
             className="
-              truncate
-              text-sm
-              font-bold
-              text-slate-800
-
-              dark:text-white
+              absolute
+              -right-24
+              -top-24
+              h-64
+              w-64
+              rounded-full
+              bg-white/[0.07]
             "
-          >
-
-            {usuario?.nombre || "Usuario"}
-
-          </p>
+          />
 
 
-          <p
+          <div
             className="
-              mt-1
-              text-xs
-              text-slate-500
-
-              dark:text-slate-400
+              absolute
+              -bottom-32
+              -left-24
+              h-72
+              w-72
+              rounded-full
+              bg-white/[0.05]
             "
-          >
-
-            {
-              usuario?.rol === "DOCENTE"
-                ? "Docente"
-                : "Estudiante"
-            }
-
-          </p>
-
-        </div>
-
-      </div>
+          />
 
 
-      {/* ==========================================
-          CALIFICACIÓN
-      ========================================== */}
+          <div
+            className="
+              absolute
+              right-12
+              top-[45%]
+              h-20
+              w-20
+              rounded-full
+              border
+              border-white/10
+            "
+          />
 
-      <div className="mt-8">
 
-        <div
+          <div className="relative flex h-full flex-col">
+
+
+            {/* ==================================================
+                ICONO + ETIQUETA
+            ================================================== */}
+
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-4
+              "
+            >
+
+              <div
+                className="
+                  flex
+                  h-12
+                  w-12
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  bg-white/10
+                  ring-1
+                  ring-white/20
+                  shadow-lg
+                "
+              >
+
+                <MessageSquareText
+                  size={23}
+                  strokeWidth={1.8}
+                />
+
+              </div>
+
+
+              <span
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-full
+                  border
+                  border-white/15
+                  bg-white/10
+                  px-3
+                  py-1.5
+                  text-[9px]
+                  font-black
+                  uppercase
+                  tracking-[0.15em]
+                  text-blue-100
+                  backdrop-blur-sm
+                "
+              >
+
+                <Sparkles size={11} />
+
+                Comunidad académica
+
+              </span>
+
+            </div>
+
+
+
+            {/* ==================================================
+                TITULO
+            ================================================== */}
+
+            <div className="mt-7">
+
+              <p
+                className="
+                  text-[11px]
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                  text-blue-200
+                "
+              >
+
+                VG Smart Review
+
+              </p>
+
+
+              <h2
+                className="
+                  mt-2
+                  max-w-md
+                  text-[2rem]
+                  font-black
+                  leading-[1.08]
+                  tracking-tight
+                  sm:text-[2.2rem]
+                "
+              >
+
+                Tu experiencia
+                <span
+                  className="
+                    block
+                    text-blue-200
+                  "
+                >
+                  también cuenta.
+                </span>
+
+              </h2>
+
+
+              <p
+                className="
+                  mt-4
+                  max-w-md
+                  text-sm
+                  leading-6
+                  text-blue-100
+                "
+              >
+
+                Comparte cómo ha sido tu experiencia
+                utilizando VG Smart Review y ayuda a
+                otros estudiantes a conocer mejor la
+                plataforma.
+
+              </p>
+
+            </div>
+
+
+
+            {/* ==================================================
+                FRASE DESTACADA
+            ================================================== */}
+
+            <div
+              className="
+                mt-7
+                rounded-2xl
+                border
+                border-white/10
+                bg-white/[0.08]
+                p-4
+                backdrop-blur-md
+              "
+            >
+
+              <div
+                className="
+                  flex
+                  gap-3
+                "
+              >
+
+                <Quote
+                  size={20}
+                  className="
+                    mt-0.5
+                    shrink-0
+                    text-blue-200
+                  "
+                />
+
+
+                <p
+                  className="
+                    text-xs
+                    leading-5
+                    text-white
+                  "
+                >
+
+                  Tu opinión nos permite mejorar la
+                  experiencia académica y construir una
+                  plataforma cada vez más útil para
+                  nuestra comunidad.
+
+                </p>
+
+              </div>
+
+            </div>
+
+
+
+            {/* ==================================================
+                USUARIO
+            ================================================== */}
+
+            <div
+              className="
+                mt-auto
+                pt-7
+              "
+            >
+
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    h-10
+                    w-10
+                    shrink-0
+                    items-center
+                    justify-center
+                    overflow-hidden
+                    rounded-full
+                    bg-white/10
+                    ring-1
+                    ring-white/20
+                  "
+                >
+
+                  {
+                    usuario?.foto
+
+                      ?
+
+                      <img
+                        src={usuario.foto}
+                        alt={nombre}
+                        className="
+                          h-full
+                          w-full
+                          object-cover
+                        "
+                      />
+
+                      :
+
+                      <User
+                        size={17}
+                        className="text-white/80"
+                      />
+
+                  }
+
+                </div>
+
+
+                <div className="min-w-0">
+
+                  <p
+                    className="
+                      truncate
+                      text-sm
+                      font-bold
+                      text-white
+                    "
+                  >
+
+                    {nombre}
+
+                  </p>
+
+
+                  <p
+                    className="
+                      mt-0.5
+                      text-[10px]
+                      font-medium
+                      text-blue-200
+                    "
+                  >
+
+                    Estudiante · Comunidad VG Smart Review
+
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </aside>
+
+
+
+        {/* ==================================================
+            COLUMNA DERECHA
+        ================================================== */}
+
+        <form
+          onSubmit={handleSubmit}
           className="
+            relative
             flex
-            items-center
-            justify-between
-            gap-3
+            flex-col
+            px-7
+            py-7
+            sm:px-9
+            lg:px-10
+            lg:py-8
+            xl:px-12
           "
         >
+
+
+          {/* ==================================================
+              CABECERA
+          ================================================== */}
 
           <div>
 
-            <p
+            <div
               className="
-                text-sm
-                font-bold
-                text-slate-800
-
-                dark:text-slate-200
+                flex
+                items-center
+                gap-2
+                text-[10px]
+                font-black
+                uppercase
+                tracking-[0.18em]
+                text-[#3156B3]
               "
             >
 
-              ¿Cómo calificarías tu experiencia?
+              <span
+                className="
+                  h-1.5
+                  w-1.5
+                  rounded-full
+                  bg-[#3156B3]
+                "
+              />
 
-            </p>
+              Comparte tu opinión
+
+            </div>
+
+
+            <h3
+              className="
+                mt-2
+                text-2xl
+                font-black
+                tracking-tight
+                text-slate-900
+                xl:text-[1.8rem]
+              "
+            >
+
+              ¿Cómo ha sido tu experiencia?
+
+            </h3>
+
 
             <p
               className="
-                mt-1
+                mt-1.5
                 text-xs
-                text-slate-400
+                leading-5
+                text-slate-500
               "
             >
 
-              Selecciona de 1 a 5 estrellas.
+              Tu valoración puede ayudar a otros estudiantes
+              y contribuir a mejorar la plataforma.
 
             </p>
 
           </div>
 
 
-          <span
-            className="
-              rounded-full
-              bg-yellow-100
-              px-3
-              py-1
-              text-xs
-              font-black
-              text-yellow-700
 
-              dark:bg-yellow-900/30
-              dark:text-yellow-400
+          {/* ==================================================
+              CALIFICACIÓN COMPACTA
+          ================================================== */}
+
+          <div
+            className="
+              mt-5
+              flex
+              flex-col
+              gap-3
+              rounded-2xl
+              border
+              border-slate-200
+              bg-slate-50
+              px-4
+              py-3.5
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
             "
           >
 
-            {calificacion}/5
+            <div>
 
-          </span>
-
-        </div>
-
-
-        <div
-          className="
-            mt-4
-            flex
-            gap-1
-            rounded-2xl
-            border
-            border-slate-200
-            bg-slate-50
-            p-3
-            w-fit
-
-            dark:border-slate-800
-            dark:bg-slate-800/60
-          "
-        >
-
-          {[1, 2, 3, 4, 5].map(
-            (estrella) => (
-
-              <button
-                key={estrella}
-                type="button"
-                aria-label={`Calificar ${estrella} estrellas`}
-                onClick={() =>
-                  setCalificacion(estrella)
-                }
+              <p
                 className="
-                  rounded-xl
-                  p-2
-                  transition-all
-                  duration-200
-                  hover:scale-110
-                  hover:bg-white
-
-                  dark:hover:bg-slate-700
+                  text-[9px]
+                  font-black
+                  uppercase
+                  tracking-wider
+                  text-slate-400
                 "
               >
 
-                <Star
-                  size={28}
-                  className={
+                Tu valoración
 
-                    estrella <= calificacion
+              </p>
 
-                      ?
 
-                      "fill-yellow-400 text-yellow-400"
+              <p
+                className="
+                  mt-0.5
+                  text-xs
+                  font-bold
+                  text-slate-700
+                "
+              >
 
-                      :
+                {
+                  calificacion === 5
+                    ? "Excelente experiencia"
+                    : calificacion === 4
+                    ? "Muy buena experiencia"
+                    : calificacion === 3
+                    ? "Buena experiencia"
+                    : calificacion === 2
+                    ? "Puede mejorar"
+                    : "Necesita mejorar"
+                }
 
-                      "text-slate-300 dark:text-slate-600"
+              </p>
 
-                  }
+            </div>
+
+
+            <div
+              className="
+                flex
+                items-center
+                gap-1
+              "
+            >
+
+              {
+                [1, 2, 3, 4, 5].map(
+                  estrella => (
+
+                    <button
+                      key={estrella}
+                      type="button"
+                      onClick={() =>
+                        setCalificacion(
+                          estrella
+                        )
+                      }
+                      onMouseEnter={() =>
+                        setHoverEstrella(
+                          estrella
+                        )
+                      }
+                      onMouseLeave={() =>
+                        setHoverEstrella(0)
+                      }
+                      className="
+                        rounded-lg
+                        p-0.5
+                        transition-all
+                        duration-150
+                        hover:scale-110
+                        focus:outline-none
+                      "
+                    >
+
+                      <Star
+                        size={23}
+                        className={
+                          (
+                            hoverEstrella ||
+                            calificacion
+                          ) >= estrella
+
+                            ?
+
+                            "fill-amber-400 text-amber-400"
+
+                            :
+
+                            "text-slate-300"
+                        }
+                      />
+
+                    </button>
+
+                  )
+                )
+              }
+
+
+              <span
+                className="
+                  ml-2
+                  text-xs
+                  font-black
+                  text-slate-500
+                "
+              >
+
+                {calificacion}/5
+
+              </span>
+
+            </div>
+
+          </div>
+
+
+
+          {/* ==================================================
+              CAMPOS EN DOS COLUMNAS
+          ================================================== */}
+
+          <div
+            className="
+              mt-5
+              grid
+              gap-4
+              md:grid-cols-2
+            "
+          >
+
+            {/* ==================================================
+                EXPERIENCIA
+            ================================================== */}
+
+            <div>
+
+              <div
+                className="
+                  mb-1.5
+                  flex
+                  items-center
+                  justify-between
+                "
+              >
+
+                <label
+                  className="
+                    text-xs
+                    font-black
+                    text-slate-800
+                  "
+                >
+
+                  Tu experiencia
+
+                  <span className="text-red-500">
+                    {" "}*
+                  </span>
+
+                </label>
+
+
+                <span
+                  className="
+                    text-[9px]
+                    font-bold
+                    text-slate-400
+                  "
+                >
+
+                  {cantidadExperiencia}/500
+
+                </span>
+
+              </div>
+
+
+              <textarea
+                value={experiencia}
+                onChange={e =>
+                  setExperiencia(
+                    e.target.value.slice(
+                      0,
+                      500
+                    )
+                  )
+                }
+                rows={6}
+                placeholder="Cuéntanos qué te pareció utilizar VG Smart Review..."
+                className="
+                  h-[155px]
+                  w-full
+                  resize-none
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  px-4
+                  py-3
+                  text-xs
+                  leading-5
+                  text-slate-800
+                  outline-none
+                  transition-all
+                  placeholder:text-slate-400
+                  hover:border-slate-300
+                  focus:border-[#3156B3]
+                  focus:ring-4
+                  focus:ring-blue-500/10
+                "
+              />
+
+            </div>
+
+
+
+            {/* ==================================================
+                AYUDA
+            ================================================== */}
+
+            <div>
+
+              <div
+                className="
+                  mb-1.5
+                  flex
+                  items-center
+                  justify-between
+                "
+              >
+
+                <label
+                  className="
+                    text-xs
+                    font-black
+                    text-slate-800
+                  "
+                >
+
+                  ¿Cómo te ayudó?
+
+                  <span className="text-red-500">
+                    {" "}*
+                  </span>
+
+                </label>
+
+
+                <span
+                  className="
+                    text-[9px]
+                    font-bold
+                    text-slate-400
+                  "
+                >
+
+                  {cantidadAyuda}/500
+
+                </span>
+
+              </div>
+
+
+              <textarea
+                value={ayuda}
+                onChange={e =>
+                  setAyuda(
+                    e.target.value.slice(
+                      0,
+                      500
+                    )
+                  )
+                }
+                rows={6}
+                placeholder="Por ejemplo: me ayudó a identificar errores y mejorar mis documentos..."
+                className="
+                  h-[155px]
+                  w-full
+                  resize-none
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  px-4
+                  py-3
+                  text-xs
+                  leading-5
+                  text-slate-800
+                  outline-none
+                  transition-all
+                  placeholder:text-slate-400
+                  hover:border-slate-300
+                  focus:border-[#3156B3]
+                  focus:ring-4
+                  focus:ring-blue-500/10
+                "
+              />
+
+            </div>
+
+          </div>
+
+
+
+          {/* ==================================================
+              MENSAJES
+          ================================================== */}
+
+          {
+            error && (
+
+              <div
+                className="
+                  mt-4
+                  flex
+                  items-start
+                  gap-2.5
+                  rounded-xl
+                  border
+                  border-red-200
+                  bg-red-50
+                  px-3.5
+                  py-3
+                "
+              >
+
+                <AlertCircle
+                  size={16}
+                  className="
+                    mt-0.5
+                    shrink-0
+                    text-red-500
+                  "
                 />
 
-              </button>
+
+                <p
+                  className="
+                    text-[11px]
+                    font-semibold
+                    leading-5
+                    text-red-700
+                  "
+                >
+
+                  {error}
+
+                </p>
+
+              </div>
 
             )
-          )}
-
-        </div>
-
-      </div>
-
-
-      {/* ==========================================
-          COMENTARIO
-      ========================================== */}
-
-      <div className="mt-8">
-
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-            mb-2
-          "
-        >
-
-          <label
-            htmlFor="comentario"
-            className="
-              text-sm
-              font-bold
-              text-slate-800
-
-              dark:text-slate-200
-            "
-          >
-
-            Cuéntanos tu experiencia
-
-          </label>
-
-
-          <span
-            className="
-              text-xs
-              font-medium
-              text-slate-400
-            "
-          >
-
-            {comentario.length}/500
-
-          </span>
-
-        </div>
-
-
-        <textarea
-          id="comentario"
-          value={comentario}
-          onChange={(e) =>
-            setComentario(e.target.value)
           }
-          placeholder="¿Cómo te ayudó VG Smart Review?"
-          rows={6}
-          maxLength={500}
-          className="
-            w-full
-            resize-none
-            rounded-2xl
-            border
-            border-slate-200
-            bg-slate-50
-            px-5
-            py-4
-            text-sm
-            text-slate-900
-            outline-none
-            transition-all
-            placeholder:text-slate-400
-            focus:border-blue-500
-            focus:bg-white
-            focus:ring-4
-            focus:ring-blue-500/10
-
-            dark:border-slate-700
-            dark:bg-slate-800
-            dark:text-white
-            dark:placeholder:text-slate-500
-            dark:focus:border-blue-500
-            dark:focus:bg-slate-800
-          "
-        />
 
 
-        <div
-          className="
-            mt-2
-            flex
-            justify-between
-            text-xs
-          "
-        >
+          {
+            exito && (
 
-          <span
+              <div
+                className="
+                  mt-4
+                  flex
+                  items-start
+                  gap-2.5
+                  rounded-xl
+                  border
+                  border-emerald-200
+                  bg-emerald-50
+                  px-3.5
+                  py-3
+                "
+              >
+
+                <CheckCircle2
+                  size={16}
+                  className="
+                    mt-0.5
+                    shrink-0
+                    text-emerald-600
+                  "
+                />
+
+
+                <p
+                  className="
+                    text-[11px]
+                    font-semibold
+                    leading-5
+                    text-emerald-700
+                  "
+                >
+
+                  {exito}
+
+                </p>
+
+              </div>
+
+            )
+          }
+
+
+
+          {/* ==================================================
+              BOTÓN
+          ================================================== */}
+
+          <div
             className="
-              text-slate-400
+              mt-auto
+              pt-5
             "
           >
 
-            Mínimo 10 caracteres
-
-          </span>
-
-
-          <span
-            className={`
-              font-medium
-
-              ${
-                comentario.length >= 10
-                  ? "text-green-500"
-                  : "text-slate-400"
+            <button
+              type="submit"
+              disabled={
+                enviando ||
+                !correo ||
+                experiencia.trim().length < 10 ||
+                ayuda.trim().length < 10
               }
-            `}
-          >
-
-            {
-              comentario.length >= 10
-                ? "✓ Listo"
-                : `${10 - comentario.length} caracteres restantes`
-            }
-
-          </span>
-
-        </div>
-
-      </div>
-
-
-      {/* ==========================================
-          ERROR
-      ========================================== */}
-
-      {error && (
-
-        <div
-          className="
-            mt-6
-            flex
-            items-start
-            gap-3
-            rounded-2xl
-            border
-            border-red-200
-            bg-red-50
-            px-4
-            py-4
-            text-sm
-            text-red-600
-
-            dark:border-red-900/60
-            dark:bg-red-950/30
-            dark:text-red-400
-          "
-        >
-
-          <span className="font-bold">
-            !
-          </span>
-
-          <span>
-            {error}
-          </span>
-
-        </div>
-
-      )}
-
-
-      {/* ==========================================
-          BOTÓN
-      ========================================== */}
-
-      <button
-        type="submit"
-        disabled={enviando}
-        className="
-          mt-7
-          flex
-          h-13
-          w-full
-          items-center
-          justify-center
-          gap-3
-          rounded-2xl
-          bg-[#1D3681]
-          px-6
-          py-4
-          font-black
-          text-white
-          shadow-lg
-          shadow-blue-900/20
-          transition-all
-          duration-200
-          hover:-translate-y-0.5
-          hover:bg-blue-800
-          hover:shadow-xl
-          active:translate-y-0
-          disabled:cursor-not-allowed
-          disabled:opacity-60
-          disabled:hover:translate-y-0
-        "
-      >
-
-        {enviando ? (
-
-          <>
-            <span
               className="
-                h-5
-                w-5
-                animate-spin
-                rounded-full
-                border-2
-                border-white/30
-                border-t-white
+                group
+                flex
+                w-full
+                items-center
+                justify-center
+                gap-2.5
+                rounded-2xl
+                bg-gradient-to-r
+                from-[#1D3681]
+                to-[#3156B3]
+                px-5
+                py-3.5
+                text-sm
+                font-black
+                text-white
+                shadow-lg
+                shadow-blue-900/20
+                transition-all
+                duration-200
+                hover:-translate-y-0.5
+                hover:from-[#172B68]
+                hover:to-[#294A9E]
+                hover:shadow-xl
+                active:translate-y-0
+                active:scale-[0.99]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
               "
-            />
+            >
 
-            Enviando testimonio...
+              {
+                enviando
 
-          </>
+                  ?
 
-        ) : (
+                  <>
 
-          <>
+                    <Loader2
+                      size={17}
+                      className="animate-spin"
+                    />
 
-            Enviar testimonio
+                    Enviando testimonio...
 
-            <Send size={18} />
+                  </>
 
-          </>
+                  :
 
-        )}
+                  <>
 
-      </button>
+                    <Send size={17} />
+
+                    Enviar testimonio
+
+                  </>
+
+              }
+
+            </button>
 
 
-      {/* ==========================================
-          PIE
-      ========================================== */}
+            <div
+              className="
+                mt-3
+                flex
+                items-center
+                justify-center
+                gap-1.5
+              "
+            >
 
-      <div
-        className="
-          mt-5
-          flex
-          items-center
-          justify-center
-          gap-2
-          text-center
-          text-xs
-          text-slate-400
-        "
-      >
+              <ShieldCheck
+                size={12}
+                className="text-slate-400"
+              />
 
-        <CheckCircle2
-          size={14}
-          className="text-green-500"
-        />
 
-        Tu testimonio será revisado antes de publicarse.
+              <p
+                className="
+                  text-[9px]
+                  text-slate-400
+                "
+              >
+
+                Tu testimonio será revisado antes de publicarse.
+
+              </p>
+
+            </div>
+
+          </div>
+
+        </form>
 
       </div>
 
-    </form>
+    </section>
 
   );
 

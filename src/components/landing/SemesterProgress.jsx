@@ -28,21 +28,21 @@ const semesters = [
 
   {
     semester: "4° Semestre",
-    goal: 80,
+    goal: 85,
     description: "Aplicación de criterios académicos institucionales.",
   },
 
   {
     semester: "5° Semestre",
-    goal: 85,
+    goal: 90,
     description: "Documentos con mayor precisión y menor margen de error.",
   },
 
-  {
-    semester: "6° Semestre",
-    goal: 90,
-    description: "Mayor dominio de los criterios para trabajos finales.",
-  },
+ {
+  semester: "6° Semestre",
+  goal: 97,
+  description: "Mayor dominio de los criterios para trabajos finales.",
+},
 
 ];
 
@@ -55,14 +55,14 @@ export default function SemesterProgress() {
       className="
         relative
         overflow-hidden
-        py-24
-        md:py-28
-        bg-white
+        py-20
+        md:py-24
+        bg-slate-50
       "
     >
 
       {/* ==================================================
-          DECORACIÓN
+          DECORACIÓN DE FONDO
       ================================================== */}
 
       <div
@@ -73,7 +73,7 @@ export default function SemesterProgress() {
           w-96
           h-96
           rounded-full
-          bg-blue-50
+          bg-blue-100/50
           blur-3xl
           pointer-events-none
         "
@@ -87,21 +87,35 @@ export default function SemesterProgress() {
           w-96
           h-96
           rounded-full
-          bg-indigo-50
+          bg-indigo-100/40
           blur-3xl
           pointer-events-none
         "
       />
 
 
-      <div className="relative max-w-7xl mx-auto px-6">
+      <div
+        className="
+          relative
+          max-w-6xl
+          mx-auto
+          px-6
+          lg:px-8
+        "
+      >
 
 
         {/* ==================================================
             ENCABEZADO
         ================================================== */}
 
-        <div className="text-center max-w-3xl mx-auto">
+        <div
+          className="
+            max-w-2xl
+            mx-auto
+            text-center
+          "
+        >
 
           <span
             className="
@@ -109,16 +123,18 @@ export default function SemesterProgress() {
               items-center
               gap-2
               rounded-full
-              bg-blue-100
-              text-blue-700
-              px-4
-              py-2
-              text-sm
+              bg-blue-50
+              border
+              border-blue-100
+              px-3.5
+              py-1.5
+              text-xs
               font-bold
+              text-blue-600
             "
           >
 
-            <GraduationCap size={17} />
+            <GraduationCap size={15} />
 
             Ruta académica
 
@@ -127,9 +143,9 @@ export default function SemesterProgress() {
 
           <h2
             className="
-              mt-6
-              text-4xl
-              md:text-5xl
+              mt-5
+              text-3xl
+              md:text-4xl
               font-black
               tracking-tight
               text-slate-900
@@ -143,11 +159,13 @@ export default function SemesterProgress() {
 
           <p
             className="
-              mt-5
-              text-base
-              md:text-lg
-              text-slate-600
-              leading-8
+              mt-4
+              max-w-xl
+              mx-auto
+              text-sm
+              md:text-base
+              leading-7
+              text-slate-500
             "
           >
 
@@ -161,17 +179,16 @@ export default function SemesterProgress() {
 
 
         {/* ==================================================
-            PROGRESO
+            TARJETAS DE SEMESTRES
         ================================================== */}
 
         <div
           className="
-            relative
-            mt-16
+            mt-12
             grid
-            md:grid-cols-2
+            sm:grid-cols-2
             lg:grid-cols-3
-            gap-6
+            gap-4
           "
         >
 
@@ -182,17 +199,18 @@ export default function SemesterProgress() {
               className="
                 group
                 relative
-                rounded-3xl
+                overflow-hidden
+                rounded-2xl
                 border
                 border-slate-200
-                bg-slate-50
-                p-7
+                bg-white
+                p-5
                 transition-all
-                duration-300
-                hover:-translate-y-2
-                hover:bg-white
+                duration-200
+                hover:-translate-y-1
                 hover:border-blue-200
-                hover:shadow-xl
+                hover:shadow-lg
+                hover:shadow-blue-900/5
               "
             >
 
@@ -205,24 +223,37 @@ export default function SemesterProgress() {
                   flex
                   items-center
                   justify-between
-                  gap-4
+                  gap-3
                 "
               >
 
-                <div className="flex items-center gap-3">
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
 
                   <div
                     className="
-                      w-10
-                      h-10
-                      rounded-xl
-                      bg-blue-100
-                      text-blue-700
                       flex
                       items-center
                       justify-center
+                      w-9
+                      h-9
+                      rounded-xl
+                      bg-blue-50
+                      border
+                      border-blue-100
+                      text-blue-600
+                      text-xs
                       font-black
-                      text-sm
+                      shrink-0
+                      transition-colors
+                      duration-200
+                      group-hover:bg-blue-600
+                      group-hover:text-white
                     "
                   >
 
@@ -233,6 +264,7 @@ export default function SemesterProgress() {
 
                   <span
                     className="
+                      text-sm
                       font-bold
                       text-slate-800
                     "
@@ -245,11 +277,14 @@ export default function SemesterProgress() {
                 </div>
 
 
+                {/* PORCENTAJE */}
+
                 <span
                   className="
                     text-2xl
                     font-black
-                    text-blue-700
+                    tracking-tight
+                    text-slate-900
                   "
                 >
 
@@ -261,15 +296,15 @@ export default function SemesterProgress() {
 
 
               {/* ==================================================
-                  BARRA
+                  BARRA DE PROGRESO
               ================================================== */}
 
               <div
                 className="
-                  mt-6
-                  h-2.5
+                  mt-5
+                  h-1.5
                   rounded-full
-                  bg-slate-200
+                  bg-slate-100
                   overflow-hidden
                 "
               >
@@ -283,8 +318,6 @@ export default function SemesterProgress() {
                     to-cyan-500
                     transition-all
                     duration-500
-                    group-hover:from-blue-500
-                    group-hover:to-cyan-400
                   "
                   style={{
                     width: `${item.goal}%`,
@@ -300,9 +333,10 @@ export default function SemesterProgress() {
 
               <p
                 className="
-                  mt-5
-                  text-slate-600
-                  leading-7
+                  mt-4
+                  text-sm
+                  leading-6
+                  text-slate-500
                 "
               >
 
@@ -317,22 +351,25 @@ export default function SemesterProgress() {
 
               <div
                 className="
-                  mt-6
-                  pt-5
+                  mt-5
+                  pt-4
                   border-t
-                  border-slate-200
+                  border-slate-100
                   flex
                   items-center
                   gap-2
                   text-xs
                   font-semibold
-                  text-slate-500
+                  text-slate-400
                 "
               >
 
                 <CheckCircle2
-                  size={15}
-                  className="text-blue-600"
+                  size={14}
+                  className="
+                    text-blue-500
+                    shrink-0
+                  "
                 />
 
                 Desarrollo progresivo
@@ -347,159 +384,157 @@ export default function SemesterProgress() {
 
 
         {/* ==================================================
-            BLOQUE FINAL
+            BLOQUE INFORMATIVO FINAL
         ================================================== */}
 
         <div
           className="
-            relative
-            mt-14
-            overflow-hidden
-            rounded-[2rem]
-            bg-gradient-to-br
-            from-slate-950
-            via-blue-950
-            to-indigo-800
-            p-8
-            md:p-12
-            text-white
-            shadow-2xl
-            shadow-blue-950/15
+            mt-10
+            rounded-2xl
+            border
+            border-blue-100
+            bg-white
+            px-6
+            py-5
+            shadow-sm
           "
         >
 
-          {/* DECORACIÓN */}
-
           <div
             className="
-              absolute
-              -right-24
-              -top-24
-              w-72
-              h-72
-              rounded-full
-              bg-cyan-400/10
-              blur-3xl
-            "
-          />
-
-
-          <div
-            className="
-              relative
               flex
               flex-col
-              lg:flex-row
+              md:flex-row
               items-center
               justify-between
-              gap-10
+              gap-5
             "
           >
 
-            {/* TEXTO */}
-
-            <div className="max-w-2xl">
-
-              <div
-                className="
-                  inline-flex
-                  items-center
-                  gap-2
-                  text-cyan-300
-                  text-sm
-                  font-bold
-                "
-              >
-
-                <TrendingUp size={17} />
-
-                Evolución académica
-
-              </div>
-
-
-              <h3
-                className="
-                  mt-4
-                  text-3xl
-                  md:text-4xl
-                  font-black
-                  leading-tight
-                "
-              >
-
-                Prepárate para cada etapa
-                de tu carrera
-
-              </h3>
-
-
-              <p
-                className="
-                  mt-4
-                  text-blue-100
-                  leading-7
-                "
-              >
-
-                Fortalece progresivamente tus documentos y
-                desarrolla mejores prácticas de presentación
-                académica durante tu formación.
-
-              </p>
-
-            </div>
-
-
-            {/* INDICADOR */}
+            {/* ==================================================
+                TEXTO
+            ================================================== */}
 
             <div
               className="
-                shrink-0
-                text-center
+                flex
+                items-start
+                gap-3
               "
             >
 
               <div
                 className="
-                  text-5xl
-                  md:text-6xl
-                  font-black
-                  text-white
+                  flex
+                  items-center
+                  justify-center
+                  w-10
+                  h-10
+                  rounded-xl
+                  bg-blue-50
+                  text-blue-600
+                  shrink-0
                 "
               >
 
-                90%
+                <TrendingUp size={19} />
 
               </div>
 
 
-              <p className="mt-1 text-sm text-blue-200">
+              <div>
 
-                Referencia de progreso
+                <p
+                  className="
+                    text-sm
+                    font-bold
+                    text-slate-800
+                  "
+                >
 
-              </p>
+                  Evolución académica
+
+                </p>
+
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    md:text-sm
+                    leading-5
+                    text-slate-500
+                  "
+                >
+
+                  Fortalece progresivamente la calidad de tus
+                  documentos durante tu formación.
+
+                </p>
+
+              </div>
+
+            </div>
+
+
+            {/* ==================================================
+                REFERENCIA FINAL
+            ================================================== */}
+
+            <div
+              className="
+                flex
+                items-center
+                gap-4
+                shrink-0
+              "
+            >
+
+              <div className="text-right">
+
+                <p
+                  className="
+                    text-[10px]
+                    uppercase
+                    tracking-wide
+                    font-bold
+                    text-slate-400
+                  "
+                >
+
+                  6° semestre
+
+                </p>
+
+
+                <p
+                  className="
+                    mt-0.5
+                    text-2xl
+                    font-black
+                    text-blue-600
+                  "
+                >
+
+                  97%
+
+                </p>
+
+              </div>
 
 
               <div
                 className="
-                  mt-5
-                  inline-flex
+                  flex
                   items-center
-                  gap-2
-                  rounded-xl
-                  border
-                  border-white/10
-                  bg-white/10
-                  px-5
-                  py-3
-                  text-sm
-                  font-semibold
-                  backdrop-blur-sm
+                  justify-center
+                  w-9
+                  h-9
+                  rounded-full
+                  bg-blue-50
+                  text-blue-600
                 "
               >
-
-                6° semestre
 
                 <ArrowRight size={17} />
 

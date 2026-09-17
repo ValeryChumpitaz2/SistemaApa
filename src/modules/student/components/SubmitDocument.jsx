@@ -14,7 +14,9 @@ import {
 
 import {
   getDocumentName,
-  analyzeDocument
+  analyzeDocument,
+  guardarAnalisis,
+  obtenerCorreoEstudiante
 } from "../services/studentService";
 
 
@@ -69,16 +71,6 @@ export default function SubmitDocument({
   // FORMATO DEL NOMBRE
   // ==================================================
 
-  /*
-   * FORMATO:
-   *
-   * ASE###S#_IS#_EN#_ApellidoNombre
-   *
-   * Ejemplo:
-   *
-   * ASE123S4_IS5_EN6_PerezJuan
-   */
-
   const FORMATO_NOMBRE =
     /^ASE\d{3}S\d_IS\d_EN\d_[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/;
 
@@ -93,9 +85,6 @@ export default function SubmitDocument({
     e.preventDefault();
 
 
-
-    // Limpiar mensajes anteriores
-
     setMensaje("");
 
     setErrorNombre(false);
@@ -103,7 +92,6 @@ export default function SubmitDocument({
     setErrorSistema("");
 
     setNombreDetectado("");
-
 
 
     // ==================================================
@@ -124,37 +112,28 @@ export default function SubmitDocument({
 
     try {
 
+      setLoading(true);
+
 
       // ==================================================
       // OBTENER NOMBRE
       // ==================================================
 
-      setLoading(true);
-
-
-
       const nombreDocumento =
         await getDocumentName(url);
-
 
 
       const nombreLimpio =
         nombreDocumento.trim();
 
 
-
-      // ==================================================
-      // GUARDAR NOMBRE DETECTADO
-      // ==================================================
-
       setNombreDetectado(
         nombreLimpio
       );
 
 
-
       // ==================================================
-      // VALIDAR FORMATO
+      // VALIDAR NOMBRE
       // ==================================================
 
       const nombreValido =
@@ -162,11 +141,6 @@ export default function SubmitDocument({
           nombreLimpio
         );
 
-
-
-      // ==================================================
-      // NOMBRE INCORRECTO
-      // ==================================================
 
       if (!nombreValido) {
 
@@ -179,53 +153,118 @@ export default function SubmitDocument({
 
 
       // ==================================================
-      // NOMBRE CORRECTO
-      // CONTINUAR CON EL ANÁLISIS
+      // ANALIZAR
       // ==================================================
 
       const data =
         await analyzeDocument(url);
 
 
+      console.log(
+        "ANÁLISIS RECIBIDO:",
+        data
+      );
+
+
 
       // ==================================================
-      // CREAR DOCUMENTO
+      // OBTENER CORREO
+      // ==================================================
+
+      const correo =
+        obtenerCorreoEstudiante();
+
+
+      console.log(
+        "CORREO ESTUDIANTE:",
+        correo
+      );
+
+
+
+      // ==================================================
+      // GUARDAR EN SHEETS
+      // ==================================================
+
+      const guardado =
+        await guardarAnalisis({
+
+          url:
+            url,
+
+          nombre:
+            data.resumen?.nombre ||
+            nombreLimpio ||
+            "Documento académico",
+
+          resumen:
+            data.resumen,
+
+          puntaje:
+            data.puntaje,
+
+          criterios:
+            data.criterios || [],
+
+          correo:
+            correo
+
+        });
+
+
+      console.log(
+        "ANÁLISIS GUARDADO:",
+        guardado
+      );
+
+
+
+      // ==================================================
+      // CREAR OBJETO LOCAL
       // ==================================================
 
       const documento = {
+
+        id:
+          guardado?.id ||
+          guardado?.registroId ||
+          Date.now().toString(),
 
         nombre:
           data.resumen?.nombre ||
           nombreLimpio ||
           "Documento académico",
 
+        url:
+          url,
 
         resumen:
           data.resumen,
 
-
         puntaje:
           data.puntaje,
-
 
         criterios:
           data.criterios || [],
 
+        correo:
+          correo,
 
         fecha:
-          new Date()
-            .toLocaleDateString()
+          new Date().toISOString(),
+
+        fechaAnalisis:
+          new Date().toISOString()
 
       };
 
 
 
       // ==================================================
-      // GUARDAR
+      // ACTUALIZAR FRONT
       // ==================================================
 
       setDocumentos(
-
         prev => [
 
           ...prev,
@@ -233,7 +272,6 @@ export default function SubmitDocument({
           documento
 
         ]
-
       );
 
 
@@ -243,9 +281,8 @@ export default function SubmitDocument({
       // ==================================================
 
       setMensaje(
-        "Documento analizado correctamente."
+        "Documento analizado y guardado correctamente."
       );
-
 
 
       setUrl("");
@@ -254,10 +291,7 @@ export default function SubmitDocument({
 
 
     }
-
-
     catch (error) {
-
 
       console.error(
         "Error al procesar documento:",
@@ -266,17 +300,12 @@ export default function SubmitDocument({
 
 
       setErrorSistema(
-        "No pudimos acceder al documento. " +
-        "Verifica que el enlace sea correcto y que " +
-        "tengas permisos para acceder al documento."
+        error.message ||
+        "No pudimos procesar el documento."
       );
 
-
     }
-
-
     finally {
-
 
       setLoading(false);
 
@@ -295,7 +324,6 @@ export default function SubmitDocument({
     setUrl(
       e.target.value
     );
-
 
     setErrorNombre(false);
 
@@ -333,11 +361,6 @@ export default function SubmitDocument({
       "
     >
 
-
-      {/* ==================================================
-          TARJETA PRINCIPAL
-      ================================================== */}
-
       <div
         className="
           bg-white
@@ -351,10 +374,7 @@ export default function SubmitDocument({
         "
       >
 
-
-        {/* ==================================================
-            ENCABEZADO
-        ================================================== */}
+        {/* ENCABEZADO */}
 
         <h3
           className="
@@ -386,14 +406,10 @@ export default function SubmitDocument({
 
 
 
-        {/* ==================================================
-            FORMULARIO
-        ================================================== */}
+        {/* FORMULARIO */}
 
         <form
-
           onSubmit={enviar}
-
           className="
             mt-6
             flex
@@ -401,11 +417,7 @@ export default function SubmitDocument({
             md:flex-row
             gap-4
           "
-
         >
-
-
-          {/* INPUT */}
 
           <input
 
@@ -417,9 +429,7 @@ export default function SubmitDocument({
 
             disabled={loading}
 
-            placeholder="
-              https://docs.google.com/document/...
-            "
+            placeholder="https://docs.google.com/document/..."
 
             className={`
               flex-1
@@ -452,9 +462,6 @@ export default function SubmitDocument({
           />
 
 
-
-          {/* BOTÓN */}
-
           <button
 
             type="submit"
@@ -478,7 +485,6 @@ export default function SubmitDocument({
               disabled:cursor-not-allowed
               md:min-w-[220px]
             "
-
           >
 
             {
@@ -491,15 +497,12 @@ export default function SubmitDocument({
 
                 <LoaderCircle
                   size={20}
-                  className="
-                    animate-spin
-                  "
+                  className="animate-spin"
                 />
 
-                Verificando...
+                Guardando análisis...
 
               </>
-
 
               :
 
@@ -517,14 +520,11 @@ export default function SubmitDocument({
 
           </button>
 
-
         </form>
 
 
 
-        {/* ==================================================
-            AVISO NOMBRE INCORRECTO
-        ================================================== */}
+        {/* AVISO NOMBRE INCORRECTO */}
 
         {
           errorNombre &&
@@ -542,9 +542,6 @@ export default function SubmitDocument({
             "
           >
 
-
-            {/* CABECERA */}
-
             <div
               className="
                 px-5
@@ -557,7 +554,6 @@ export default function SubmitDocument({
                 dark:border-amber-800
               "
             >
-
 
               <div
                 className="
@@ -615,8 +611,9 @@ export default function SubmitDocument({
                     "
                   >
 
-                    Tu documento todavía no será evaluado por la aplicación APA Reviewer  .
-                    Se te podria descontar 2 puntos.
+                    Tu documento todavía no será evaluado
+                    por la aplicación APA Reviewer.
+                    Se te podría descontar 2 puntos.
 
                   </p>
 
@@ -624,9 +621,6 @@ export default function SubmitDocument({
 
               </div>
 
-
-
-              {/* CERRAR */}
 
               <button
 
@@ -649,28 +643,18 @@ export default function SubmitDocument({
                   dark:hover:bg-amber-900/40
                   transition
                 "
-
               >
 
-                <X
-                  size={18}
-                />
+                <X size={18} />
 
               </button>
-
 
             </div>
 
 
-
-            {/* CONTENIDO */}
-
             <div
-              className="
-                p-5
-              "
+              className="p-5"
             >
-
 
               <p
                 className="
@@ -687,11 +671,6 @@ export default function SubmitDocument({
 
               </p>
 
-
-
-              {/* ==================================================
-                  NOMBRE DETECTADO
-              ================================================== */}
 
               <div
                 className="
@@ -741,11 +720,6 @@ export default function SubmitDocument({
               </div>
 
 
-
-              {/* ==================================================
-                  FORMATO CORRECTO
-              ================================================== */}
-
               <div
                 className="
                   mt-4
@@ -794,11 +768,6 @@ export default function SubmitDocument({
               </div>
 
 
-
-              {/* ==================================================
-                  EJEMPLO
-              ================================================== */}
-
               <div
                 className="
                   mt-4
@@ -846,11 +815,6 @@ export default function SubmitDocument({
               </div>
 
 
-
-              {/* ==================================================
-                  INSTRUCCIÓN
-              ================================================== */}
-
               <div
                 className="
                   mt-4
@@ -885,9 +849,7 @@ export default function SubmitDocument({
 
               </div>
 
-
             </div>
-
 
           </div>
 
@@ -895,9 +857,7 @@ export default function SubmitDocument({
 
 
 
-        {/* ==================================================
-            ERROR DEL SISTEMA
-        ================================================== */}
+        {/* ERROR */}
 
         {
           errorSistema &&
@@ -947,9 +907,7 @@ export default function SubmitDocument({
 
 
 
-        {/* ==================================================
-            ÉXITO
-        ================================================== */}
+        {/* ÉXITO */}
 
         {
           mensaje &&
@@ -996,7 +954,6 @@ export default function SubmitDocument({
           </div>
 
         }
-
 
       </div>
 
