@@ -1,276 +1,459 @@
-// ============================================================
-// CALIFICAR ENTREGABLES
-// ARCHIVO: CalificarEntregables.jsx
-// ============================================================
-
 import React, {
   useEffect,
   useMemo,
-  useState,
+  useState
 } from "react";
 
 import {
-  AlertCircle,
-  BookOpen,
-  CheckCircle2,
-  ChevronDown,
-  ClipboardCheck,
-  Cloud,
-  GraduationCap,
-  Loader2,
-  RefreshCw,
-  Search,
-  Send,
-  Users,
-} from "lucide-react";
-
-import { useAuth } from "../../../auth/AuthContext";
-
-// IMPORTANTE:
-// Toda la comunicación con Google Classroom pasa por este service.
-// NO colocar API_URL ni fetch directamente en este JSX.
-import classroomService from "../services/classroomService";
+  classroomObtenerCursos,
+  classroomObtenerTemas,
+  classroomObtenerActividades,
+  classroomObtenerAlumnos
+} from "../services/classroomService";
 
 
 // ============================================================
-// UNIDADES DIDÁCTICAS
+// DEBUG
 // ============================================================
 
-const UNIDADES_DIDACTICAS = [
-  {
-    codigo: "ASE262M1",
-    nombre: "Experiencias Formativas 1",
-    numero: 1,
-  },
+function debugLog(titulo, datos = null) {
+  console.groupCollapsed(
+    `%c[CLASSROOM DEBUG] ${titulo}`,
+    "color:#2563eb;font-weight:bold"
+  );
 
-  {
-    codigo: "ASE261M1",
-    nombre: "Experiencias Formativas 2",
-    numero: 2,
-  },
-
-  {
-    codigo: "ASE252M2",
-    nombre: "Experiencias Formativas 3",
-    numero: 3,
-  },
-
-  {
-    codigo: "ASE251M2",
-    nombre: "Experiencias Formativas 4",
-    numero: 4,
-  },
-
-  {
-    codigo: "ASE242M3",
-    nombre: "Experiencias Formativas 5",
-    numero: 5,
-  },
-
-  {
-    codigo: "AS241M3",
-    nombre: "Experiencias Formativas 6",
-    numero: 6,
-  },
-];
-
-
-// ============================================================
-// HELPERS
-// ============================================================
-
-function normalizarTexto(valor) {
-  return String(valor || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-
-function formatearNota(valor) {
-  const numero = Number(valor);
-
-  if (Number.isNaN(numero)) {
-    return "0";
+  if (datos !== null) {
+    console.log(datos);
   }
 
-  return numero
-    .toFixed(2)
-    .replace(/\.00$/, "");
+  console.trace("Origen:");
+
+  console.groupEnd();
 }
 
 
-function obtenerListaRespuesta(respuesta, claves = []) {
+function debugError(titulo, error) {
+  console.group(
+    `%c[CLASSROOM ERROR] ${titulo}`,
+    "color:#dc2626;font-weight:bold"
+  );
+
+  console.error("Error completo:", error);
+  console.error("Mensaje:", error?.message);
+  console.error("Nombre:", error?.name);
+  console.error("Stack:", error?.stack);
+
+  if (error?.response) {
+    console.error("Response:", error.response);
+    console.error("Status:", error.response.status);
+    console.error("Data:", error.response.data);
+  }
+
+  if (error?.request) {
+    console.error("Request:", error.request);
+  }
+
+  console.groupEnd();
+}
+
+
+// ============================================================
+// EXTRAER LISTA
+// ============================================================
+
+function extraerLista(
+  respuesta,
+  posiblesClaves = []
+) {
+  console.log(
+    "[EXTRAER LISTA] Respuesta:",
+    respuesta
+  );
+
   if (Array.isArray(respuesta)) {
     return respuesta;
   }
 
-  for (const clave of claves) {
-    if (Array.isArray(respuesta?.[clave])) {
+  for (const clave of posiblesClaves) {
+    if (
+      Array.isArray(
+        respuesta?.[clave]
+      )
+    ) {
       return respuesta[clave];
-    }
-
-    if (Array.isArray(respuesta?.data?.[clave])) {
-      return respuesta.data[clave];
     }
   }
 
-  if (Array.isArray(respuesta?.data)) {
-    return respuesta.data;
+  if (
+    respuesta?.data !== undefined &&
+    respuesta?.data !== null
+  ) {
+    if (Array.isArray(respuesta.data)) {
+      return respuesta.data;
+    }
+
+    for (const clave of posiblesClaves) {
+      if (
+        Array.isArray(
+          respuesta.data?.[clave]
+        )
+      ) {
+        return respuesta.data[clave];
+      }
+    }
   }
 
   return [];
 }
 
 
-function obtenerIdCurso(curso) {
-  return (
-    curso?.id ||
-    curso?.courseId ||
-    curso?.course_id ||
-    ""
-  );
+// ============================================================
+// NORMALIZAR ALUMNO
+// ============================================================
+
+function normalizarAlumno(alumno) {
+  const estudiante =
+    alumno || {};
+
+  const profile =
+    estudiante.profile ||
+    estudiante.perfil ||
+    {};
+
+  const profileName =
+    profile.name ||
+    {};
+
+  const directName =
+    estudiante.name;
+
+  let nombre = "";
+
+  if (
+    typeof estudiante.nombre === "string" &&
+    estudiante.nombre.trim()
+  ) {
+    nombre =
+      estudiante.nombre.trim();
+  }
+
+  else if (
+    typeof estudiante.nombreCompleto === "string" &&
+    estudiante.nombreCompleto.trim()
+  ) {
+    nombre =
+      estudiante.nombreCompleto.trim();
+  }
+
+  else if (
+    typeof estudiante.fullName === "string" &&
+    estudiante.fullName.trim()
+  ) {
+    nombre =
+      estudiante.fullName.trim();
+  }
+
+  else if (
+    typeof directName === "string" &&
+    directName.trim()
+  ) {
+    nombre =
+      directName.trim();
+  }
+
+  else {
+    nombre =
+      profileName.fullName ||
+      (
+        String(
+          profileName.givenName || ""
+        ) +
+        " " +
+        String(
+          profileName.familyName || ""
+        )
+      ).trim();
+  }
+
+  if (!nombre) {
+    nombre = "Alumno";
+  }
+
+  const userId =
+    String(
+      estudiante.userId ||
+      estudiante.id ||
+      estudiante.studentId ||
+      estudiante.user?.userId ||
+      estudiante.user?.id ||
+      profile.userId ||
+      profile.id ||
+      ""
+    ).trim();
+
+  const email =
+    String(
+      estudiante.email ||
+      estudiante.emailAddress ||
+      estudiante.correo ||
+      profile.emailAddress ||
+      ""
+    ).trim();
+
+  const photoUrl =
+    String(
+      estudiante.photoUrl ||
+      estudiante.photo ||
+      profile.photoUrl ||
+      profile.photo ||
+      ""
+    ).trim();
+
+  return {
+    ...estudiante,
+
+    userId,
+
+    id:
+      estudiante.id ||
+      userId,
+
+    nombre,
+
+    nombreCompleto:
+      estudiante.nombreCompleto ||
+      nombre,
+
+    email,
+
+    photoUrl
+  };
 }
-
-
-function obtenerNombreCurso(curso) {
-  return (
-    curso?.name ||
-    curso?.nombre ||
-    curso?.courseName ||
-    curso?.title ||
-    curso?.section ||
-    ""
-  );
-}
-
-function obtenerIdActividad(actividad) {
-  return (
-    actividad?.id ||
-    actividad?.courseWorkId ||
-    actividad?.courseworkId ||
-    actividad?.course_work_id ||
-    ""
-  );
-}
-
-
-function obtenerNombreActividad(actividad) {
-  return (
-    actividad?.title ||
-    actividad?.titulo ||
-    actividad?.nombre ||
-    actividad?.name ||
-    "Actividad sin nombre"
-  );
-}
-
 
 
 // ============================================================
-// BUSCAR CURSO PARA UNA UNIDAD
+// OBTENER PUNTAJE
 // ============================================================
 
-function encontrarCursoParaUnidad(
-  cursos,
-  unidad
-) {
-  if (!unidad || !Array.isArray(cursos)) {
+function obtenerPuntaje(item) {
+  if (!item) {
     return null;
   }
 
-  const codigoUnidad =
-    normalizarTexto(unidad.codigo);
+  const posibles = [
+    item.assignedGrade,
+    item.assignedPoints,
 
-  const nombreUnidad =
-    normalizarTexto(unidad.nombre);
+    item.puntosObtenidos,
+    item.puntos,
 
-  // ----------------------------------------------------------
-  // 1. Buscar coincidencia exacta por código
-  // ----------------------------------------------------------
+    item.puntaje,
+    item.score,
 
-  let encontrado = cursos.find((curso) => {
-    const texto = normalizarTexto(
-      [
-        curso?.name,
-        curso?.nombre,
-        curso?.courseName,
-        curso?.section,
-        curso?.description,
-        curso?.codigo,
-        curso?.codigoCurso,
-      ]
-        .filter(Boolean)
-        .join(" ")
-    );
+    item.nota,
+    item.grade,
 
-    return (
-      texto.includes(codigoUnidad) &&
-      Boolean(obtenerIdCurso(curso))
-    );
-  });
+    item.calificacion,
+    item.calificacionObtenida,
 
-  if (encontrado) {
-    return encontrado;
+    item.obtenido,
+
+    item.valor,
+
+    item.resultado,
+
+    item.submission?.assignedGrade,
+    item.submission?.assignedPoints,
+
+    item.studentSubmission?.assignedGrade,
+    item.studentSubmission?.assignedPoints,
+
+    item.studentSubmission?.grade,
+
+    item.entrega?.assignedGrade,
+    item.entrega?.grade,
+
+    item.entrega?.puntaje,
+    item.entrega?.puntos,
+
+    item.calificacion?.puntos,
+    item.calificacion?.puntaje,
+    item.calificacion?.nota
+  ];
+
+  for (const valor of posibles) {
+    if (
+      valor !== undefined &&
+      valor !== null &&
+      valor !== "" &&
+      !Number.isNaN(Number(valor))
+    ) {
+      return Number(valor);
+    }
   }
 
-  // ----------------------------------------------------------
-  // 2. Buscar por nombre completo
-  // ----------------------------------------------------------
+  return null;
+}
 
-  encontrado = cursos.find((curso) => {
-    const texto = normalizarTexto(
-      [
-        curso?.name,
-        curso?.nombre,
-        curso?.courseName,
-        curso?.section,
-        curso?.description,
-      ]
-        .filter(Boolean)
-        .join(" ")
-    );
 
-    return (
-      texto.includes(nombreUnidad) &&
-      Boolean(obtenerIdCurso(curso))
-    );
-  });
+// ============================================================
+// OBTENER PUNTAJE MÁXIMO
+// ============================================================
 
-  if (encontrado) {
-    return encontrado;
+function obtenerPuntajeMaximo(item) {
+  if (!item) {
+    return null;
   }
 
-  // ----------------------------------------------------------
-  // 3. Buscar por "Experiencias Formativas X"
-  // ----------------------------------------------------------
+  const posibles = [
+    item.maxPoints,
+    item.maxScore,
+    item.puntosMaximos,
+
+    item.puntajeMaximo,
+    item.notaMaxima,
+
+    item.totalPoints,
+
+    item.submission?.maxPoints,
+    item.studentSubmission?.maxPoints,
+
+    item.entrega?.maxPoints,
+
+    item.calificacion?.maxPoints,
+    item.calificacion?.puntosMaximos
+  ];
+
+  for (const valor of posibles) {
+    if (
+      valor !== undefined &&
+      valor !== null &&
+      valor !== "" &&
+      !Number.isNaN(Number(valor))
+    ) {
+      return Number(valor);
+    }
+  }
+
+  return null;
+}
+
+
+// ============================================================
+// OBTENER ESTADO DE ENTREGA
+// ============================================================
+
+function obtenerEstadoEntrega(item) {
+  if (!item) {
+    return "";
+  }
+
+  return String(
+    item.estado ||
+    item.status ||
+    item.estadoEntrega ||
+
+    item.submission?.state ||
+    item.submission?.status ||
+
+    item.studentSubmission?.state ||
+    item.studentSubmission?.status ||
+
+    item.entrega?.estado ||
+    item.entrega?.status ||
+
+    ""
+  ).trim();
+}
+
+
+// ============================================================
+// FORMATEAR PUNTAJE
+// ============================================================
+
+function formatearPuntaje(valor) {
+  if (
+    valor === null ||
+    valor === undefined ||
+    valor === ""
+  ) {
+    return "—";
+  }
 
   const numero =
-    String(unidad.numero || "");
+    Number(valor);
 
-  encontrado = cursos.find((curso) => {
-    const texto = normalizarTexto(
-      [
-        curso?.name,
-        curso?.nombre,
-        curso?.courseName,
-        curso?.section,
-        curso?.description,
-      ]
-        .filter(Boolean)
-        .join(" ")
-    );
+  if (Number.isNaN(numero)) {
+    return String(valor);
+  }
 
-    return (
-      texto.includes(
-        `experiencias formativas ${numero}`
-      ) &&
-      Boolean(obtenerIdCurso(curso))
-    );
-  });
+  if (
+    Number.isInteger(numero)
+  ) {
+    return String(numero);
+  }
 
-  return encontrado || null;
+  return numero.toFixed(2);
+}
+
+
+// ============================================================
+// COLOR SEGÚN PUNTAJE
+// ============================================================
+
+function colorPuntaje(
+  puntaje,
+  maximo
+) {
+  if (
+    puntaje === null ||
+    puntaje === undefined
+  ) {
+    return {
+      background: "#f1f5f9",
+      color: "#64748b",
+      border: "#e2e8f0"
+    };
+  }
+
+  if (
+    maximo === null ||
+    maximo === undefined ||
+    maximo === 0
+  ) {
+    return {
+      background: "#dbeafe",
+      color: "#1d4ed8",
+      border: "#bfdbfe"
+    };
+  }
+
+  const porcentaje =
+    (Number(puntaje) /
+      Number(maximo)) *
+    100;
+
+  if (porcentaje >= 70) {
+    return {
+      background: "#dcfce7",
+      color: "#166534",
+      border: "#bbf7d0"
+    };
+  }
+
+  if (porcentaje >= 50) {
+    return {
+      background: "#fef3c7",
+      color: "#92400e",
+      border: "#fde68a"
+    };
+  }
+
+  return {
+    background: "#fee2e2",
+    color: "#991b1b",
+    border: "#fecaca"
+  };
 }
 
 
@@ -280,815 +463,809 @@ function encontrarCursoParaUnidad(
 
 export default function CalificarEntregables() {
 
-  const { user } = useAuth();
-
-
   // ==========================================================
-  // ESTADOS
+  // CURSOS
   // ==========================================================
-
-  const [unidad, setUnidad] =
-    useState(null);
 
   const [cursos, setCursos] =
     useState([]);
 
-  const [curso, setCurso] =
+  const [cursoSeleccionado, setCursoSeleccionado] =
+    useState("");
+
+  const [cursoActual, setCursoActual] =
     useState(null);
 
-  const [actividades, setActividades] =
+
+  // ==========================================================
+  // TOPICS
+  // ==========================================================
+
+  const [topics, setTopics] =
     useState([]);
 
-  const [actividad, setActividad] =
+  const [topicSeleccionado, setTopicSeleccionado] =
+    useState("");
+
+  const [topicActual, setTopicActual] =
     useState(null);
+
+
+  // ==========================================================
+  // ENTREGABLES
+  // ==========================================================
+
+  const [entregables, setEntregables] =
+    useState([]);
+
+
+  // ==========================================================
+  // ALUMNOS
+  // ==========================================================
 
   const [alumnos, setAlumnos] =
     useState([]);
 
-  const [busqueda, setBusqueda] =
+  const [busquedaAlumno, setBusquedaAlumno] =
     useState("");
 
-  const [cargandoCursos, setCargandoCursos] =
+
+  // ==========================================================
+  // LOADING
+  // ==========================================================
+
+  const [loadingCursos, setLoadingCursos] =
+    useState(true);
+
+  const [loadingTopics, setLoadingTopics] =
     useState(false);
 
-  const [cargandoActividades, setCargandoActividades] =
+  const [loadingEntregables, setLoadingEntregables] =
     useState(false);
 
-  const [cargandoResultados, setCargandoResultados] =
+  const [loadingAlumnos, setLoadingAlumnos] =
     useState(false);
 
-  const [enviando, setEnviando] =
-    useState(false);
 
-  const [mensaje, setMensaje] =
-    useState("");
+  // ==========================================================
+  // ERROR
+  // ==========================================================
 
   const [error, setError] =
     useState("");
 
-  const [estado, setEstado] =
-    useState("inicial");
+
+  // ==========================================================
+  // DEBUG
+  // ==========================================================
+
+  const [debugInfo, setDebugInfo] =
+    useState({
+
+      cursos: null,
+
+      topics: null,
+
+      actividades: null,
+
+      alumnos: null
+
+    });
+
+
+  // ==========================================================
+  // INICIO
+  // ==========================================================
+
+  useEffect(() => {
+
+    debugLog(
+      "COMPONENTE CALIFICAR ENTREGABLES INICIADO"
+    );
+
+    cargarCursos();
+
+  }, []);
 
 
   // ==========================================================
   // CARGAR CURSOS
   // ==========================================================
 
-  const cargarCursos = async () => {
+  async function cargarCursos() {
 
-    setCargandoCursos(true);
-
-    setError("");
+    console.group(
+      "%c[1] CARGANDO CURSOS",
+      "color:#7c3aed;font-weight:bold"
+    );
 
     try {
 
-      console.log(
-        "CLASSROOM: obteniendo cursos..."
-      );
+      setLoadingCursos(true);
+      setError("");
 
       const respuesta =
-        await classroomService.obtenerCursos();
+        await classroomObtenerCursos();
 
       console.log(
-        "CLASSROOM CURSOS:",
+        "RESPUESTA CURSOS:",
         respuesta
       );
 
+      setDebugInfo(prev => ({
+        ...prev,
+        cursos: respuesta
+      }));
+
       const lista =
-        obtenerListaRespuesta(
+        extraerLista(
           respuesta,
           [
             "cursos",
-            "courses",
+            "courses"
           ]
         );
 
-      setCursos(lista);
-
-      return lista;
-
-    }
-    catch (err) {
-
-      console.error(
-        "ERROR OBTENIENDO CURSOS:",
-        err
-      );
-
-      throw err;
-
-    }
-    finally {
-
-      setCargandoCursos(false);
-
-    }
-  };
-
-
-  // ==========================================================
-  // CARGAR ACTIVIDADES
-  // ==========================================================
-
-  const cargarActividades = async (
-    unidadSeleccionada,
-    cursosDisponibles = null
-  ) => {
-
-    if (!unidadSeleccionada) {
-      return;
-    }
-
-    setCargandoActividades(true);
-
-    setError("");
-
-    setMensaje("");
-
-    setActividad(null);
-
-    setActividades([]);
-
-    setAlumnos([]);
-
-    setCurso(null);
-
-    setEstado("cargando");
-
-
-    try {
-
-      // ------------------------------------------------------
-      // OBTENER CURSOS
-      // ------------------------------------------------------
-
-      let listaCursos =
-        Array.isArray(cursosDisponibles)
-          ? cursosDisponibles
-          : cursos;
-
-      if (!listaCursos.length) {
-
-        listaCursos =
-          await cargarCursos();
-
-      }
-
-
-      // ------------------------------------------------------
-      // ENCONTRAR CURSO DE LA UNIDAD
-      // ------------------------------------------------------
-
-      const cursoEncontrado =
-        encontrarCursoParaUnidad(
-          listaCursos,
-          unidadSeleccionada
-        );
-
-
-      if (!cursoEncontrado) {
-
-        throw new Error(
-          `No se encontró un curso de Google Classroom para "${unidadSeleccionada.nombre}" (${unidadSeleccionada.codigo}).`
-        );
-
-      }
-
-
-      const courseId =
-        obtenerIdCurso(
-          cursoEncontrado
-        );
-
-
-      if (!courseId) {
-
-        throw new Error(
-          "El curso encontrado no tiene courseId."
-        );
-
-      }
-
-
-      console.log(
-        "CLASSROOM CURSO ENCONTRADO:",
-        cursoEncontrado
-      );
-
-      console.log(
-        "CLASSROOM courseId:",
-        courseId
-      );
-
-
-      setCurso({
-        ...cursoEncontrado,
-        id: courseId,
-      });
-
-
-      // ------------------------------------------------------
-      // OBTENER ACTIVIDADES
-      // ------------------------------------------------------
-
-      const respuesta =
-        await classroomService.obtenerActividades(
-          courseId
-        );
-
-
-      console.log(
-        "CLASSROOM ACTIVIDADES:",
-        respuesta
-      );
-
-
-      const lista =
-        obtenerListaRespuesta(
-          respuesta,
-          [
-            "actividades",
-            "activities",
-            "courseWork",
-          ]
-        );
-
-
-      const actividadesValidas =
+      const experiencias =
         lista.filter(
-          (item) =>
-            Boolean(
-              obtenerIdActividad(item)
-            )
-        );
-
-
-      setActividades(
-        actividadesValidas
-      );
-
-
-      if (!actividadesValidas.length) {
-
-        setMensaje(
-          "No se encontraron actividades de Classroom para este curso."
-        );
-
-        setEstado(
-          "sin-actividades"
-        );
-
-      }
-      else {
-
-        setEstado(
-          "actividades"
-        );
-
-      }
-
-    }
-    catch (err) {
-
-      console.error(
-        "ERROR ACTIVIDADES CLASSROOM:",
-        err
-      );
-
-      setError(
-        err?.message ||
-        "No se pudieron obtener las actividades de Google Classroom."
-      );
-
-      setEstado("error");
-
-    }
-    finally {
-
-      setCargandoActividades(false);
-
-    }
-
-  };
-
-
-  // ==========================================================
-  // CAMBIAR UNIDAD
-  // ==========================================================
-
-  const cambiarUnidad = async (
-    codigo
-  ) => {
-
-    const encontrada =
-      UNIDADES_DIDACTICAS.find(
-        (item) =>
-          item.codigo === codigo
-      );
-
-
-    setUnidad(
-      encontrada || null
-    );
-
-    setCurso(null);
-
-    setActividad(null);
-
-    setActividades([]);
-
-    setAlumnos([]);
-
-    setBusqueda("");
-
-    setMensaje("");
-
-    setError("");
-
-
-    if (!encontrada) {
-
-      setEstado("inicial");
-
-      return;
-
-    }
-
-
-    await cargarActividades(
-      encontrada
-    );
-
-  };
-  // ==========================================================
-  // CARGAR CONSOLIDACIÓN / ENTREGAS
-  // ==========================================================
-
-  const cargarConsolidacion = async () => {
-
-    if (!unidad) {
-
-      setError(
-        "Selecciona primero una unidad didáctica."
-      );
-
-      return;
-
-    }
-
-
-    if (!curso?.id) {
-
-      setError(
-        "No se encontró el courseId de Google Classroom para esta unidad."
-      );
-
-      return;
-
-    }
-
-
-    if (!actividad) {
-
-      setError(
-        "Selecciona primero una actividad de Classroom."
-      );
-
-      return;
-
-    }
-
-
-    const courseId =
-      curso.id;
-
-    const courseWorkId =
-      obtenerIdActividad(
-        actividad
-      );
-
-
-    if (!courseId) {
-
-      setError(
-        "Debe especificarse courseId."
-      );
-
-      return;
-
-    }
-
-
-    if (!courseWorkId) {
-
-      setError(
-        "Debe especificarse courseWorkId."
-      );
-
-      return;
-
-    }
-
-
-    setCargandoResultados(true);
-
-    setError("");
-
-    setMensaje("");
-
-    setAlumnos([]);
-
-    setEstado(
-      "cargando-resultados"
-    );
-
-
-    try {
-
-      console.log(
-        "CLASSROOM: obteniendo entregas",
-        {
-          courseId,
-          courseWorkId,
-        }
-      );
-
-
-      // ------------------------------------------------------
-      // OBTENER ENTREGAS DE LA ACTIVIDAD
-      // ------------------------------------------------------
-
-      const respuesta =
-        await classroomService.obtenerEntregas(
-          courseId,
-          courseWorkId
-        );
-
-
-      console.log(
-        "CLASSROOM ENTREGAS:",
-        respuesta
-      );
-
-
-      let entregas =
-        obtenerListaRespuesta(
-          respuesta,
-          [
-            "entregas",
-            "submissions",
-            "studentSubmissions",
-            "resultados",
-          ]
-        );
-
-
-      // ------------------------------------------------------
-      // SI LA RESPUESTA VIENE ENVUELTA EN data
-      // ------------------------------------------------------
-
-      if (
-        !entregas.length &&
-        respuesta?.data
-      ) {
-
-        entregas =
-          obtenerListaRespuesta(
-            respuesta.data,
-            [
-              "entregas",
-              "submissions",
-              "studentSubmissions",
-              "resultados",
-            ]
-          );
-
-      }
-
-
-      // ------------------------------------------------------
-      // CONVERTIR ENTREGAS A FILAS
-      // ------------------------------------------------------
-
-      const listaAlumnos =
-        entregas.map(
-          (entrega, index) => {
-
-            const profile =
-              entrega?.userProfile ||
-              entrega?.student ||
-              entrega?.alumno ||
-              {};
-
-
-            const nombre =
-              entrega?.alumno ||
-              entrega?.nombre ||
-              entrega?.studentName ||
-              entrega?.studentNombre ||
-              profile?.name?.fullName ||
-              profile?.name ||
-              "Alumno sin nombre";
-
-
-            const email =
-              entrega?.email ||
-              entrega?.correo ||
-              entrega?.studentEmail ||
-              profile?.emailAddress ||
-              "";
-
-
-            const studentId =
-              entrega?.userId ||
-              entrega?.studentId ||
-              entrega?.student?.id ||
-              "";
-
-
-            const submissionId =
-              entrega?.id ||
-              entrega?.studentSubmissionId ||
-              entrega?.submissionId ||
-              "";
-
-
-            const puntaje =
-              entrega?.assignedGrade ??
-              entrega?.puntaje ??
-              entrega?.score ??
-              entrega?.grade ??
-              entrega?.total ??
-              0;
-
-
-            return {
-
-              id:
-                submissionId ||
-                studentId ||
-                `${nombre}-${index}`,
-
-              alumno:
-                nombre,
-
-              nombre:
-                nombre,
-
-              email:
-                email,
-
-              correo:
-                email,
-
-              studentId:
-                studentId,
-
-              studentSubmissionId:
-                submissionId,
-
-              courseId:
-                courseId,
-
-              courseWorkId:
-                courseWorkId,
-
-              EN1:
-                Number(
-                  entrega?.EN1 ?? 0
-                ),
-
-              EN2:
-                Number(
-                  entrega?.EN2 ?? 0
-                ),
-
-              EN3:
-                Number(
-                  entrega?.EN3 ?? 0
-                ),
-
-              total:
-                Number(
-                  puntaje || 0
-                ),
-
-              puntaje:
-                Number(
-                  puntaje || 0
-                ),
-
-              informe:
-                entrega?.informe ||
-                entrega?.title ||
-                "",
-
-              estado:
-                entrega?.state ||
-                entrega?.estado ||
-                "",
-
-              entregaOriginal:
-                entrega,
-
-            };
+          curso => {
+
+            const seccion =
+              String(
+                curso?.seccion ||
+                curso?.section ||
+                ""
+              )
+                .trim()
+                .toUpperCase();
+
+            return seccion.includes(
+              "EXPERIENCIAS FORMAT"
+            );
 
           }
         );
 
-
-      setAlumnos(
-        listaAlumnos
+      setCursos(
+        experiencias
       );
 
+      if (lista.length === 0) {
 
-      setEstado(
-        "resultados"
-      );
+        setError(
+          "El servicio no devolvió cursos."
+        );
 
+      }
 
-      if (!listaAlumnos.length) {
+      else if (
+        experiencias.length === 0
+      ) {
 
-        setMensaje(
-          "No se encontraron entregas de alumnos para esta actividad."
+        setError(
+          `Se recibieron ${lista.length} cursos, pero ninguno coincide con EXPERIENCIAS FORMAT.`
         );
 
       }
 
     }
+
     catch (err) {
 
-      console.error(
-        "ERROR OBTENIENDO ENTREGAS:",
+      debugError(
+        "FALLÓ CARGAR CURSOS",
         err
       );
 
+      setCursos([]);
 
       setError(
-        err?.message ||
-        "No se pudieron obtener las entregas de Classroom."
+        `ERROR AL CARGAR CURSOS: ${
+          err?.message ||
+          "Error desconocido"
+        }`
       );
 
-
-      setEstado("error");
-
     }
+
     finally {
 
-      setCargandoResultados(false);
+      setLoadingCursos(false);
+
+      console.groupEnd();
 
     }
 
-  };
+  }
 
 
   // ==========================================================
-  // CARGAR ENTREGABLES CONSOLIDADOS
-  //
-  // Esta función intenta utilizar la operación existente:
-  //
-  // obtenerEntregablesClassroom(courseId)
-  //
-  // si el backend devuelve una estructura consolidada.
+  // CAMBIO DE CURSO
   // ==========================================================
 
-  const cargarEntregablesConsolidados =
-    async () => {
+  async function handleCursoChange(event) {
 
-      if (!unidad) {
+    const courseId =
+      event.target.value;
 
-        setError(
-          "Selecciona primero una unidad didáctica."
+    setCursoSeleccionado(
+      courseId
+    );
+
+    setTopicSeleccionado("");
+    setTopicActual(null);
+
+    setTopics([]);
+
+    setEntregables([]);
+
+    setAlumnos([]);
+
+    setBusquedaAlumno("");
+
+    setError("");
+
+    if (!courseId) {
+
+      setCursoActual(null);
+
+      return;
+
+    }
+
+    const curso =
+      cursos.find(
+        item =>
+          String(item?.id) ===
+          String(courseId)
+      );
+
+    setCursoActual(
+      curso || null
+    );
+
+    await Promise.all([
+      cargarTopics(courseId),
+      cargarAlumnos(courseId)
+    ]);
+
+  }
+
+
+  // ==========================================================
+  // TOPICS
+  // ==========================================================
+
+  async function cargarTopics(courseId) {
+
+    console.group(
+      "%c[2] CARGANDO TOPICS",
+      "color:#7c3aed;font-weight:bold"
+    );
+
+    try {
+
+      setLoadingTopics(true);
+
+      const respuesta =
+        await classroomObtenerTemas(
+          courseId
         );
 
-        return;
+      console.log(
+        "RESPUESTA TOPICS:",
+        respuesta
+      );
 
-      }
+      setDebugInfo(prev => ({
+        ...prev,
+        topics: respuesta
+      }));
 
-
-      if (!curso?.id) {
-
-        setError(
-          "No se encontró el courseId de Google Classroom."
+      const lista =
+        extraerLista(
+          respuesta,
+          [
+            "temas",
+            "topics"
+          ]
         );
 
-        return;
+      const normalizados =
+        lista.map(
+          topic => ({
 
-      }
+            ...topic,
+
+            id:
+              topic?.id ||
+              topic?.topicId ||
+              "",
+
+            nombre:
+              topic?.nombre ||
+              topic?.name ||
+              topic?.title ||
+              "Topic sin nombre"
+
+          })
+        );
+
+      setTopics(
+        normalizados
+      );
+
+    }
+
+    catch (err) {
+
+      debugError(
+        "FALLÓ CARGAR TOPICS",
+        err
+      );
+
+      setTopics([]);
+
+      setError(
+        `ERROR AL CARGAR TOPICS: ${
+          err?.message ||
+          "Error desconocido"
+        }`
+      );
+
+    }
+
+    finally {
+
+      setLoadingTopics(false);
+
+      console.groupEnd();
+
+    }
+
+  }
 
 
-      setCargandoResultados(true);
+  // ==========================================================
+  // ALUMNOS
+  // ==========================================================
 
+  async function cargarAlumnos(courseId) {
+
+    console.group(
+      "%c[3] CARGANDO ALUMNOS",
+      "color:#0891b2;font-weight:bold"
+    );
+
+    try {
+
+      setLoadingAlumnos(true);
       setError("");
 
-      setMensaje("");
+      const respuesta =
+        await classroomObtenerAlumnos(
+          courseId
+        );
+
+      console.log(
+        "RESPUESTA REAL ALUMNOS:",
+        respuesta
+      );
+
+      setDebugInfo(prev => ({
+        ...prev,
+        alumnos: respuesta
+      }));
+
+      const lista =
+        extraerLista(
+          respuesta,
+          [
+            "estudiantes",
+            "alumnos",
+            "students"
+          ]
+        );
+
+      const normalizados =
+        lista.map(
+          normalizarAlumno
+        );
+
+      console.table(
+        normalizados
+      );
+
+      setAlumnos(
+        normalizados
+      );
+
+      if (
+        normalizados.length === 0
+      ) {
+
+        setError(
+          "Classroom no devolvió alumnos para este curso."
+        );
+
+      }
+
+    }
+
+    catch (err) {
+
+      debugError(
+        "FALLÓ CARGAR ALUMNOS",
+        err
+      );
 
       setAlumnos([]);
 
-      setEstado(
-        "cargando-resultados"
+      setError(
+        `ERROR AL CARGAR ALUMNOS: ${
+          err?.message ||
+          "Error desconocido"
+        }`
       );
 
+    }
 
-      try {
+    finally {
 
-        const respuesta =
-          await classroomService.obtenerEntregablesClassroom(
-            curso.id
-          );
+      setLoadingAlumnos(false);
+
+      console.groupEnd();
+
+    }
+
+  }
 
 
-        console.log(
-          "CLASSROOM ENTREGABLES CONSOLIDADOS:",
-          respuesta
+  // ==========================================================
+  // RECARGAR ALUMNOS
+  // ==========================================================
+
+  async function recargarAlumnos() {
+
+    if (!cursoSeleccionado) {
+      return;
+    }
+
+    await cargarAlumnos(
+      cursoSeleccionado
+    );
+
+  }
+
+
+  // ==========================================================
+  // CAMBIO TOPIC
+  // ==========================================================
+
+  async function handleTopicChange(event) {
+
+    const topicId =
+      event.target.value;
+
+    setTopicSeleccionado(
+      topicId
+    );
+
+    setEntregables([]);
+
+    setError("");
+
+    if (!topicId) {
+
+      setTopicActual(null);
+
+      return;
+
+    }
+
+    const topic =
+      topics.find(
+        item =>
+          String(item?.id) ===
+          String(topicId)
+      );
+
+    setTopicActual(
+      topic || null
+    );
+
+    if (!cursoSeleccionado) {
+      return;
+    }
+
+    await cargarEntregables(
+      cursoSeleccionado,
+      topic
+    );
+
+  }
+
+
+  // ==========================================================
+  // CARGAR ENTREGABLES
+  // ==========================================================
+
+  async function cargarEntregables(
+    courseId,
+    topic
+  ) {
+
+    console.group(
+      "%c[4] CARGANDO EN1 EN2 EN3",
+      "color:#ea580c;font-weight:bold"
+    );
+
+    try {
+
+      setLoadingEntregables(true);
+
+      const respuesta =
+        await classroomObtenerActividades(
+          courseId
         );
 
+      console.log(
+        "RESPUESTA COMPLETA ACTIVIDADES:",
+        respuesta
+      );
 
-        let lista =
-          obtenerListaRespuesta(
-            respuesta,
-            [
-              "alumnos",
-              "entregables",
-              "resultados",
-              "data",
-            ]
+      setDebugInfo(prev => ({
+        ...prev,
+        actividades: respuesta
+      }));
+
+      const actividades =
+        extraerLista(
+          respuesta,
+          [
+            "actividades",
+            "courseWork",
+            "coursework"
+          ]
+        );
+
+      console.log(
+        "TOTAL ACTIVIDADES:",
+        actividades.length
+      );
+
+      console.table(
+        actividades
+      );
+
+      const topicId =
+        String(
+          topic?.id ||
+          topic?.topicId ||
+          ""
+        );
+
+      let actividadesTopic =
+        actividades;
+
+      if (topicId) {
+
+        const filtradas =
+          actividades.filter(
+            actividad => {
+
+              const idTema =
+                String(
+                  actividad?.topicId ||
+                  actividad?.topic?.id ||
+                  ""
+                );
+
+              return (
+                idTema === topicId
+              );
+
+            }
           );
 
-
         if (
-          !lista.length &&
-          Array.isArray(
-            respuesta?.data
-          )
+          filtradas.length > 0
         ) {
 
-          lista =
-            respuesta.data;
+          actividadesTopic =
+            filtradas;
 
         }
 
+      }
 
-        const normalizados =
-          lista.map(
-            (alumno, index) => {
 
-              const nombre =
-                alumno?.alumno ||
-                alumno?.nombre ||
-                alumno?.studentName ||
-                "Alumno sin nombre";
+      // ======================================================
+      // DETECTAR EN1 EN2 EN3
+      // ======================================================
 
+      const encontrados =
+        actividadesTopic
+          .filter(
+            actividad => {
+
+              const titulo =
+                String(
+                  actividad?.titulo ||
+                  actividad?.title ||
+                  actividad?.nombre ||
+                  ""
+                );
+
+              const descripcion =
+                String(
+                  actividad?.descripcion ||
+                  actividad?.description ||
+                  ""
+                );
+
+              const backend =
+                String(
+                  actividad?.entregable ||
+                  actividad?.entregableIdentificado ||
+                  actividad?.en ||
+                  actividad?.codigo ||
+                  ""
+                )
+                  .toUpperCase()
+                  .trim();
+
+              const texto =
+                (
+                  titulo +
+                  " " +
+                  descripcion +
+                  " " +
+                  backend
+                )
+                  .toUpperCase();
+
+              return (
+
+                backend === "EN1" ||
+                backend === "EN2" ||
+                backend === "EN3" ||
+
+                texto.includes("EN1") ||
+                texto.includes("EN01") ||
+
+                texto.includes("EN2") ||
+                texto.includes("EN02") ||
+
+                texto.includes("EN3") ||
+                texto.includes("EN03") ||
+
+                texto.includes(
+                  "ENTREGABLE 1"
+                ) ||
+
+                texto.includes(
+                  "ENTREGABLE 2"
+                ) ||
+
+                texto.includes(
+                  "ENTREGABLE 3"
+                )
+
+              );
+
+            }
+          )
+          .map(
+            actividad => {
+
+              const titulo =
+                String(
+                  actividad?.titulo ||
+                  actividad?.title ||
+                  actividad?.nombre ||
+                  "Sin título"
+                );
+
+              const backend =
+                String(
+                  actividad?.entregable ||
+                  actividad?.entregableIdentificado ||
+                  actividad?.en ||
+                  actividad?.codigo ||
+                  ""
+                )
+                  .toUpperCase()
+                  .trim();
+
+              let numero = "";
+
+              if (
+                backend === "EN1" ||
+                /(?:^|[^A-Z0-9])EN0?1(?:$|[^A-Z0-9])/i
+                  .test(titulo) ||
+                /ENTREGABLE\s*0?1/i
+                  .test(titulo) ||
+                /EN01/i.test(titulo)
+              ) {
+
+                numero = "EN1";
+
+              }
+
+              else if (
+                backend === "EN2" ||
+                /(?:^|[^A-Z0-9])EN0?2(?:$|[^A-Z0-9])/i
+                  .test(titulo) ||
+                /ENTREGABLE\s*0?2/i
+                  .test(titulo) ||
+                /EN02/i.test(titulo)
+              ) {
+
+                numero = "EN2";
+
+              }
+
+              else if (
+                backend === "EN3" ||
+                /(?:^|[^A-Z0-9])EN0?3(?:$|[^A-Z0-9])/i
+                  .test(titulo) ||
+                /ENTREGABLE\s*0?3/i
+                  .test(titulo) ||
+                /EN03/i.test(titulo)
+              ) {
+
+                numero = "EN3";
+
+              }
+
+              const puntaje =
+                obtenerPuntaje(
+                  actividad
+                );
+
+              const maximo =
+                obtenerPuntajeMaximo(
+                  actividad
+                );
+
+              const estado =
+                obtenerEstadoEntrega(
+                  actividad
+                );
+
+              console.log(
+                `[${numero}] ${titulo}`,
+                {
+                  actividad,
+                  puntaje,
+                  maximo,
+                  estado
+                }
+              );
 
               return {
 
-                ...alumno,
+                ...actividad,
 
-                id:
-                  alumno?.id ||
-                  alumno?.studentId ||
-                  `${nombre}-${index}`,
+                numero,
 
-                alumno:
-                  nombre,
-
-                nombre:
-                  nombre,
-
-                email:
-                  alumno?.email ||
-                  alumno?.correo ||
+                courseWorkId:
+                  actividad?.courseWorkId ||
+                  actividad?.id ||
                   "",
 
-                correo:
-                  alumno?.correo ||
-                  alumno?.email ||
+                titulo,
+
+                topicId:
+                  actividad?.topicId ||
                   "",
 
-                EN1:
-                  Number(
-                    alumno?.EN1 || 0
-                  ),
+                puntaje,
 
-                EN2:
-                  Number(
-                    alumno?.EN2 || 0
-                  ),
+                maximo,
 
-                EN3:
-                  Number(
-                    alumno?.EN3 || 0
-                  ),
-
-                total:
-                  Number(
-                    alumno?.total ||
-                    0
-                  ),
-
-                informe:
-                  alumno?.informe ||
-                  "",
+                estado
 
               };
 
@@ -1096,430 +1273,313 @@ export default function CalificarEntregables() {
           );
 
 
-        setAlumnos(
-          normalizados
-        );
+      encontrados.sort(
+        (a, b) => {
 
+          const orden = {
+            EN1: 1,
+            EN2: 2,
+            EN3: 3
+          };
 
-        setEstado(
-          "resultados"
-        );
-
-
-        if (!normalizados.length) {
-
-          setMensaje(
-            "No se encontraron entregables consolidados para esta unidad."
+          return (
+            (orden[a.numero] || 99) -
+            (orden[b.numero] || 99)
           );
 
         }
+      );
 
-      }
-      catch (err) {
+      console.log(
+        "========================================"
+      );
 
-        console.error(
-          "ERROR ENTREGABLES CONSOLIDADOS:",
-          err
-        );
+      console.log(
+        "EN1 EN2 EN3 DETECTADOS:"
+      );
 
+      console.table(
+        encontrados.map(item => ({
+          numero: item.numero,
+          titulo: item.titulo,
+          puntaje: item.puntaje,
+          maximo: item.maximo,
+          estado: item.estado,
+          courseWorkId: item.courseWorkId
+        }))
+      );
 
-        setError(
+      console.log(
+        "========================================"
+      );
+
+      setEntregables(
+        encontrados
+      );
+
+    }
+
+    catch (err) {
+
+      debugError(
+        "FALLÓ CARGAR ACTIVIDADES",
+        err
+      );
+
+      setEntregables([]);
+
+      setError(
+        `ERROR AL CARGAR ACTIVIDADES: ${
           err?.message ||
-          "No se pudieron obtener los entregables consolidados."
-        );
+          "Error desconocido"
+        }`
+      );
 
+    }
 
-        setEstado("error");
+    finally {
 
-      }
-      finally {
+      setLoadingEntregables(false);
 
-        setCargandoResultados(false);
+      console.groupEnd();
 
-      }
+    }
 
-    };
+  }
 
 
   // ==========================================================
-  // FILTRAR ALUMNOS
+  // FILTRO ALUMNOS
   // ==========================================================
 
   const alumnosFiltrados =
-    useMemo(() => {
+    useMemo(
+      () => {
 
-      const texto =
-        normalizarTexto(
-          busqueda
-        );
+        const texto =
+          busquedaAlumno
+            .trim()
+            .toLowerCase();
 
-
-      if (!texto) {
-        return alumnos;
-      }
-
-
-      return alumnos.filter(
-        (alumno) => {
-
-          const nombre =
-            normalizarTexto(
-              alumno?.alumno ||
-              alumno?.nombre
-            );
-
-
-          const codigo =
-            normalizarTexto(
-              alumno?.codigo ||
-              alumno?.semestre
-            );
-
-
-          const informe =
-            normalizarTexto(
-              alumno?.informe
-            );
-
-
-          const email =
-            normalizarTexto(
-              alumno?.email ||
-              alumno?.correo
-            );
-
-
-          return (
-            nombre.includes(texto) ||
-            codigo.includes(texto) ||
-            informe.includes(texto) ||
-            email.includes(texto)
-          );
-
+        if (!texto) {
+          return alumnos;
         }
-      );
 
-    }, [
-      alumnos,
-      busqueda,
-    ]);
+        return alumnos.filter(
+          alumno => {
 
-
-  // ==========================================================
-  // TOTAL ALUMNOS
-  // ==========================================================
-
-  const totalAlumnos =
-    alumnos.length;
-
-
-  // ==========================================================
-  // ENVIAR CALIFICACIÓN DE UNA ENTREGA
-  // ==========================================================
-
-  const enviarCalificacionIndividual =
-    async (alumno) => {
-
-      if (!curso?.id) {
-
-        throw new Error(
-          "Debe especificarse courseId."
-        );
-
-      }
-
-
-      const courseId =
-        curso.id;
-
-
-      const courseWorkId =
-        alumno?.courseWorkId ||
-        obtenerIdActividad(
-          actividad
-        );
-
-
-      const studentSubmissionId =
-        alumno?.studentSubmissionId ||
-        alumno?.submissionId ||
-        alumno?.id;
-
-
-      if (!courseWorkId) {
-
-        throw new Error(
-          "Debe especificarse courseWorkId."
-        );
-
-      }
-
-
-      if (!studentSubmissionId) {
-
-        throw new Error(
-          `No se encontró studentSubmissionId para ${alumno?.alumno || "el alumno"}.`
-        );
-
-      }
-
-
-      const puntaje =
-        Number(
-          alumno?.total ??
-          alumno?.puntaje ??
-          0
-        );
-
-
-      return classroomService.asignarCalificacion({
-        courseId,
-        courseWorkId,
-        studentSubmissionId,
-        puntaje,
-      });
-
-    };
-
-
-  // ==========================================================
-  // ENVIAR CALIFICACIONES
-  // ==========================================================
-
-  const enviarCalificaciones =
-    async () => {
-
-      if (!unidad) {
-
-        setError(
-          "Selecciona una unidad didáctica."
-        );
-
-        return;
-
-      }
-
-
-      if (!curso?.id) {
-
-        setError(
-          "No existe un courseId de Classroom asociado a la unidad."
-        );
-
-        return;
-
-      }
-
-
-      if (!actividad) {
-
-        setError(
-          "Selecciona una actividad de Classroom."
-        );
-
-        return;
-
-      }
-
-
-      if (!alumnos.length) {
-
-        setError(
-          "No existen alumnos para enviar."
-        );
-
-        return;
-
-      }
-
-
-      const courseId =
-        curso.id;
-
-
-      const courseWorkId =
-        obtenerIdActividad(
-          actividad
-        );
-
-
-      if (!courseWorkId) {
-
-        setError(
-          "La actividad seleccionada no tiene courseWorkId."
-        );
-
-        return;
-
-      }
-
-
-      const confirmar =
-        window.confirm(
-          [
-            `Se procesarán ${alumnos.length} calificaciones.`,
-            "",
-            `Unidad: ${unidad.nombre}`,
-            `Curso: ${obtenerNombreCurso(curso)}`,
-            `Actividad: ${obtenerNombreActividad(actividad)}`,
-            "",
-            "¿Deseas continuar?",
-          ].join("\n")
-        );
-
-
-      if (!confirmar) {
-        return;
-      }
-
-
-      setEnviando(true);
-
-      setError("");
-
-      setMensaje("");
-
-
-      let enviados = 0;
-
-      let errores = 0;
-
-      const detallesErrores = [];
-
-
-      try {
-
-        // ----------------------------------------------------
-        // ENVIAR UNA POR UNA
-        // ----------------------------------------------------
-
-        for (
-          const alumno
-          of alumnos
-        ) {
-
-          try {
-
-            await enviarCalificacionIndividual(
-              alumno
-            );
-
-            enviados++;
-
-          }
-          catch (err) {
-
-            errores++;
-
-            detallesErrores.push({
-              alumno:
-                alumno?.alumno ||
+            const nombre =
+              String(
                 alumno?.nombre ||
-                "Alumno sin nombre",
+                alumno?.nombreCompleto ||
+                ""
+              )
+                .toLowerCase();
 
-              error:
-                err?.message ||
-                "Error desconocido",
+            const email =
+              String(
+                alumno?.email ||
+                ""
+              )
+                .toLowerCase();
 
-            });
+            const id =
+              String(
+                alumno?.userId ||
+                alumno?.id ||
+                ""
+              )
+                .toLowerCase();
 
-            console.error(
-              "ERROR CALIFICANDO ALUMNO:",
-              alumno,
-              err
+            return (
+              nombre.includes(texto) ||
+              email.includes(texto) ||
+              id.includes(texto)
             );
 
           }
-
-        }
-
-
-        // ----------------------------------------------------
-        // MENSAJE FINAL
-        // ----------------------------------------------------
-
-        if (errores === 0) {
-
-          setMensaje(
-            `Proceso terminado correctamente. ${enviados} calificaciones enviadas a Google Classroom.`
-          );
-
-          setEstado(
-            "enviados"
-          );
-
-        }
-        else {
-
-          setMensaje(
-            `Proceso terminado. ${enviados} calificaciones enviadas y ${errores} con observaciones.`
-          );
-
-          setEstado(
-            "enviados-con-observaciones"
-          );
-
-          console.warn(
-            "DETALLES DE ERRORES:",
-            detallesErrores
-          );
-
-        }
-
-      }
-      catch (err) {
-
-        console.error(
-          "ERROR ENVIANDO CALIFICACIONES:",
-          err
         );
 
+      },
+      [
+        alumnos,
+        busquedaAlumno
+      ]
+    );
 
-        setError(
-          err?.message ||
-          "No se pudieron enviar las calificaciones."
+
+  // ==========================================================
+  // CURSOS ORDENADOS
+  // ==========================================================
+
+  const cursosOrdenados =
+    useMemo(
+      () => {
+
+        return [...cursos].sort(
+          (a, b) =>
+            String(
+              a?.nombre ||
+              a?.name ||
+              ""
+            ).localeCompare(
+              String(
+                b?.nombre ||
+                b?.name ||
+                ""
+              ),
+              "es",
+              {
+                numeric: true
+              }
+            )
         );
 
-      }
-      finally {
-
-        setEnviando(false);
-
-      }
-
-    };
+      },
+      [cursos]
+    );
 
 
   // ==========================================================
-  // REFRESCAR ACTIVIDADES
+  // RESUMEN
   // ==========================================================
 
-  const refrescarActividades =
-    async () => {
+  const resumenEntregables =
+    useMemo(
+      () => {
 
-      if (!unidad) {
-        return;
-      }
+        const en1 =
+          entregables.find(
+            item =>
+              item.numero === "EN1"
+          );
 
-      await cargarActividades(
-        unidad
-      );
+        const en2 =
+          entregables.find(
+            item =>
+              item.numero === "EN2"
+          );
 
-    };
+        const en3 =
+          entregables.find(
+            item =>
+              item.numero === "EN3"
+          );
+
+        const puntajes = [
+          en1?.puntaje,
+          en2?.puntaje,
+          en3?.puntaje
+        ];
+
+        const puntajesValidos =
+          puntajes.filter(
+            valor =>
+              valor !== null &&
+              valor !== undefined &&
+              !Number.isNaN(Number(valor))
+          );
+
+        const total =
+          puntajesValidos.reduce(
+            (acumulado, valor) =>
+              acumulado + Number(valor),
+            0
+          );
+
+        const maximos = [
+          en1?.maximo,
+          en2?.maximo,
+          en3?.maximo
+        ];
+
+        const maximosValidos =
+          maximos.filter(
+            valor =>
+              valor !== null &&
+              valor !== undefined &&
+              !Number.isNaN(Number(valor))
+          );
+
+        const totalMaximo =
+          maximosValidos.reduce(
+            (acumulado, valor) =>
+              acumulado + Number(valor),
+            0
+          );
+
+        return {
+          en1,
+          en2,
+          en3,
+          total,
+          totalMaximo,
+          cantidadValidos:
+            puntajesValidos.length
+        };
+
+      },
+      [entregables]
+    );
 
 
   // ==========================================================
-  // EFECTO INICIAL
+  // LIMPIAR
   // ==========================================================
 
-  useEffect(() => {
+  function limpiar() {
 
-    // No cargamos Classroom automáticamente.
-    //
-    // Los cursos se solicitan cuando el docente selecciona
-    // una unidad didáctica.
+    setCursoSeleccionado("");
 
-  }, []);
+    setCursoActual(null);
+
+    setTopicSeleccionado("");
+
+    setTopicActual(null);
+
+    setTopics([]);
+
+    setEntregables([]);
+
+    setAlumnos([]);
+
+    setBusquedaAlumno("");
+
+    setError("");
+
+  }
+
+
+  // ==========================================================
+  // INICIALES
+  // ==========================================================
+
+  function obtenerIniciales(nombre) {
+
+    const partes =
+      String(
+        nombre || "Alumno"
+      )
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    if (
+      partes.length === 1
+    ) {
+
+      return partes[0]
+        .substring(0, 2)
+        .toUpperCase();
+
+    }
+
+    return (
+      partes[0].charAt(0) +
+      partes[1].charAt(0)
+    ).toUpperCase();
+
+  }
 
 
   // ==========================================================
@@ -1527,133 +1587,159 @@ export default function CalificarEntregables() {
   // ==========================================================
 
   return (
+
     <div
-      className="
-        min-h-screen
-        bg-slate-50
-        dark:bg-slate-950
-        px-6
-        py-6
-      "
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top left, rgba(59,130,246,.14), transparent 28%), radial-gradient(circle at top right, rgba(99,102,241,.12), transparent 26%), linear-gradient(135deg,#f8fafc 0%,#eef2ff 48%,#f8fafc 100%)",
+        padding: "28px 18px 50px",
+        fontFamily:
+          "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        color: "#172033"
+      }}
     >
 
       <div
-        className="
-          max-w-7xl
-          mx-auto
-        "
+        style={{
+          maxWidth: "1220px",
+          margin: "0 auto"
+        }}
       >
 
         {/* ==================================================
-            ENCABEZADO
+            HEADER
         ================================================== */}
 
         <div
-          className="
-            mb-6
-            flex
-            flex-col
-            lg:flex-row
-            lg:items-center
-            lg:justify-between
-            gap-4
-          "
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            background:
+              "linear-gradient(135deg,#0f172a 0%,#172554 42%,#2563eb 100%)",
+            color: "#fff",
+            borderRadius: "24px",
+            padding: "28px 30px",
+            marginBottom: "18px",
+            boxShadow:
+              "0 20px 50px rgba(37,99,235,.20)"
+          }}
         >
 
-          <div>
+          <div
+            style={{
+              position: "absolute",
+              width: "220px",
+              height: "220px",
+              borderRadius: "50%",
+              background:
+                "rgba(255,255,255,.07)",
+              right: "-70px",
+              top: "-100px"
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              width: "140px",
+              height: "140px",
+              borderRadius: "50%",
+              background:
+                "rgba(96,165,250,.10)",
+              right: "120px",
+              bottom: "-100px"
+            }}
+          />
+
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1
+            }}
+          >
 
             <div
-              className="
-                flex
-                items-center
-                gap-3
-              "
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px"
+              }}
             >
 
               <div
-                className="
-                  w-11
-                  h-11
-                  rounded-2xl
-                  bg-[#EEF3FF]
-                  text-[#1D3681]
-                  flex
-                  items-center
-                  justify-center
-                "
+                style={{
+                  width: "54px",
+                  height: "54px",
+                  borderRadius: "16px",
+                  background:
+                    "rgba(255,255,255,.14)",
+                  border:
+                    "1px solid rgba(255,255,255,.20)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "27px",
+                  boxShadow:
+                    "0 10px 25px rgba(0,0,0,.12)"
+                }}
               >
-
-                <ClipboardCheck
-                  size={23}
-                />
-
+                📚
               </div>
-
 
               <div>
 
-                <h1
-                  className="
-                    text-2xl
-                    font-extrabold
-                    text-slate-800
-                    dark:text-white
-                  "
+                <div
+                  style={{
+                    fontSize: "28px",
+                    fontWeight: 900,
+                    letterSpacing: "-.03em"
+                  }}
                 >
                   Calificar entregables
-                </h1>
+                </div>
 
-
-                <p
-                  className="
-                    mt-1
-                    text-sm
-                    text-slate-500
-                    dark:text-slate-400
-                  "
+                <div
+                  style={{
+                    marginTop: "4px",
+                    color: "#dbeafe",
+                    fontSize: "13px",
+                    fontWeight: 500
+                  }}
                 >
-                  Selecciona la unidad didáctica y la actividad
-                  de Google Classroom.
-                </p>
+                  Google Classroom · Experiencias Formativas
+                </div>
 
               </div>
 
             </div>
 
-          </div>
-
-
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-              px-4
-              py-2.5
-              rounded-xl
-              bg-white
-              dark:bg-slate-900
-              border
-              border-slate-200
-              dark:border-slate-800
-            "
-          >
-
-            <Cloud
-              size={17}
-              className="text-emerald-500"
-            />
-
-            <span
-              className="
-                text-xs
-                font-bold
-                text-slate-600
-                dark:text-slate-300
-              "
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginTop: "20px"
+              }}
             >
-              Google Classroom
-            </span>
+
+              <HeaderBadge>
+                🎓 Experiencias
+              </HeaderBadge>
+
+              <HeaderBadge>
+                📂 Topics
+              </HeaderBadge>
+
+              <HeaderBadge>
+                📋 EN1 · EN2 · EN3
+              </HeaderBadge>
+
+              <HeaderBadge>
+                👥 Estudiantes
+              </HeaderBadge>
+
+            </div>
 
           </div>
 
@@ -1667,247 +1753,218 @@ export default function CalificarEntregables() {
         {error && (
 
           <div
-            className="
-              mb-5
-              flex
-              items-start
-              gap-3
-              p-4
-              rounded-2xl
-              bg-red-50
-              dark:bg-red-950/30
-              border
-              border-red-200
-              dark:border-red-900/50
-              text-red-700
-              dark:text-red-300
-            "
-          >
-
-            <AlertCircle
-              size={20}
-              className="
-                shrink-0
-                mt-0.5
-              "
-            />
-
-            <div>
-
-              <p
-                className="
-                  text-sm
-                  font-bold
-                "
-              >
-                No se pudo completar la operación
-              </p>
-
-
-              <p
-                className="
-                  mt-1
-                  text-xs
-                "
-              >
-                {error}
-              </p>
-
-            </div>
-
-          </div>
-
-        )}
-
-
-        {/* ==================================================
-            MENSAJE
-        ================================================== */}
-
-        {mensaje && (
-
-          <div
-            className="
-              mb-5
-              flex
-              items-start
-              gap-3
-              p-4
-              rounded-2xl
-              bg-emerald-50
-              dark:bg-emerald-950/30
-              border
-              border-emerald-200
-              dark:border-emerald-900/50
-              text-emerald-700
-              dark:text-emerald-300
-            "
-          >
-
-            <CheckCircle2
-              size={20}
-              className="shrink-0"
-            />
-
-            <p
-              className="
-                text-sm
-                font-semibold
-              "
-            >
-              {mensaje}
-            </p>
-
-          </div>
-
-        )}
-
-
-        {/* ==================================================
-            CONFIGURACIÓN
-        ================================================== */}
-
-        <div
-          className="
-            grid
-            grid-cols-1
-            xl:grid-cols-2
-            gap-5
-            mb-6
-          "
-        >
-
-          {/* =================================================
-              UNIDAD
-          ================================================= */}
-
-          <div
-            className="
-              bg-white
-              dark:bg-slate-900
-              border
-              border-slate-200
-              dark:border-slate-800
-              rounded-2xl
-              p-5
-              shadow-sm
-            "
+            style={{
+              background:
+                "linear-gradient(135deg,#fff1f2,#fff7f7)",
+              border:
+                "1px solid #fecdd3",
+              color: "#9f1239",
+              padding: "15px 17px",
+              borderRadius: "15px",
+              marginBottom: "18px",
+              fontSize: "13px",
+              boxShadow:
+                "0 8px 25px rgba(190,24,93,.06)"
+            }}
           >
 
             <div
-              className="
-                flex
-                items-center
-                gap-3
-                mb-4
-              "
+              style={{
+                display: "flex",
+                gap: "10px",
+                alignItems: "flex-start"
+              }}
             >
 
-              <div
-                className="
-                  w-9
-                  h-9
-                  rounded-xl
-                  bg-blue-50
-                  dark:bg-blue-950/40
-                  text-[#1D3681]
-                  flex
-                  items-center
-                  justify-center
-                "
+              <span
+                style={{
+                  fontSize: "18px"
+                }}
               >
-
-                <BookOpen
-                  size={19}
-                />
-
-              </div>
-
+                ⚠️
+              </span>
 
               <div>
 
-                <h2
-                  className="
-                    text-sm
-                    font-extrabold
-                    text-slate-800
-                    dark:text-white
-                  "
-                >
-                  Unidad didáctica
-                </h2>
+                <strong>
+                  {error}
+                </strong>
 
-
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                    dark:text-slate-400
-                  "
+                <div
+                  style={{
+                    marginTop: "5px",
+                    opacity: .8,
+                    fontSize: "11px"
+                  }}
                 >
-                  Selecciona Experiencias Formativas.
-                </p>
+                  Revisa F12 → Console para ver la
+                  respuesta real del servicio.
+                </div>
 
               </div>
 
             </div>
 
+          </div>
+
+        )}
+
+
+        {/* ==================================================
+            DIAGNÓSTICO
+        ================================================== */}
+
+        <section
+          style={{
+            background:
+              "linear-gradient(135deg,#0f172a,#172554)",
+            color: "#e2e8f0",
+            borderRadius: "18px",
+            padding: "17px",
+            marginBottom: "18px",
+            boxShadow:
+              "0 12px 30px rgba(15,23,42,.13)",
+            border:
+              "1px solid rgba(255,255,255,.06)"
+          }}
+        >
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "12px"
+            }}
+          >
 
             <div
-              className="
-                relative
-              "
+              style={{
+                fontSize: "14px",
+                fontWeight: 900
+              }}
             >
+              🛠️ Diagnóstico de Classroom
+            </div>
+
+            <div
+              style={{
+                fontSize: "10px",
+                color: "#94a3b8"
+              }}
+            >
+              Estado del servicio
+            </div>
+
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(4,minmax(0,1fr))",
+              gap: "9px"
+            }}
+          >
+
+            <DebugStatus
+              nombre="Cursos"
+              cargando={loadingCursos}
+              cantidad={cursos.length}
+            />
+
+            <DebugStatus
+              nombre="Topics"
+              cargando={loadingTopics}
+              cantidad={topics.length}
+            />
+
+            <DebugStatus
+              nombre="Actividades"
+              cargando={loadingEntregables}
+              cantidad={entregables.length}
+            />
+
+            <DebugStatus
+              nombre="Alumnos"
+              cargando={loadingAlumnos}
+              cantidad={alumnos.length}
+            />
+
+          </div>
+
+        </section>
+
+
+        {/* ==================================================
+            SELECTORES
+        ================================================== */}
+
+        <section
+          style={{
+            ...cardStyle,
+            padding: "21px"
+          }}
+        >
+
+          <SectionHeading
+            icon="🎯"
+            title="Selección"
+            subtitle="Selecciona la experiencia y el topic que deseas revisar."
+          />
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "minmax(0,1.4fr) minmax(0,1fr)",
+              gap: "15px"
+            }}
+          >
+
+            <div>
+
+              <label
+                style={labelStyle}
+              >
+                🎓 Experiencia Formativa
+              </label>
 
               <select
-                value={
-                  unidad?.codigo || ""
-                }
-                onChange={(e) =>
-                  cambiarUnidad(
-                    e.target.value
-                  )
-                }
-                disabled={
-                  cargandoCursos ||
-                  cargandoActividades
-                }
-                className="
-                  w-full
-                  appearance-none
-                  px-4
-                  py-3
-                  pr-10
-                  rounded-xl
-                  border
-                  border-slate-200
-                  dark:border-slate-700
-                  bg-slate-50
-                  dark:bg-slate-800
-                  text-sm
-                  font-semibold
-                  text-slate-700
-                  dark:text-slate-200
-                  outline-none
-                  focus:ring-2
-                  focus:ring-[#1D3681]/20
-                  disabled:opacity-50
-                "
+                value={cursoSeleccionado}
+                onChange={handleCursoChange}
+                disabled={loadingCursos}
+                style={selectStyle}
               >
 
                 <option value="">
-                  Seleccionar unidad didáctica
+                  {loadingCursos
+                    ? "⏳ Cargando experiencias..."
+                    : "Seleccionar Experiencia Formativa"}
                 </option>
 
-
-                {UNIDADES_DIDACTICAS.map(
-                  (item) => (
+                {cursosOrdenados.map(
+                  curso => (
 
                     <option
-                      key={item.codigo}
-                      value={item.codigo}
+                      key={curso.id}
+                      value={curso.id}
                     >
-                      {item.nombre} — {item.codigo}
+
+                      {curso.nombre ||
+                        curso.name ||
+                        "Curso sin nombre"}
+
+                      {(
+                        curso.seccion ||
+                        curso.section
+                      ) &&
+                        ` — ${
+                          curso.seccion ||
+                          curso.section
+                        }`}
+
                     </option>
 
                   )
@@ -1915,1130 +1972,1973 @@ export default function CalificarEntregables() {
 
               </select>
 
-
-              <ChevronDown
-                size={17}
-                className="
-                  pointer-events-none
-                  absolute
-                  right-3
-                  top-1/2
-                  -translate-y-1/2
-                  text-slate-400
-                "
-              />
-
             </div>
 
 
-            {cargandoCursos && (
+            <div>
 
-              <div
-                className="
-                  mt-3
-                  flex
-                  items-center
-                  gap-2
-                  text-xs
-                  text-slate-500
-                "
+              <label
+                style={labelStyle}
+              >
+                📂 Topic
+              </label>
+
+              <select
+                value={topicSeleccionado}
+                onChange={handleTopicChange}
+                disabled={
+                  !cursoActual ||
+                  loadingTopics
+                }
+                style={selectStyle}
               >
 
-                <Loader2
-                  size={14}
-                  className="animate-spin"
-                />
+                <option value="">
+                  {!cursoActual
+                    ? "Primero selecciona una experiencia"
+                    : loadingTopics
+                      ? "⏳ Cargando Topics..."
+                      : "Seleccionar Topic"}
+                </option>
 
-                Consultando cursos de Google Classroom...
+                {topics.map(
+                  topic => (
 
-              </div>
+                    <option
+                      key={topic.id}
+                      value={topic.id}
+                    >
+                      {topic.nombre}
+                    </option>
 
-            )}
+                  )
+                )}
 
+              </select>
 
-            {unidad && (
-
-              <div
-                className="
-                  mt-3
-                  flex
-                  items-center
-                  gap-2
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-400
-                "
-              >
-
-                <GraduationCap
-                  size={15}
-                />
-
-                Código:
-
-                <strong
-                  className="
-                    text-[#1D3681]
-                    dark:text-blue-300
-                  "
-                >
-                  {unidad.codigo}
-                </strong>
-
-              </div>
-
-            )}
-
-
-            {curso && (
-
-              <div
-                className="
-                  mt-2
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-400
-                "
-              >
-
-                Curso Classroom:
-
-                <strong
-                  className="
-                    ml-1
-                    text-slate-700
-                    dark:text-slate-200
-                  "
-                >
-                  {obtenerNombreCurso(curso)}
-                </strong>
-
-              </div>
-
-            )}
+            </div>
 
           </div>
 
 
-          {/* =================================================
-              ACTIVIDAD
-          ================================================= */}
-
-          <div
-            className="
-              bg-white
-              dark:bg-slate-900
-              border
-              border-slate-200
-              dark:border-slate-800
-              rounded-2xl
-              p-5
-              shadow-sm
-            "
-          >
+          {(cursoActual || topicActual) && (
 
             <div
-              className="
-                flex
-                items-center
-                justify-between
-                mb-4
-              "
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit,minmax(250px,1fr))",
+                gap: "10px",
+                marginTop: "14px"
+              }}
             >
 
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-3
-                "
-              >
+              {cursoActual && (
 
                 <div
-                  className="
-                    w-9
-                    h-9
-                    rounded-xl
-                    bg-emerald-50
-                    dark:bg-emerald-950/40
-                    text-emerald-600
-                    flex
-                    items-center
-                    justify-center
-                  "
+                  style={infoMiniStyle}
                 >
 
-                  <Cloud
-                    size={19}
-                  />
+                  <div
+                    style={infoIconStyle}
+                  >
+                    🎓
+                  </div>
+
+                  <div
+                    style={{
+                      minWidth: 0
+                    }}
+                  >
+
+                    <div
+                      style={{
+                        fontWeight: 850,
+                        color: "#1e3a8a",
+                        fontSize: "12px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
+                    >
+                      {cursoActual.nombre ||
+                        cursoActual.name}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        color: "#64748b",
+                        marginTop: "3px"
+                      }}
+                    >
+                      Course ID:{" "}
+                      {cursoActual.id}
+                    </div>
+
+                  </div>
 
                 </div>
 
+              )}
 
-                <div>
 
-                  <h2
-                    className="
-                      text-sm
-                      font-extrabold
-                      text-slate-800
-                      dark:text-white
-                    "
+              {topicActual && (
+
+                <div
+                  style={infoMiniStyle}
+                >
+
+                  <div
+                    style={infoIconStyle}
                   >
-                    Actividad de Classroom
-                  </h2>
+                    📂
+                  </div>
 
-
-                  <p
-                    className="
-                      text-xs
-                      text-slate-500
-                      dark:text-slate-400
-                    "
+                  <div
+                    style={{
+                      minWidth: 0
+                    }}
                   >
-                    Actividades disponibles para el curso.
-                  </p>
 
+                    <div
+                      style={{
+                        fontWeight: 850,
+                        color: "#1e3a8a",
+                        fontSize: "12px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
+                    >
+                      {topicActual.nombre}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        color: "#64748b",
+                        marginTop: "3px"
+                      }}
+                    >
+                      Topic ID:{" "}
+                      {topicActual.id}
+                    </div>
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+          )}
+
+        </section>
+
+
+        {/* ==================================================
+            ENTREGABLES CON PUNTAJES
+        ================================================== */}
+
+        {topicActual && (
+
+          <section
+            style={cardStyle}
+          >
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "10px",
+                marginBottom: "16px",
+                flexWrap: "wrap"
+              }}
+            >
+
+              <div>
+
+                <h2
+                  style={titleStyle}
+                >
+                  📋 Entregables y puntajes
+                </h2>
+
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: "11px",
+                    marginTop: "4px"
+                  }}
+                >
+                  Actividades detectadas dentro del Topic seleccionado
                 </div>
 
               </div>
 
+              {entregables.length > 0 && (
 
-              {unidad && (
-
-                <button
-                  type="button"
-                  onClick={
-                    refrescarActividades
-                  }
-                  disabled={
-                    cargandoActividades ||
-                    cargandoCursos
-                  }
-                  className="
-                    p-2
-                    rounded-lg
-                    text-slate-500
-                    hover:bg-slate-100
-                    dark:hover:bg-slate-800
-                    disabled:opacity-50
-                  "
-                  title="Actualizar actividades"
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    background:
+                      "linear-gradient(135deg,#eff6ff,#dbeafe)",
+                    color: "#1d4ed8",
+                    padding: "7px 12px",
+                    borderRadius: "10px",
+                    fontSize: "11px",
+                    fontWeight: 900,
+                    border:
+                      "1px solid #bfdbfe"
+                  }}
                 >
+                  <span>
+                    📋
+                  </span>
 
-                  <RefreshCw
-                    size={16}
-                    className={
-                      cargandoActividades
-                        ? "animate-spin"
-                        : ""
-                    }
-                  />
-
-                </button>
+                  {entregables.length} actividades
+                </div>
 
               )}
 
             </div>
 
 
-            <div
-              className="
-                relative
-              "
+            {loadingEntregables && (
+
+              <Loading>
+                ⏳ Cargando actividades y puntajes...
+              </Loading>
+
+            )}
+
+
+            {!loadingEntregables &&
+              entregables.length === 0 && (
+
+                <Empty>
+                  <div
+                    style={{
+                      fontSize: "24px",
+                      marginBottom: "6px"
+                    }}
+                  >
+                    📭
+                  </div>
+
+                  No se encontraron EN1, EN2 o EN3.
+                </Empty>
+
+              )}
+
+
+            {!loadingEntregables &&
+              entregables.length > 0 && (
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit,minmax(300px,1fr))",
+                    gap: "13px"
+                  }}
+                >
+
+                  {entregables.map(
+                    (item, index) => {
+
+                      const colores =
+                        colorPuntaje(
+                          item.puntaje,
+                          item.maximo
+                        );
+
+                      return (
+
+                        <div
+                          key={
+                            item.courseWorkId ||
+                            item.id ||
+                            index
+                          }
+                          style={{
+                            border:
+                              "1px solid #e2e8f0",
+                            borderRadius: "17px",
+                            padding: "16px",
+                            background:
+                              "linear-gradient(180deg,#ffffff 0%,#f8fafc 100%)",
+                            boxShadow:
+                              "0 8px 24px rgba(15,23,42,.055)",
+                            transition:
+                              "transform .2s ease, box-shadow .2s ease"
+                          }}
+                        >
+
+                          {/* CABECERA */}
+
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent:
+                                "space-between",
+                              alignItems:
+                                "flex-start",
+                              gap: "12px"
+                            }}
+                          >
+
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems:
+                                  "center",
+                                gap: "10px",
+                                minWidth: 0
+                              }}
+                            >
+
+                              <div
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  minWidth: "50px",
+                                  borderRadius:
+                                    "14px",
+                                  background:
+                                    "linear-gradient(135deg,#dbeafe,#bfdbfe)",
+                                  color: "#1d4ed8",
+                                  display: "flex",
+                                  alignItems:
+                                    "center",
+                                  justifyContent:
+                                    "center",
+                                  fontWeight: 950,
+                                  fontSize: "16px",
+                                  boxShadow:
+                                    "0 6px 15px rgba(37,99,235,.12)"
+                                }}
+                              >
+                                {item.numero}
+                              </div>
+
+                              <div
+                                style={{
+                                  minWidth: 0
+                                }}
+                              >
+
+                                <div
+                                  style={{
+                                    fontSize: "9px",
+                                    color: "#64748b",
+                                    textTransform:
+                                      "uppercase",
+                                    letterSpacing:
+                                      ".07em",
+                                    fontWeight: 800
+                                  }}
+                                >
+                                  Entregable
+                                </div>
+
+                                <div
+                                  style={{
+                                    marginTop: "2px",
+                                    fontWeight: 850,
+                                    color: "#0f172a",
+                                    fontSize: "13px",
+                                    lineHeight: 1.35,
+                                    wordBreak:
+                                      "break-word"
+                                  }}
+                                >
+                                  {item.titulo}
+                                </div>
+
+                              </div>
+
+                            </div>
+
+
+                            {/* PUNTAJE */}
+
+                            <div
+                              style={{
+                                background:
+                                  colores.background,
+                                color:
+                                  colores.color,
+                                border:
+                                  `1px solid ${colores.border}`,
+                                borderRadius:
+                                  "13px",
+                                padding:
+                                  "8px 11px",
+                                textAlign:
+                                  "center",
+                                minWidth:
+                                  "70px",
+                                boxShadow:
+                                  "0 4px 10px rgba(15,23,42,.04)"
+                              }}
+                            >
+
+                              <div
+                                style={{
+                                  fontSize: "8px",
+                                  fontWeight: 800,
+                                  letterSpacing:
+                                    ".05em"
+                                }}
+                              >
+                                PUNTAJE
+                              </div>
+
+                              <div
+                                style={{
+                                  fontSize: "21px",
+                                  fontWeight: 950,
+                                  lineHeight: 1.2,
+                                  marginTop: "2px"
+                                }}
+                              >
+                                {formatearPuntaje(
+                                  item.puntaje
+                                )}
+                              </div>
+
+                              {item.maximo !== null &&
+                                item.maximo !== undefined && (
+
+                                  <div
+                                    style={{
+                                      fontSize: "9px",
+                                      fontWeight: 800
+                                    }}
+                                  >
+                                    /{" "}
+                                    {formatearPuntaje(
+                                      item.maximo
+                                    )}
+                                  </div>
+
+                                )}
+
+                            </div>
+
+                          </div>
+
+
+                          {/* INFORMACIÓN */}
+
+                          <div
+                            style={{
+                              marginTop: "14px",
+                              display: "grid",
+                              gridTemplateColumns:
+                                "1fr 1fr",
+                              gap: "8px"
+                            }}
+                          >
+
+                            <InfoBox
+                              label="Estado"
+                              value={
+                                item.estado ||
+                                "Sin información"
+                              }
+                            />
+
+                            <InfoBox
+                              label="ID"
+                              value={
+                                item.courseWorkId ||
+                                item.id ||
+                                "—"
+                              }
+                            />
+
+                          </div>
+
+
+                          {/* AVISO SI NO HAY PUNTAJE */}
+
+                          {(
+                            item.puntaje === null ||
+                            item.puntaje === undefined
+                          ) && (
+
+                            <div
+                              style={{
+                                marginTop: "10px",
+                                padding: "9px 10px",
+                                background:
+                                  "#fff7ed",
+                                border:
+                                  "1px solid #fed7aa",
+                                color:
+                                  "#9a3412",
+                                borderRadius:
+                                  "10px",
+                                fontSize: "10px",
+                                lineHeight: 1.4
+                              }}
+                            >
+                              ⚠️ La actividad fue encontrada,
+                              pero la respuesta no contiene
+                              un puntaje.
+                            </div>
+
+                          )}
+
+                        </div>
+
+                      );
+
+                    }
+                  )}
+
+                </div>
+
+              )}
+
+          </section>
+
+        )}
+
+
+        {/* ==================================================
+            RESUMEN EN1 EN2 EN3
+        ================================================== */}
+
+        {topicActual &&
+          entregables.length > 0 && (
+
+            <section
+              style={{
+                ...cardStyle,
+                background:
+                  "linear-gradient(135deg,#ffffff 0%,#f8fbff 100%)"
+              }}
             >
 
-              <select
-                value={
-                  actividad
-                    ? obtenerIdActividad(
-                        actividad
-                      )
-                    : ""
-                }
-                onChange={(e) => {
-
-                  const encontrada =
-                    actividades.find(
-                      (item) =>
-                        String(
-                          obtenerIdActividad(item)
-                        ) ===
-                        String(
-                          e.target.value
-                        )
-                    );
-
-
-                  setActividad(
-                    encontrada || null
-                  );
-
-                  setAlumnos([]);
-
-                  setError("");
-
-                  setMensaje("");
-
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "12px",
+                  flexWrap: "wrap"
                 }}
-                disabled={
-                  !unidad ||
-                  !curso ||
-                  cargandoActividades ||
-                  !actividades.length
-                }
-                className="
-                  w-full
-                  appearance-none
-                  px-4
-                  py-3
-                  pr-10
-                  rounded-xl
-                  border
-                  border-slate-200
-                  dark:border-slate-700
-                  bg-slate-50
-                  dark:bg-slate-800
-                  text-sm
-                  font-semibold
-                  text-slate-700
-                  dark:text-slate-200
-                  outline-none
-                  focus:ring-2
-                  focus:ring-[#1D3681]/20
-                  disabled:opacity-50
-                "
               >
 
-                {!unidad && (
+                <div>
 
-                  <option value="">
-                    Primero selecciona una unidad
-                  </option>
+                  <h2
+                    style={titleStyle}
+                  >
+                    📊 Resumen de calificaciones
+                  </h2>
 
-                )}
+                  <div
+                    style={{
+                      marginTop: "4px",
+                      color: "#64748b",
+                      fontSize: "11px"
+                    }}
+                  >
+                    Resumen individual y total de EN1, EN2 y EN3
+                  </div>
+
+                </div>
+
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg,#eff6ff,#dbeafe)",
+                    border:
+                      "1px solid #bfdbfe",
+                    color: "#1d4ed8",
+                    borderRadius: "11px",
+                    padding: "7px 11px",
+                    fontSize: "11px",
+                    fontWeight: 850
+                  }}
+                >
+                  {resumenEntregables.cantidadValidos}/3 registrados
+                </div>
+
+              </div>
 
 
-                {unidad &&
-                  cargandoActividades && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(3,minmax(0,1fr))",
+                  gap: "10px",
+                  marginTop: "15px"
+                }}
+              >
 
-                    <option value="">
-                      Cargando actividades...
-                    </option>
+                {["EN1", "EN2", "EN3"].map(
+                  numero => {
 
-                  )}
+                    const item =
+                      entregables.find(
+                        x =>
+                          x.numero === numero
+                      );
 
+                    const puntaje =
+                      item?.puntaje ??
+                      null;
 
-                {unidad &&
-                  !cargandoActividades &&
-                  !actividades.length && (
+                    const maximo =
+                      item?.maximo ??
+                      null;
 
-                    <option value="">
-                      No hay actividades disponibles
-                    </option>
-
-                  )}
-
-
-                {actividades.map(
-                  (item) => {
-
-                    const id =
-                      obtenerIdActividad(
-                        item
+                    const colores =
+                      colorPuntaje(
+                        puntaje,
+                        maximo
                       );
 
                     return (
 
-                      <option
-                        key={id}
-                        value={id}
+                      <div
+                        key={numero}
+                        style={{
+                          border:
+                            "1px solid #e2e8f0",
+                          borderRadius: "14px",
+                          padding: "14px",
+                          background:
+                            "#fff",
+                          textAlign:
+                            "center",
+                          boxShadow:
+                            "0 5px 16px rgba(15,23,42,.045)"
+                        }}
                       >
-                        {obtenerNombreActividad(
-                          item
-                        )}
-                      </option>
+
+                        <div
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent:
+                              "center",
+                            minWidth: "42px",
+                            height: "28px",
+                            padding:
+                              "0 9px",
+                            borderRadius:
+                              "9px",
+                            background:
+                              "#eff6ff",
+                            color:
+                              "#2563eb",
+                            fontWeight: 950,
+                            fontSize: "14px"
+                          }}
+                        >
+                          {numero}
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: "10px",
+                            display:
+                              "inline-flex",
+                            alignItems:
+                              "baseline",
+                            gap: "3px",
+                            background:
+                              colores.background,
+                            color:
+                              colores.color,
+                            border:
+                              `1px solid ${colores.border}`,
+                            padding:
+                              "8px 14px",
+                            borderRadius:
+                              "11px"
+                          }}
+                        >
+
+                          <span
+                            style={{
+                              fontSize: "22px",
+                              fontWeight: 950
+                            }}
+                          >
+                            {formatearPuntaje(
+                              puntaje
+                            )}
+                          </span>
+
+                          {maximo !== null && (
+
+                            <span
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: 800
+                              }}
+                            >
+                              /{formatearPuntaje(
+                                maximo
+                              )}
+                            </span>
+
+                          )}
+
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: "7px",
+                            color: "#64748b",
+                            fontSize: "9px",
+                            minHeight: "26px",
+                            lineHeight: 1.35
+                          }}
+                        >
+                          {item?.titulo ||
+                            "No encontrado"}
+                        </div>
+
+                      </div>
 
                     );
 
                   }
                 )}
 
-              </select>
+              </div>
 
 
-              <ChevronDown
-                size={17}
-                className="
-                  pointer-events-none
-                  absolute
-                  right-3
-                  top-1/2
-                  -translate-y-1/2
-                  text-slate-400
-                "
-              />
-
-            </div>
-
-
-            {actividad && (
+              {/* ==================================================
+                  TOTAL EN1 + EN2 + EN3
+              ================================================== */}
 
               <div
-                className="
-                  mt-3
-                  flex
-                  flex-wrap
-                  gap-x-4
-                  gap-y-1
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-400
-                "
+                style={{
+                  marginTop: "13px",
+                  padding: "17px",
+                  borderRadius: "16px",
+                  background:
+                    "linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%)",
+                  color: "#fff",
+                  boxShadow:
+                    "0 12px 25px rgba(30,58,138,.16)"
+                }}
               >
 
-                <span>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems:
+                      "center",
+                    gap: "12px",
+                    flexWrap: "wrap"
+                  }}
+                >
 
-                  Actividad:
+                  <div>
 
-                  <strong
-                    className="ml-1"
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        color: "#bfdbfe",
+                        textTransform:
+                          "uppercase",
+                        letterSpacing:
+                          ".08em",
+                        fontWeight: 800
+                      }}
+                    >
+                      Total acumulado
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "4px",
+                        fontSize: "12px",
+                        color: "#e2e8f0"
+                      }}
+                    >
+                      EN1 + EN2 + EN3
+                    </div>
+
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems:
+                        "baseline",
+                      gap: "5px"
+                    }}
                   >
-                    {obtenerNombreActividad(
-                      actividad
-                    )}
-                  </strong>
 
-                </span>
-
-
-                <span>
-
-                  courseWorkId:
-
-                  <strong
-                    className="ml-1"
-                  >
-                    {obtenerIdActividad(
-                      actividad
-                    )}
-                  </strong>
-
-                </span>
-
-
-                {actividad?.maxPoints !==
-                  undefined && (
-
-                    <span>
-
-                      Máximo:
-
-                      <strong
-                        className="ml-1"
-                      >
-                        {actividad.maxPoints}
-                      </strong>
-
+                    <span
+                      style={{
+                        fontSize: "30px",
+                        fontWeight: 950,
+                        letterSpacing:
+                          "-.04em"
+                      }}
+                    >
+                      {formatearPuntaje(
+                        resumenEntregables.total
+                      )}
                     </span>
 
-                  )}
+                    {resumenEntregables.totalMaximo > 0 && (
+
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          color: "#bfdbfe",
+                          fontWeight: 800
+                        }}
+                      >
+                        /
+                        {formatearPuntaje(
+                          resumenEntregables.totalMaximo
+                        )}
+                      </span>
+
+                    )}
+
+                  </div>
+
+                </div>
 
               </div>
 
-            )}
+            </section>
 
-          </div>
-
-        </div>
+          )}
 
 
         {/* ==================================================
-            ACCIONES
+            ALUMNOS
         ================================================== */}
 
-        <div
-          className="
-            flex
-            flex-col
-            sm:flex-row
-            justify-end
-            gap-3
-            mb-6
-          "
-        >
+        {cursoActual && (
 
-          <button
-            type="button"
-            onClick={
-              cargarEntregablesConsolidados
-            }
-            disabled={
-              !curso ||
-              cargandoResultados ||
-              cargandoActividades
-            }
-            className="
-              inline-flex
-              items-center
-              justify-center
-              gap-2
-              px-5
-              py-3
-              rounded-xl
-              border
-              border-slate-200
-              dark:border-slate-700
-              bg-white
-              dark:bg-slate-900
-              text-slate-700
-              dark:text-slate-200
-              text-sm
-              font-bold
-              shadow-sm
-              transition
-              hover:bg-slate-50
-              dark:hover:bg-slate-800
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-            "
+          <section
+            style={cardStyle}
           >
 
-            {cargandoResultados ? (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "12px",
+                flexWrap: "wrap",
+                alignItems: "center"
+              }}
+            >
 
-              <Loader2
-                size={18}
-                className="animate-spin"
-              />
-
-            ) : (
-
-              <RefreshCw
-                size={18}
-              />
-
-            )}
-
-            Cargar consolidación
-
-          </button>
-
-
-          <button
-            type="button"
-            onClick={
-              cargarConsolidacion
-            }
-            disabled={
-              !unidad ||
-              !curso ||
-              !actividad ||
-              cargandoResultados
-            }
-            className="
-              inline-flex
-              items-center
-              justify-center
-              gap-2
-              px-5
-              py-3
-              rounded-xl
-              bg-[#1D3681]
-              hover:bg-[#172d6c]
-              text-white
-              text-sm
-              font-bold
-              shadow-sm
-              transition
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-            "
-          >
-
-            {cargandoResultados ? (
-
-              <Loader2
-                size={18}
-                className="animate-spin"
-              />
-
-            ) : (
-
-              <ClipboardCheck
-                size={18}
-              />
-
-            )}
-
-            {cargandoResultados
-              ? "Cargando resultados..."
-              : "Cargar entregas"}
-
-          </button>
-
-        </div>
-
-
-        {/* ==================================================
-            TABLA
-        ================================================== */}
-
-        <div
-          className="
-            bg-white
-            dark:bg-slate-900
-            border
-            border-slate-200
-            dark:border-slate-800
-            rounded-2xl
-            shadow-sm
-            overflow-hidden
-          "
-        >
-
-          <div
-            className="
-              p-5
-              border-b
-              border-slate-200
-              dark:border-slate-800
-              flex
-              flex-col
-              lg:flex-row
-              lg:items-center
-              lg:justify-between
-              gap-4
-            "
-          >
-
-            <div>
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-
-                <Users
-                  size={18}
-                  className="text-[#1D3681]"
-                />
+              <div>
 
                 <h2
-                  className="
-                    text-base
-                    font-extrabold
-                    text-slate-800
-                    dark:text-white
-                  "
+                  style={{
+                    ...titleStyle,
+                    marginBottom: "3px"
+                  }}
                 >
-                  Resultados consolidados
+                  👥 Estudiantes
                 </h2>
+
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: "11px"
+                  }}
+                >
+                  Alumnos matriculados en Classroom
+                </div>
 
               </div>
 
 
-              <p
-                className="
-                  mt-1
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-400
-                "
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center"
+                }}
               >
-                {totalAlumnos} alumnos encontrados.
-              </p>
+
+                <div
+                  style={{
+                    background:
+                      alumnos.length > 0
+                        ? "#dcfce7"
+                        : "#fee2e2",
+                    color:
+                      alumnos.length > 0
+                        ? "#166534"
+                        : "#991b1b",
+                    padding: "8px 13px",
+                    borderRadius: "10px",
+                    fontWeight: 900,
+                    fontSize: "13px",
+                    border:
+                      alumnos.length > 0
+                        ? "1px solid #bbf7d0"
+                        : "1px solid #fecaca"
+                  }}
+                >
+
+                  {loadingAlumnos
+                    ? "⏳"
+                    : alumnos.length}
+
+                </div>
+
+
+                <button
+                  type="button"
+                  onClick={recargarAlumnos}
+                  disabled={loadingAlumnos}
+                  style={{
+                    ...primaryButtonStyle,
+                    opacity:
+                      loadingAlumnos
+                        ? .6
+                        : 1,
+                    cursor:
+                      loadingAlumnos
+                        ? "not-allowed"
+                        : "pointer"
+                  }}
+                >
+
+                  {loadingAlumnos
+                    ? "Cargando..."
+                    : "↻ Recargar"}
+
+                </button>
+
+              </div>
 
             </div>
 
+
+            {/* BUSCADOR */}
+
+            {!loadingAlumnos &&
+              alumnos.length > 0 && (
+
+                <div
+                  style={{
+                    position: "relative",
+                    marginTop: "15px"
+                  }}
+                >
+
+                  <span
+                    style={{
+                      position: "absolute",
+                      left: "13px",
+                      top: "50%",
+                      transform:
+                        "translateY(-50%)",
+                      fontSize: "14px",
+                      pointerEvents:
+                        "none"
+                    }}
+                  >
+                    🔎
+                  </span>
+
+                  <input
+                    value={busquedaAlumno}
+                    onChange={e =>
+                      setBusquedaAlumno(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Buscar estudiante por nombre, correo o ID..."
+                    style={{
+                      ...selectStyle,
+                      paddingLeft: "38px"
+                    }}
+                  />
+
+                </div>
+
+              )}
+
+
+            {/* LOADING */}
+
+            {loadingAlumnos && (
+
+              <Loading>
+                ⏳ Consultando estudiantes de Classroom...
+              </Loading>
+
+            )}
+
+
+            {/* SIN ALUMNOS */}
+
+            {!loadingAlumnos &&
+              alumnos.length === 0 && (
+
+                <Empty>
+
+                  <div
+                    style={{
+                      fontSize: "24px"
+                    }}
+                  >
+                    👥
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "5px"
+                    }}
+                  >
+                    No se encontraron estudiantes.
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      fontSize: "11px"
+                    }}
+                  >
+                    Course ID consultado:
+                    <br />
+
+                    <b
+                      style={{
+                        color: "#334155"
+                      }}
+                    >
+                      {cursoSeleccionado}
+                    </b>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={recargarAlumnos}
+                    style={{
+                      ...primaryButtonStyle,
+                      marginTop: "13px"
+                    }}
+                  >
+                    🔄 Intentar nuevamente
+                  </button>
+
+                </Empty>
+
+              )}
+
+
+            {/* CONTADOR */}
+
+            {alumnos.length > 0 && (
+
+              <div
+                style={{
+                  marginTop: "13px",
+                  marginBottom: "8px",
+                  color: "#64748b",
+                  fontSize: "11px"
+                }}
+              >
+
+                Mostrando{" "}
+
+                <b
+                  style={{
+                    color: "#1e293b"
+                  }}
+                >
+                  {alumnosFiltrados.length}
+                </b>{" "}
+
+                de{" "}
+
+                <b
+                  style={{
+                    color: "#1e293b"
+                  }}
+                >
+                  {alumnos.length}
+                </b>{" "}
+
+                estudiantes.
+
+              </div>
+
+            )}
+
+
+            {/* LISTA */}
 
             <div
-              className="
-                relative
-                w-full
-                lg:w-80
-              "
+              style={{
+                marginTop: "10px",
+                display: "grid",
+                gap: "8px"
+              }}
             >
 
-              <Search
-                size={17}
-                className="
-                  absolute
-                  left-3
-                  top-1/2
-                  -translate-y-1/2
-                  text-slate-400
-                "
-              />
+              {alumnosFiltrados.map(
+                (alumno, index) => {
+
+                  const nombre =
+                    alumno?.nombre ||
+                    alumno?.nombreCompleto ||
+                    "Alumno";
+
+                  return (
+
+                    <div
+                      key={
+                        alumno.userId ||
+                        alumno.id ||
+                        index
+                      }
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "11px",
+                        padding: "10px 12px",
+                        border:
+                          "1px solid #e2e8f0",
+                        borderRadius: "13px",
+                        background:
+                          "linear-gradient(135deg,#fff,#f8fafc)",
+                        boxShadow:
+                          "0 4px 12px rgba(15,23,42,.035)"
+                      }}
+                    >
+
+                      {alumno.photoUrl ? (
+
+                        <img
+                          src={alumno.photoUrl}
+                          alt=""
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            minWidth: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            border:
+                              "2px solid #dbeafe"
+                          }}
+                        />
+
+                      ) : (
+
+                        <div
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            minWidth: "40px",
+                            borderRadius: "50%",
+                            background:
+                              "linear-gradient(135deg,#dbeafe,#bfdbfe)",
+                            color: "#1d4ed8",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent:
+                              "center",
+                            fontWeight: 900,
+                            fontSize: "12px",
+                            border:
+                              "2px solid #eff6ff"
+                          }}
+                        >
+                          {obtenerIniciales(
+                            nombre
+                          )}
+                        </div>
+
+                      )}
 
 
-              <input
-                type="text"
-                value={busqueda}
-                onChange={(e) =>
-                  setBusqueda(
-                    e.target.value
-                  )
+                      <div
+                        style={{
+                          minWidth: 0,
+                          flex: 1
+                        }}
+                      >
+
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            fontSize: "12px",
+                            overflow: "hidden",
+                            textOverflow:
+                              "ellipsis",
+                            whiteSpace:
+                              "nowrap",
+                            color: "#1e293b"
+                          }}
+                        >
+                          {nombre}
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "9px",
+                            flexWrap: "wrap",
+                            marginTop: "3px"
+                          }}
+                        >
+
+                          {alumno.email && (
+
+                            <span
+                              style={{
+                                color: "#64748b",
+                                fontSize: "9px"
+                              }}
+                            >
+                              ✉️ {alumno.email}
+                            </span>
+
+                          )}
+
+                          {alumno.userId && (
+
+                            <span
+                              style={{
+                                color: "#94a3b8",
+                                fontSize: "9px"
+                              }}
+                            >
+                              ID: {alumno.userId}
+                            </span>
+
+                          )}
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  );
+
                 }
-                placeholder="Buscar alumno..."
-                className="
-                  w-full
-                  pl-9
-                  pr-3
-                  py-2.5
-                  rounded-xl
-                  border
-                  border-slate-200
-                  dark:border-slate-700
-                  bg-slate-50
-                  dark:bg-slate-800
-                  text-sm
-                  outline-none
-                  focus:ring-2
-                  focus:ring-[#1D3681]/20
-                "
-              />
+              )}
 
             </div>
+
+
+            {!loadingAlumnos &&
+              alumnos.length > 0 &&
+              alumnosFiltrados.length === 0 && (
+
+                <Empty>
+                  No hay estudiantes que coincidan
+                  con "{busquedaAlumno}".
+                </Empty>
+
+              )}
+
+          </section>
+
+        )}
+
+
+        {/* ==================================================
+            DEBUG ACTIVIDADES
+        ================================================== */}
+
+        {cursoActual && (
+
+          <details
+            style={{
+              background:
+                "linear-gradient(135deg,#0f172a,#111827)",
+              color: "#e2e8f0",
+              borderRadius: "15px",
+              padding: "14px",
+              marginBottom: "14px",
+              border:
+                "1px solid #1e293b"
+            }}
+          >
+
+            <summary
+              style={{
+                cursor: "pointer",
+                fontWeight: 800,
+                fontSize: "11px",
+                color: "#cbd5e1"
+              }}
+            >
+              🔍 Ver respuesta REAL de actividades
+              y puntajes
+            </summary>
+
+            <pre
+              style={{
+                marginTop: "12px",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                fontSize: "9px",
+                lineHeight: 1.5,
+                color: "#cbd5e1",
+                maxHeight: "500px",
+                overflow: "auto",
+                background:
+                  "#020617",
+                padding: "12px",
+                borderRadius: "10px"
+              }}
+            >
+              {JSON.stringify(
+                debugInfo.actividades,
+                null,
+                2
+              )}
+            </pre>
+
+          </details>
+
+        )}
+
+
+        {/* ==================================================
+            DEBUG ALUMNOS
+        ================================================== */}
+
+        {cursoActual && (
+
+          <details
+            style={{
+              background:
+                "linear-gradient(135deg,#0f172a,#111827)",
+              color: "#e2e8f0",
+              borderRadius: "15px",
+              padding: "14px",
+              marginBottom: "15px",
+              border:
+                "1px solid #1e293b"
+            }}
+          >
+
+            <summary
+              style={{
+                cursor: "pointer",
+                fontWeight: 800,
+                fontSize: "11px",
+                color: "#cbd5e1"
+              }}
+            >
+              🔍 Ver respuesta real de alumnos
+            </summary>
+
+            <pre
+              style={{
+                marginTop: "12px",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                fontSize: "9px",
+                lineHeight: 1.5,
+                color: "#cbd5e1",
+                maxHeight: "500px",
+                overflow: "auto",
+                background:
+                  "#020617",
+                padding: "12px",
+                borderRadius: "10px"
+              }}
+            >
+              {JSON.stringify(
+                debugInfo.alumnos,
+                null,
+                2
+              )}
+            </pre>
+
+          </details>
+
+        )}
+
+
+        {/* ==================================================
+            LIMPIAR
+        ================================================== */}
+
+        {(cursoSeleccionado ||
+          topicSeleccionado) && (
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: "20px"
+            }}
+          >
+
+            <button
+              type="button"
+              onClick={limpiar}
+              style={{
+                border:
+                  "1px solid #cbd5e1",
+                background:
+                  "#fff",
+                color: "#334155",
+                padding: "10px 15px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontWeight: 800,
+                fontSize: "11px",
+                boxShadow:
+                  "0 4px 12px rgba(15,23,42,.05)"
+              }}
+            >
+              ↻ Limpiar selección
+            </button>
 
           </div>
 
-
-          {/* =================================================
-              TABLA
-          ================================================= */}
-
-          {alumnosFiltrados.length > 0 ? (
-
-            <div
-              className="
-                overflow-x-auto
-              "
-            >
-
-              <table
-                className="
-                  w-full
-                  text-sm
-                "
-              >
-
-                <thead>
-
-                  <tr
-                    className="
-                      bg-slate-50
-                      dark:bg-slate-800/60
-                      text-slate-500
-                      dark:text-slate-400
-                    "
-                  >
-
-                    <th
-                      className="
-                        text-left
-                        px-5
-                        py-3
-                        font-bold
-                      "
-                    >
-                      Alumno
-                    </th>
-
-
-                    <th
-                      className="
-                        text-center
-                        px-4
-                        py-3
-                        font-bold
-                      "
-                    >
-                      EN1
-                    </th>
-
-
-                    <th
-                      className="
-                        text-center
-                        px-4
-                        py-3
-                        font-bold
-                      "
-                    >
-                      EN2
-                    </th>
-
-
-                    <th
-                      className="
-                        text-center
-                        px-4
-                        py-3
-                        font-bold
-                      "
-                    >
-                      EN3
-                    </th>
-
-
-                    <th
-                      className="
-                        text-center
-                        px-5
-                        py-3
-                        font-bold
-                      "
-                    >
-                      Total
-                    </th>
-
-                  </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                  {alumnosFiltrados.map(
-                    (alumno, index) => (
-
-                      <tr
-                        key={
-                          alumno?.id ||
-                          `${alumno?.alumno}-${index}`
-                        }
-                        className="
-                          border-t
-                          border-slate-100
-                          dark:border-slate-800
-                          hover:bg-slate-50
-                          dark:hover:bg-slate-800/40
-                        "
-                      >
-
-                        <td
-                          className="
-                            px-5
-                            py-4
-                          "
-                        >
-
-                          <div
-                            className="
-                              flex
-                              items-center
-                              gap-3
-                            "
-                          >
-
-                            <div
-                              className="
-                                w-9
-                                h-9
-                                rounded-xl
-                                bg-[#EEF3FF]
-                                text-[#1D3681]
-                                flex
-                                items-center
-                                justify-center
-                                font-extrabold
-                                text-xs
-                              "
-                            >
-
-                              {String(
-                                alumno?.alumno ||
-                                alumno?.nombre ||
-                                "A"
-                              )
-                                .charAt(0)
-                                .toUpperCase()}
-
-                            </div>
-
-
-                            <div>
-
-                              <p
-                                className="
-                                  font-bold
-                                  text-slate-700
-                                  dark:text-slate-200
-                                "
-                              >
-                                {alumno?.alumno ||
-                                  alumno?.nombre ||
-                                  "Sin nombre"}
-                              </p>
-
-
-                              <p
-                                className="
-                                  text-[11px]
-                                  text-slate-400
-                                "
-                              >
-                                {alumno?.email ||
-                                  alumno?.correo ||
-                                  alumno?.informe ||
-                                  ""}
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </td>
-
-
-                        <td
-                          className="
-                            text-center
-                            px-4
-                            py-4
-                            font-semibold
-                          "
-                        >
-                          {formatearNota(
-                            alumno?.EN1
-                          )}
-                        </td>
-
-
-                        <td
-                          className="
-                            text-center
-                            px-4
-                            py-4
-                            font-semibold
-                          "
-                        >
-                          {formatearNota(
-                            alumno?.EN2
-                          )}
-                        </td>
-
-
-                        <td
-                          className="
-                            text-center
-                            px-4
-                            py-4
-                            font-semibold
-                          "
-                        >
-                          {formatearNota(
-                            alumno?.EN3
-                          )}
-                        </td>
-
-
-                        <td
-                          className="
-                            text-center
-                            px-5
-                            py-4
-                          "
-                        >
-
-                          <span
-                            className="
-                              inline-flex
-                              min-w-14
-                              justify-center
-                              px-3
-                              py-1.5
-                              rounded-lg
-                              bg-[#EEF3FF]
-                              text-[#1D3681]
-                              font-extrabold
-                            "
-                          >
-                            {formatearNota(
-                              alumno?.total
-                            )}
-                          </span>
-
-                        </td>
-
-                      </tr>
-
-                    )
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          ) : (
-
-            <div
-              className="
-                py-16
-                px-6
-                text-center
-              "
-            >
-
-              <div
-                className="
-                  w-14
-                  h-14
-                  mx-auto
-                  rounded-2xl
-                  bg-slate-100
-                  dark:bg-slate-800
-                  flex
-                  items-center
-                  justify-center
-                  text-slate-400
-                "
-              >
-
-                <Users
-                  size={25}
-                />
-
-              </div>
-
-
-              <h3
-                className="
-                  mt-4
-                  text-sm
-                  font-bold
-                  text-slate-700
-                  dark:text-slate-200
-                "
-              >
-                No hay resultados para mostrar
-              </h3>
-
-
-              <p
-                className="
-                  mt-1
-                  text-xs
-                  text-slate-400
-                "
-              >
-                Selecciona una unidad y una actividad,
-                luego carga las entregas.
-              </p>
-
-            </div>
-
-          )}
-
-
-          {/* =================================================
-              FOOTER
-          ================================================= */}
-
-          {alumnos.length > 0 && (
-
-            <div
-              className="
-                p-5
-                border-t
-                border-slate-200
-                dark:border-slate-800
-                flex
-                flex-col
-                lg:flex-row
-                lg:items-center
-                lg:justify-between
-                gap-4
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-400
-                "
-              >
-
-                <CheckCircle2
-                  size={16}
-                  className="text-emerald-500"
-                />
-
-                {alumnos.length} alumnos
-                preparados para calificación.
-
-              </div>
-
-
-              <button
-                type="button"
-                onClick={
-                  enviarCalificaciones
-                }
-                disabled={
-                  enviando ||
-                  !actividad ||
-                  !curso?.id ||
-                  !alumnos.length
-                }
-                className="
-                  inline-flex
-                  items-center
-                  justify-center
-                  gap-2
-                  px-5
-                  py-3
-                  rounded-xl
-                  bg-emerald-600
-                  hover:bg-emerald-700
-                  text-white
-                  text-sm
-                  font-extrabold
-                  shadow-sm
-                  transition
-                  disabled:opacity-50
-                  disabled:cursor-not-allowed
-                "
-              >
-
-                {enviando ? (
-
-                  <Loader2
-                    size={18}
-                    className="animate-spin"
-                  />
-
-                ) : (
-
-                  <Send
-                    size={18}
-                  />
-
-                )}
-
-                {enviando
-                  ? "Enviando..."
-                  : "Enviar calificaciones a Classroom"}
-
-              </button>
-
-            </div>
-
-          )}
-
-        </div>
+        )}
 
       </div>
 
     </div>
+
   );
+
+}
+
+
+// ============================================================
+// HEADER BADGE
+// ============================================================
+
+function HeaderBadge({
+  children
+}) {
+
+  return (
+
+    <div
+      style={{
+        background:
+          "rgba(255,255,255,.10)",
+        border:
+          "1px solid rgba(255,255,255,.15)",
+        color: "#dbeafe",
+        padding: "6px 9px",
+        borderRadius: "9px",
+        fontSize: "9px",
+        fontWeight: 800
+      }}
+    >
+      {children}
+    </div>
+
+  );
+
+}
+
+
+// ============================================================
+// SECTION HEADING
+// ============================================================
+
+function SectionHeading({
+  icon,
+  title,
+  subtitle
+}) {
+
+  return (
+
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "10px",
+        marginBottom: "16px"
+      }}
+    >
+
+      <div
+        style={{
+          width: "34px",
+          height: "34px",
+          minWidth: "34px",
+          borderRadius: "10px",
+          background:
+            "linear-gradient(135deg,#eff6ff,#dbeafe)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "16px"
+        }}
+      >
+        {icon}
+      </div>
+
+      <div>
+
+        <div
+          style={{
+            fontSize: "15px",
+            fontWeight: 900,
+            color: "#0f172a"
+          }}
+        >
+          {title}
+        </div>
+
+        {subtitle && (
+
+          <div
+            style={{
+              marginTop: "3px",
+              fontSize: "10px",
+              color: "#64748b"
+            }}
+          >
+            {subtitle}
+          </div>
+
+        )}
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+
+// ============================================================
+// INFO BOX
+// ============================================================
+
+function InfoBox({
+  label,
+  value
+}) {
+
+  return (
+
+    <div
+      style={{
+        background:
+          "#f8fafc",
+        border:
+          "1px solid #f1f5f9",
+        borderRadius:
+          "10px",
+        padding:
+          "8px 9px",
+        minWidth: 0
+      }}
+    >
+
+      <div
+        style={{
+          fontSize: "8px",
+          color: "#94a3b8",
+          textTransform:
+            "uppercase",
+          letterSpacing:
+            ".06em",
+          fontWeight: 800
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          marginTop: "3px",
+          fontSize: "10px",
+          fontWeight: 700,
+          color: "#334155",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap"
+        }}
+        title={String(value)}
+      >
+        {value}
+      </div>
+
+    </div>
+
+  );
+
+}
+
+
+// ============================================================
+// DEBUG STATUS
+// ============================================================
+
+function DebugStatus({
+  nombre,
+  cargando,
+  cantidad
+}) {
+
+  return (
+
+    <div
+      style={{
+        background:
+          "rgba(30,41,59,.85)",
+        border:
+          "1px solid #334155",
+        borderRadius: "11px",
+        padding: "10px 11px"
+      }}
+    >
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "5px"
+        }}
+      >
+
+        <div
+          style={{
+            fontSize: "8px",
+            color: "#94a3b8",
+            textTransform:
+              "uppercase",
+            letterSpacing: ".05em",
+            fontWeight: 800
+          }}
+        >
+          {nombre}
+        </div>
+
+        <div
+          style={{
+            width: "7px",
+            height: "7px",
+            borderRadius: "50%",
+            background:
+              cargando
+                ? "#f59e0b"
+                : "#22c55e",
+            boxShadow:
+              cargando
+                ? "0 0 0 3px rgba(245,158,11,.10)"
+                : "0 0 0 3px rgba(34,197,94,.10)"
+          }}
+        />
+
+      </div>
+
+      <div
+        style={{
+          marginTop: "4px",
+          fontSize: "17px",
+          fontWeight: 900
+        }}
+      >
+
+        {cargando
+          ? "⏳"
+          : cantidad}
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+
+// ============================================================
+// ESTILOS
+// ============================================================
+
+const cardStyle = {
+
+  background:
+    "rgba(255,255,255,.96)",
+
+  border:
+    "1px solid #e2e8f0",
+
+  borderRadius:
+    "18px",
+
+  padding:
+    "20px",
+
+  marginBottom:
+    "16px",
+
+  boxShadow:
+    "0 8px 28px rgba(15,23,42,.055)",
+
+  backdropFilter:
+    "blur(8px)"
+
+};
+
+
+const titleStyle = {
+
+  margin:
+    "0",
+
+  fontSize:
+    "17px",
+
+  fontWeight:
+    900,
+
+  color:
+    "#0f172a",
+
+  letterSpacing:
+    "-.02em"
+
+};
+
+
+const labelStyle = {
+
+  display:
+    "block",
+
+  marginBottom:
+    "7px",
+
+  fontSize:
+    "11px",
+
+  fontWeight:
+    850,
+
+  color:
+    "#334155"
+
+};
+
+
+const selectStyle = {
+
+  width:
+    "100%",
+
+  boxSizing:
+    "border-box",
+
+  padding:
+    "12px 13px",
+
+  border:
+    "1px solid #cbd5e1",
+
+  borderRadius:
+    "11px",
+
+  background:
+    "#fff",
+
+  fontSize:
+    "12px",
+
+  outline:
+    "none",
+
+  color:
+    "#1e293b",
+
+  boxShadow:
+    "0 3px 10px rgba(15,23,42,.025)"
+
+};
+
+
+const infoMiniStyle = {
+
+  display:
+    "flex",
+
+  alignItems:
+    "center",
+
+  gap:
+    "9px",
+
+  padding:
+    "10px 11px",
+
+  background:
+    "linear-gradient(135deg,#eff6ff,#f8fbff)",
+
+  border:
+    "1px solid #bfdbfe",
+
+  borderRadius:
+    "11px",
+
+  fontSize:
+    "11px",
+
+  minWidth:
+    0
+
+};
+
+
+const infoIconStyle = {
+
+  width:
+    "32px",
+
+  height:
+    "32px",
+
+  minWidth:
+    "32px",
+
+  borderRadius:
+    "9px",
+
+  background:
+    "#fff",
+
+  display:
+    "flex",
+
+  alignItems:
+    "center",
+
+  justifyContent:
+    "center",
+
+  boxShadow:
+    "0 3px 9px rgba(37,99,235,.08)"
+
+};
+
+
+const primaryButtonStyle = {
+
+  border:
+    "none",
+
+  background:
+    "linear-gradient(135deg,#2563eb,#1d4ed8)",
+
+  color:
+    "#fff",
+
+  padding:
+    "9px 12px",
+
+  borderRadius:
+    "10px",
+
+  cursor:
+    "pointer",
+
+  fontWeight:
+    800,
+
+  fontSize:
+    "11px",
+
+  boxShadow:
+    "0 5px 12px rgba(37,99,235,.18)"
+
+};
+
+
+// ============================================================
+// LOADING
+// ============================================================
+
+function Loading({
+  children
+}) {
+
+  return (
+
+    <div
+      style={{
+        padding: "22px",
+        marginTop: "12px",
+        background:
+          "linear-gradient(135deg,#f8fafc,#eff6ff)",
+        border:
+          "1px solid #e2e8f0",
+        borderRadius: "12px",
+        textAlign: "center",
+        color: "#64748b",
+        fontSize: "12px",
+        fontWeight: 600
+      }}
+    >
+      {children}
+    </div>
+
+  );
+
+}
+
+
+// ============================================================
+// EMPTY
+// ============================================================
+
+function Empty({
+  children
+}) {
+
+  return (
+
+    <div
+      style={{
+        padding: "20px",
+        marginTop: "12px",
+        background:
+          "linear-gradient(135deg,#f8fafc,#fff)",
+        border:
+          "1px dashed #cbd5e1",
+        borderRadius: "12px",
+        textAlign: "center",
+        color: "#64748b",
+        fontSize: "12px",
+        lineHeight: 1.45
+      }}
+    >
+      {children}
+    </div>
+
+  );
+
 }
