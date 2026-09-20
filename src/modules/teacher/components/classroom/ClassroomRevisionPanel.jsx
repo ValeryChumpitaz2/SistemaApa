@@ -89,7 +89,6 @@ export default function ClassroomRevisionPanel({
     setCursos,
   ] = useState([]);
 
-
   const [
     cursoSeleccionado,
     setCursoSeleccionado,
@@ -104,7 +103,6 @@ export default function ClassroomRevisionPanel({
     temas,
     setTemas,
   ] = useState([]);
-
 
   const [
     temaSeleccionado,
@@ -130,11 +128,9 @@ export default function ClassroomRevisionPanel({
     entregas,
     setEntregas,
   ] = useState({
-
     EN1: [],
     EN2: [],
     EN3: [],
-
   });
 
 
@@ -149,6 +145,16 @@ export default function ClassroomRevisionPanel({
 
 
   // ==========================================================
+  // ENTREGABLE SELECCIONADO
+  // ==========================================================
+
+  const [
+    tipoEntregableSeleccionado,
+    setTipoEntregableSeleccionado,
+  ] = useState("");
+
+
+  // ==========================================================
   // ESTADOS DE CARGA
   // ==========================================================
 
@@ -157,18 +163,15 @@ export default function ClassroomRevisionPanel({
     setCargandoCursos,
   ] = useState(false);
 
-
   const [
     cargandoTemas,
     setCargandoTemas,
   ] = useState(false);
 
-
   const [
     cargandoActividades,
     setCargandoActividades,
   ] = useState(false);
-
 
   const [
     cargandoEntregas,
@@ -191,9 +194,7 @@ export default function ClassroomRevisionPanel({
   // ==========================================================
 
   useEffect(() => {
-
     cargarCursos();
-
   }, []);
 
 
@@ -206,7 +207,6 @@ export default function ClassroomRevisionPanel({
     try {
 
       setCargandoCursos(true);
-
       setError("");
 
       const respuesta =
@@ -244,9 +244,139 @@ export default function ClassroomRevisionPanel({
   }
 
 
-  // ==========================================================
+  // ============================================================
+  // SELECCIONAR ENTREGABLE
+  // ============================================================
+
+  async function manejarSeleccionEntregable(
+    seleccion
+  ) {
+
+    console.log(
+      "========== ENTREGABLE SELECCIONADO =========="
+    );
+
+    console.log(
+      "Selección:",
+      seleccion
+    );
+
+    if (!seleccion) {
+      return;
+    }
+
+    const {
+      actividad,
+      tipo,
+      courseWorkId,
+    } = seleccion;
+
+    console.log(
+      "Tipo:",
+      tipo
+    );
+
+    console.log(
+      "CourseWork ID:",
+      courseWorkId
+    );
+
+    console.log(
+      "Actividad:",
+      actividad
+    );
+
+
+    // Guardar entregable seleccionado
+    setTipoEntregableSeleccionado(
+      tipo || ""
+    );
+
+
+    if (!courseWorkId) {
+
+      setError(
+        "No se pudo obtener el ID del entregable."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      setError("");
+      setCargandoEntregas(true);
+
+      const respuesta =
+        await classroomObtenerEntregas(
+          cursoSeleccionado,
+          courseWorkId
+        );
+
+      console.log(
+        "Entregas del entregable:",
+        respuesta
+      );
+
+      const lista =
+        Array.isArray(respuesta)
+          ? respuesta
+          : Array.isArray(
+              respuesta?.entregas
+            )
+            ? respuesta.entregas
+            : Array.isArray(
+                respuesta?.data?.entregas
+              )
+              ? respuesta.data.entregas
+              : Array.isArray(
+                  respuesta?.studentSubmissions
+                )
+                ? respuesta.studentSubmissions
+                : Array.isArray(
+                    respuesta?.submissions
+                  )
+                  ? respuesta.submissions
+                  : [];
+
+      console.log(
+        "Lista final de entregas:",
+        lista
+      );
+
+      setEntregas(
+        prev => ({
+          ...prev,
+          [tipo]: lista,
+        })
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Error cargando entregas:",
+        err
+      );
+
+      setError(
+        err?.message ||
+        "No se pudieron cargar las entregas."
+      );
+
+    } finally {
+
+      setCargandoEntregas(false);
+
+    }
+
+  }
+
+
+  // ============================================================
   // CAMBIAR CURSO
-  // ==========================================================
+  // ============================================================
 
   async function manejarCambioCurso(
     cursoId
@@ -273,12 +403,13 @@ export default function ClassroomRevisionPanel({
 
     setEstudianteSeleccionado(null);
 
+    setTipoEntregableSeleccionado("");
+
     setError("");
 
+
     if (!id) {
-
       return;
-
     }
 
     await cargarTemas(id);
@@ -286,9 +417,9 @@ export default function ClassroomRevisionPanel({
   }
 
 
-  // ==========================================================
+  // ============================================================
   // CARGAR TEMAS
-  // ==========================================================
+  // ============================================================
 
   async function cargarTemas(
     cursoId
@@ -297,7 +428,6 @@ export default function ClassroomRevisionPanel({
     try {
 
       setCargandoTemas(true);
-
       setError("");
 
       const respuesta =
@@ -367,446 +497,473 @@ export default function ClassroomRevisionPanel({
 
     }
 
-
-
   }
-  // ==========================================================
+
+
+  // ============================================================
   // SELECCIONAR TEMA
-  // ==========================================================
+  // ============================================================
 
-  async function manejarSeleccionTema(tema) {
+  async function manejarSeleccionTema(
+    tema
+  ) {
 
-  console.log("=================================");
-  console.log("📌 TEMA SELECCIONADO");
-  console.log("=================================");
-  console.log("Tema recibido:", tema);
+    console.log(
+      "================================="
+    );
 
-  if (!tema) {
-    console.log("⚠️ No se recibió tema");
+    console.log(
+      "📌 TEMA SELECCIONADO"
+    );
 
-    setTemaSeleccionado(null);
-    setActividades([]);
-    setEntregas({
-      EN1: [],
-      EN2: [],
-      EN3: [],
-    });
-    setEstudianteSeleccionado(null);
+    console.log(
+      "================================="
+    );
 
-    return;
-  }
+    console.log(
+      "Tema recibido:",
+      tema
+    );
 
-  try {
 
-    setTemaSeleccionado(tema);
+    if (!tema) {
 
-    setActividades([]);
+      setTemaSeleccionado(null);
 
-    setEntregas({
-      EN1: [],
-      EN2: [],
-      EN3: [],
-    });
+      setActividades([]);
 
-    setEstudianteSeleccionado(null);
+      setEntregas({
+        EN1: [],
+        EN2: [],
+        EN3: [],
+      });
 
-    setError("");
+      setEstudianteSeleccionado(null);
 
-    const topicId =
-      obtenerTopicId(tema);
+      setTipoEntregableSeleccionado("");
 
-    console.log("📌 Topic ID:", topicId);
-    console.log("📌 Curso:", cursoSeleccionado);
+      return;
 
-    if (!topicId) {
+    }
+
+
+    try {
+
+      setTemaSeleccionado(tema);
+
+      setActividades([]);
+
+      setEntregas({
+        EN1: [],
+        EN2: [],
+        EN3: [],
+      });
+
+      setEstudianteSeleccionado(null);
+
+      setTipoEntregableSeleccionado("");
+
+      setError("");
+
+
+      const topicId =
+        obtenerTopicId(tema);
+
+
+      console.log(
+        "📌 Topic ID:",
+        topicId
+      );
+
+      console.log(
+        "📌 Curso:",
+        cursoSeleccionado
+      );
+
+
+      if (!topicId) {
+
+        console.error(
+          "❌ No se pudo obtener el Topic ID"
+        );
+
+        setError(
+          "No se pudo obtener el ID del tema seleccionado."
+        );
+
+        return;
+
+      }
+
+
+      console.log(
+        "📡 Iniciando carga de actividades..."
+      );
+
+
+      await cargarActividades(
+        cursoSeleccionado,
+        topicId
+      );
+
+
+      console.log(
+        "✅ cargarActividades terminó"
+      );
+
+    } catch (err) {
 
       console.error(
-        "❌ No se pudo obtener el Topic ID"
+        "❌ ERROR EN manejarSeleccionTema:",
+        err
       );
 
       setError(
-        "No se pudo obtener el ID del tema seleccionado."
+        err?.message ||
+        "Ocurrió un error al seleccionar el tema."
       );
 
-      return;
     }
-
-    console.log(
-      "📡 Iniciando carga de actividades..."
-    );
-
-    await cargarActividades(
-      cursoSeleccionado,
-      topicId
-    );
-
-    console.log(
-      "✅ cargarActividades terminó"
-    );
-
-  } catch (err) {
-
-    console.error(
-      "❌ ERROR EN manejarSeleccionTema:",
-      err
-    );
-
-    setError(
-      err?.message ||
-      "Ocurrió un error al seleccionar el tema."
-    );
 
   }
 
-}
 
-
-  // ==========================================================
+  // ============================================================
   // CARGAR ACTIVIDADES
-  // ==========================================================
+  // ============================================================
 
- async function cargarActividades(
-  cursoId,
-  topicId
-) {
+  async function cargarActividades(
+    cursoId,
+    topicId
+  ) {
 
-  try {
+    try {
 
-    console.log("=================================");
-    console.log("📚 CARGANDO ACTIVIDADES");
-    console.log("=================================");
-    console.log("Curso ID:", cursoId);
-    console.log("Topic ID:", topicId);
+      console.log(
+        "================================="
+      );
 
-    setCargandoActividades(true);
-    setError("");
+      console.log(
+        "📚 CARGANDO ACTIVIDADES"
+      );
 
-    const respuesta =
-      await classroomObtenerActividades(
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "Curso ID:",
         cursoId
       );
 
-    console.log(
-      "📦 Respuesta actividades:",
-      respuesta
-    );
+      console.log(
+        "Topic ID:",
+        topicId
+      );
 
 
-    // ======================================================
-    // NORMALIZAR RESPUESTA
-    // ======================================================
+      setCargandoActividades(true);
 
-    let lista = [];
+      setError("");
 
 
-    if (
-      Array.isArray(respuesta)
-    ) {
-
-      lista = respuesta;
-
-    }
-
-    else if (
-      Array.isArray(
-        respuesta?.courseWork
-      )
-    ) {
-
-      lista =
-        respuesta.courseWork;
-
-    }
-
-    else if (
-      Array.isArray(
-        respuesta?.activities
-      )
-    ) {
-
-      lista =
-        respuesta.activities;
-
-    }
-
-    else if (
-      Array.isArray(
-        respuesta?.data
-      )
-    ) {
-
-      lista =
-        respuesta.data;
-
-    }
-
-    else if (
-      Array.isArray(
-        respuesta?.data?.courseWork
-      )
-    ) {
-
-      lista =
-        respuesta.data.courseWork;
-
-    }
-
-    else if (
-      Array.isArray(
-        respuesta?.data?.activities
-      )
-    ) {
-
-      lista =
-        respuesta.data.activities;
-
-    }
+      const respuesta =
+        await classroomObtenerActividades(
+          cursoId
+        );
 
 
-    console.log(
-      "📋 Total actividades:",
-      lista.length
-    );
-
-    console.log(
-      "📋 Actividades:",
-      lista
-    );
+      console.log(
+        "📦 Respuesta actividades:",
+        respuesta
+      );
 
 
-    // ======================================================
-    // FILTRAR POR TEMA
-    // ======================================================
+      // ======================================================
+      // NORMALIZAR RESPUESTA
+      // ======================================================
 
-    const topicIdNormalizado =
-      String(
-        topicId || ""
-      ).trim();
+      let lista = [];
 
 
-    const actividadesDelTema =
-      lista.filter(
-        actividad => {
+      if (
+        Array.isArray(respuesta)
+      ) {
 
-          const actividadTopicId =
-            String(
+        lista = respuesta;
 
-              actividad?.topicId ||
+      } else if (
+        Array.isArray(
+          respuesta?.courseWork
+        )
+      ) {
 
-              actividad?.topicID ||
+        lista =
+          respuesta.courseWork;
 
-              actividad?.topicid ||
+      } else if (
+        Array.isArray(
+          respuesta?.activities
+        )
+      ) {
 
-              actividad?.topic?.topicId ||
+        lista =
+          respuesta.activities;
 
-              actividad?.topic?.topicID ||
+      } else if (
+        Array.isArray(
+          respuesta?.data
+        )
+      ) {
 
-              actividad?.topic?.id ||
+        lista =
+          respuesta.data;
 
-              ""
+      } else if (
+        Array.isArray(
+          respuesta?.data?.courseWork
+        )
+      ) {
 
-            ).trim();
+        lista =
+          respuesta.data.courseWork;
+
+      } else if (
+        Array.isArray(
+          respuesta?.data?.activities
+        )
+      ) {
+
+        lista =
+          respuesta.data.activities;
+
+      }
 
 
-          console.log(
-            "Actividad:",
-            actividad
-          );
+      console.log(
+        "📋 Total actividades:",
+        lista.length
+      );
 
-          console.log(
-            "Topic actividad:",
-            actividadTopicId
-          );
+      console.log(
+        "📋 Actividades:",
+        lista
+      );
 
 
-          // Si no tiene topicId,
-          // la dejamos pasar.
-          if (
-            !actividadTopicId
-          ) {
+      // ======================================================
+      // FILTRAR POR TEMA
+      // ======================================================
 
-            return true;
+      const topicIdNormalizado =
+        String(
+          topicId || ""
+        ).trim();
+
+
+      const actividadesDelTema =
+        lista.filter(
+          actividad => {
+
+            const actividadTopicId =
+              String(
+                actividad?.topicId ||
+                actividad?.topicID ||
+                actividad?.topicid ||
+                actividad?.topic?.topicId ||
+                actividad?.topic?.topicID ||
+                actividad?.topic?.id ||
+                ""
+              ).trim();
+
+
+            console.log(
+              "Actividad:",
+              actividad
+            );
+
+            console.log(
+              "Topic actividad:",
+              actividadTopicId
+            );
+
+
+            /*
+             * Si la actividad no tiene topicId,
+             * la dejamos pasar.
+             */
+            if (!actividadTopicId) {
+              return true;
+            }
+
+
+            return (
+              actividadTopicId ===
+              topicIdNormalizado
+            );
 
           }
+        );
 
 
-          return (
-            actividadTopicId ===
-            topicIdNormalizado
-          );
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "📚 ACTIVIDADES DEL TEMA:",
+        actividadesDelTema
+      );
+
+      console.log(
+        "📚 TOTAL:",
+        actividadesDelTema.length
+      );
+
+
+      setActividades(
+        actividadesDelTema
+      );
+
+
+      // ======================================================
+      // RECONOCER EN1 / EN2 / EN3
+      // ======================================================
+
+      const entregablesEncontrados = {
+        EN1: null,
+        EN2: null,
+        EN3: null,
+      };
+
+
+      actividadesDelTema.forEach(
+        actividad => {
+
+          try {
+
+            const entregable =
+              reconocerEntregable(
+                actividad
+              );
+
+
+            console.log(
+              "🔎 Actividad:",
+              obtenerTitulo(
+                actividad
+              )
+            );
+
+            console.log(
+              "🔎 Entregable detectado:",
+              entregable
+            );
+
+
+            if (
+              entregable &&
+              ENTREGABLES_OBJETIVO.includes(
+                entregable
+              )
+            ) {
+
+              entregablesEncontrados[
+                entregable
+              ] = actividad;
+
+            }
+
+          } catch (errorReconocimiento) {
+
+            console.error(
+              "❌ Error reconociendo actividad:",
+              actividad,
+              errorReconocimiento
+            );
+
+          }
 
         }
       );
 
 
-    console.log(
-      "================================="
-    );
+      console.log(
+        "================================="
+      );
 
-    console.log(
-      "📚 ACTIVIDADES DEL TEMA:",
-      actividadesDelTema
-    );
+      console.log(
+        "📦 ENTREGABLES ENCONTRADOS:"
+      );
 
-    console.log(
-      "📚 TOTAL:",
-      actividadesDelTema.length
-    );
+      console.log(
+        entregablesEncontrados
+      );
 
 
-    setActividades(
-      actividadesDelTema
-    );
+      // ======================================================
+      // CARGAR ENTREGAS
+      // ======================================================
+
+      console.log(
+        "📡 Iniciando carga de entregas..."
+      );
 
 
-    // ======================================================
-    // RECONOCER EN1 / EN2 / EN3
-    // ======================================================
-
-    const entregablesEncontrados = {
-
-      EN1: null,
-
-      EN2: null,
-
-      EN3: null,
-
-    };
+      await cargarEntregasEntregables(
+        cursoId,
+        entregablesEncontrados
+      );
 
 
-    actividadesDelTema.forEach(
-      actividad => {
+      console.log(
+        "✅ Carga de actividades terminada"
+      );
 
-        try {
+    } catch (err) {
 
-          const entregable =
-            reconocerEntregable(
-              actividad
-            );
+      console.error(
+        "❌ ERROR CARGANDO ACTIVIDADES:",
+        err
+      );
 
+      console.error(
+        "Mensaje:",
+        err?.message
+      );
 
-          console.log(
-            "🔎 Actividad:",
-            obtenerTitulo(
-              actividad
-            )
-          );
-
-          console.log(
-            "🔎 Entregable detectado:",
-            entregable
-          );
+      console.error(
+        "Stack:",
+        err?.stack
+      );
 
 
-          if (
-            entregable &&
-            ENTREGABLES_OBJETIVO.includes(
-              entregable
-            )
-          ) {
-
-            entregablesEncontrados[
-              entregable
-            ] = actividad;
-
-          }
-
-        } catch (error) {
-
-          console.error(
-            "❌ Error reconociendo actividad:",
-            actividad,
-            error
-          );
-
-        }
-
-      }
-    );
+      setError(
+        err?.message ||
+        "No se pudieron cargar las actividades."
+      );
 
 
-    console.log(
-      "================================="
-    );
+      setActividades([]);
 
-    console.log(
-      "📦 ENTREGABLES ENCONTRADOS:"
-    );
+      setEntregas({
+        EN1: [],
+        EN2: [],
+        EN3: [],
+      });
 
-    console.log(
-      entregablesEncontrados
-    );
+    } finally {
 
+      setCargandoActividades(false);
 
-    // ======================================================
-    // CARGAR ENTREGAS
-    // ======================================================
-
-    console.log(
-      "📡 Iniciando carga de entregas..."
-    );
-
-
-    await cargarEntregasEntregables(
-      cursoId,
-      entregablesEncontrados
-    );
-
-
-    console.log(
-      "✅ Carga de actividades terminada"
-    );
-
-
-  } catch (err) {
-
-    console.error(
-      "❌ ERROR CARGANDO ACTIVIDADES:",
-      err
-    );
-
-    console.error(
-      "Mensaje:",
-      err?.message
-    );
-
-    console.error(
-      "Stack:",
-      err?.stack
-    );
-
-
-    setError(
-      err?.message ||
-      "No se pudieron cargar las actividades."
-    );
-
-
-    setActividades([]);
-
-
-    setEntregas({
-
-      EN1: [],
-
-      EN2: [],
-
-      EN3: [],
-
-    });
-
-  } finally {
-
-    setCargandoActividades(false);
+    }
 
   }
 
-}
 
-
-  // ==========================================================
-  // CARGAR ENTREGAS DE EN1 / EN2 / EN3
-  // ==========================================================
+  // ============================================================
+  // CARGAR ENTREGAS EN1 / EN2 / EN3
+  // ============================================================
 
   async function cargarEntregasEntregables(
     cursoId,
@@ -821,13 +978,9 @@ export default function ClassroomRevisionPanel({
 
 
       const resultado = {
-
         EN1: [],
-
         EN2: [],
-
         EN3: [],
-
       };
 
 
@@ -835,9 +988,7 @@ export default function ClassroomRevisionPanel({
       // EN1
       // ------------------------------------------------------
 
-      if (
-        entregables.EN1
-      ) {
+      if (entregables.EN1) {
 
         const courseWorkId =
           obtenerCourseWorkId(
@@ -845,9 +996,7 @@ export default function ClassroomRevisionPanel({
           );
 
 
-        if (
-          courseWorkId
-        ) {
+        if (courseWorkId) {
 
           resultado.EN1 =
             await obtenerEntregasActividad(
@@ -864,9 +1013,7 @@ export default function ClassroomRevisionPanel({
       // EN2
       // ------------------------------------------------------
 
-      if (
-        entregables.EN2
-      ) {
+      if (entregables.EN2) {
 
         const courseWorkId =
           obtenerCourseWorkId(
@@ -874,9 +1021,7 @@ export default function ClassroomRevisionPanel({
           );
 
 
-        if (
-          courseWorkId
-        ) {
+        if (courseWorkId) {
 
           resultado.EN2 =
             await obtenerEntregasActividad(
@@ -893,9 +1038,7 @@ export default function ClassroomRevisionPanel({
       // EN3
       // ------------------------------------------------------
 
-      if (
-        entregables.EN3
-      ) {
+      if (entregables.EN3) {
 
         const courseWorkId =
           obtenerCourseWorkId(
@@ -903,9 +1046,7 @@ export default function ClassroomRevisionPanel({
           );
 
 
-        if (
-          courseWorkId
-        ) {
+        if (courseWorkId) {
 
           resultado.EN3 =
             await obtenerEntregasActividad(
@@ -949,9 +1090,9 @@ export default function ClassroomRevisionPanel({
   }
 
 
-  // ==========================================================
+  // ============================================================
   // OBTENER ENTREGAS DE UNA ACTIVIDAD
-  // ==========================================================
+  // ============================================================
 
   async function obtenerEntregasActividad(
     cursoId,
@@ -970,11 +1111,23 @@ export default function ClassroomRevisionPanel({
       const lista =
         Array.isArray(respuesta)
           ? respuesta
-          : Array.isArray(respuesta?.studentSubmissions)
+          : Array.isArray(
+              respuesta?.studentSubmissions
+            )
             ? respuesta.studentSubmissions
-            : Array.isArray(respuesta?.submissions)
+            : Array.isArray(
+                respuesta?.submissions
+              )
               ? respuesta.submissions
-              : [];
+              : Array.isArray(
+                  respuesta?.entregas
+                )
+                ? respuesta.entregas
+                : Array.isArray(
+                    respuesta?.data?.entregas
+                  )
+                  ? respuesta.data.entregas
+                  : [];
 
 
       return lista.map(
@@ -996,19 +1149,17 @@ export default function ClassroomRevisionPanel({
     }
 
   }
-  // ==========================================================
+
+
+  // ============================================================
   // ESTUDIANTES CONSOLIDADOS
-  // ==========================================================
+  // ============================================================
 
   const estudiantes = useMemo(() => {
 
     const mapa =
       new Map();
 
-
-    // --------------------------------------------------------
-    // RECORRER LAS ENTREGAS DE EN1, EN2 Y EN3
-    // --------------------------------------------------------
 
     ENTREGABLES_OBJETIVO.forEach(
       entregable => {
@@ -1032,73 +1183,55 @@ export default function ClassroomRevisionPanel({
 
             const userId =
               String(
-                informacion.userId || ""
+                informacion?.userId || ""
               ).trim();
 
 
             if (!userId) {
-
               return;
-
             }
 
 
             // ------------------------------------------------
-            // CREAR ESTUDIANTE SI NO EXISTE
+            // CREAR ESTUDIANTE
             // ------------------------------------------------
 
             if (
-              !mapa.has(
-                userId
-              )
+              !mapa.has(userId)
             ) {
 
               mapa.set(
                 userId,
                 {
-
                   userId,
 
                   nombre:
-                    informacion.nombre ||
+                    informacion?.nombre ||
                     "Alumno",
 
                   email:
-                    informacion.email ||
+                    informacion?.email ||
                     "",
 
                   entregas: {
-
                     EN1: null,
-
                     EN2: null,
-
                     EN3: null,
-
                   },
 
                   puntajes: {
-
                     EN1: null,
-
                     EN2: null,
-
                     EN3: null,
-
                   },
 
                   descuentos: {
-
                     EN1: null,
-
                     EN2: null,
-
                     EN3: null,
-
                   },
 
                   notaFinal: null,
-
                 }
               );
 
@@ -1106,17 +1239,15 @@ export default function ClassroomRevisionPanel({
 
 
             // ------------------------------------------------
-            // ACTUALIZAR INFORMACIÓN DEL ESTUDIANTE
+            // ACTUALIZAR ESTUDIANTE
             // ------------------------------------------------
 
             const estudiante =
-              mapa.get(
-                userId
-              );
+              mapa.get(userId);
 
 
             if (
-              informacion.nombre &&
+              informacion?.nombre &&
               (
                 !estudiante.nombre ||
                 estudiante.nombre === "Alumno"
@@ -1130,7 +1261,7 @@ export default function ClassroomRevisionPanel({
 
 
             if (
-              informacion.email &&
+              informacion?.email &&
               !estudiante.email
             ) {
 
@@ -1181,29 +1312,25 @@ export default function ClassroomRevisionPanel({
   ]);
 
 
-  // ==========================================================
+  // ============================================================
   // CANTIDAD DE ESTUDIANTES
-  // ==========================================================
+  // ============================================================
 
   const totalEstudiantes =
     estudiantes.length;
 
 
-  // ==========================================================
+  // ============================================================
   // ENTREGABLES DETECTADOS
-  // ==========================================================
+  // ============================================================
 
   const entregablesDetectados =
     useMemo(() => {
 
       const resultado = {
-
         EN1: null,
-
         EN2: null,
-
         EN3: null,
-
       };
 
 
@@ -1240,24 +1367,21 @@ export default function ClassroomRevisionPanel({
     ]);
 
 
-  // ==========================================================
+  // ============================================================
   // ACTIVIDAD REVISOR DE INFORMES
-  // ==========================================================
+  // ============================================================
 
   const actividadRevisor =
     useMemo(() => {
 
       return (
-
         actividades.find(
           actividad =>
             esRevisorInformes(
               actividad
             )
         ) ||
-
         null
-
       );
 
     }, [
@@ -1265,25 +1389,19 @@ export default function ClassroomRevisionPanel({
     ]);
 
 
-  // ==========================================================
+  // ============================================================
   // ESTADÍSTICAS
-  // ==========================================================
+  // ============================================================
 
   const estadisticas =
     useMemo(() => {
 
       const resultado = {
-
         estudiantes: estudiantes.length,
-
         EN1: 0,
-
         EN2: 0,
-
         EN3: 0,
-
         completos: 0,
-
       };
 
 
@@ -1293,38 +1411,28 @@ export default function ClassroomRevisionPanel({
           if (
             estudiante.entregas.EN1
           ) {
-
             resultado.EN1++;
-
           }
 
 
           if (
             estudiante.entregas.EN2
           ) {
-
             resultado.EN2++;
-
           }
 
 
           if (
             estudiante.entregas.EN3
           ) {
-
             resultado.EN3++;
-
           }
 
 
           if (
-
             estudiante.entregas.EN1 &&
-
             estudiante.entregas.EN2 &&
-
             estudiante.entregas.EN3
-
           ) {
 
             resultado.completos++;
@@ -1342,13 +1450,19 @@ export default function ClassroomRevisionPanel({
     ]);
 
 
-  // ==========================================================
+  // ============================================================
   // SELECCIONAR ESTUDIANTE
-  // ==========================================================
+  // ============================================================
 
   function manejarSeleccionEstudiante(
     estudiante
   ) {
+
+    console.log(
+      "ESTUDIANTE SELECCIONADO:",
+      estudiante
+    );
+
 
     if (!estudiante) {
 
@@ -1368,9 +1482,9 @@ export default function ClassroomRevisionPanel({
   }
 
 
-  // ==========================================================
+  // ============================================================
   // CERRAR MODAL
-  // ==========================================================
+  // ============================================================
 
   function cerrarEstudiante() {
 
@@ -1381,9 +1495,9 @@ export default function ClassroomRevisionPanel({
   }
 
 
-  // ==========================================================
-  // OBTENER NOMBRE DEL CURSO
-  // ==========================================================
+  // ============================================================
+  // OBTENER CURSO ACTUAL
+  // ============================================================
 
   const cursoActual =
     useMemo(() => {
@@ -1407,21 +1521,21 @@ export default function ClassroomRevisionPanel({
     ]);
 
 
-  // ==========================================================
+  // ============================================================
   // OBTENER NOMBRE DEL TEMA
-  // ==========================================================
+  // ============================================================
 
   const nombreTemaActual =
     temaSeleccionado
       ? obtenerNombreTema(
-        temaSeleccionado
-      )
+          temaSeleccionado
+        )
       : "";
 
 
-  // ==========================================================
+  // ============================================================
   // REINICIAR TODO
-  // ==========================================================
+  // ============================================================
 
   function reiniciarRevision() {
 
@@ -1434,39 +1548,32 @@ export default function ClassroomRevisionPanel({
     setActividades([]);
 
     setEntregas({
-
       EN1: [],
-
       EN2: [],
-
       EN3: [],
-
     });
 
-    setEstudianteSeleccionado(
-      null
-    );
+    setEstudianteSeleccionado(null);
+
+    setTipoEntregableSeleccionado("");
 
     setError("");
 
   }
-  // ==========================================================
+
+
+  // ============================================================
   // RENDER
-  // ==========================================================
+  // ============================================================
 
   return (
-    <div
-      className="
-        space-y-6
-      "
-    >
+    <div className="space-y-6">
 
       {/* ====================================================
           ERROR GENERAL
       ==================================================== */}
 
       {error && (
-
         <div
           className="
             rounded-2xl
@@ -1491,19 +1598,11 @@ export default function ClassroomRevisionPanel({
 
             <div>
 
-              <p
-                className="
-                  font-bold
-                "
-              >
+              <p className="font-bold">
                 Ocurrió un problema
               </p>
 
-              <p
-                className="
-                  mt-1
-                "
-              >
+              <p className="mt-1">
                 {error}
               </p>
 
@@ -1517,9 +1616,9 @@ export default function ClassroomRevisionPanel({
               }
               className="
                 shrink-0
+                font-bold
                 text-red-500
                 hover:text-red-700
-                font-bold
               "
             >
               ×
@@ -1528,7 +1627,6 @@ export default function ClassroomRevisionPanel({
           </div>
 
         </div>
-
       )}
 
 
@@ -1551,11 +1649,10 @@ export default function ClassroomRevisionPanel({
 
 
       {/* ====================================================
-          INFORMACIÓN DEL CURSO SELECCIONADO
+          INFORMACIÓN DEL CURSO
       ==================================================== */}
 
       {cursoActual && (
-
         <div
           className="
             rounded-2xl
@@ -1596,7 +1693,6 @@ export default function ClassroomRevisionPanel({
           </h2>
 
         </div>
-
       )}
 
 
@@ -1605,21 +1701,21 @@ export default function ClassroomRevisionPanel({
       ==================================================== */}
 
       {cursoSeleccionado && (
-
         <ClassroomTopics
-  cursoSeleccionado={cursoSeleccionado}
-  temaSeleccionado={
-    temaSeleccionado
-      ? obtenerTopicId(temaSeleccionado)
-      : ""
-  }
-  onTemaSeleccionado={
-    manejarSeleccionTema
-  }
-/>
-
-
-
+          cursoSeleccionado={
+            cursoSeleccionado
+          }
+          temaSeleccionado={
+            temaSeleccionado
+              ? obtenerTopicId(
+                  temaSeleccionado
+                )
+              : ""
+          }
+          onTemaSeleccionado={
+            manejarSeleccionTema
+          }
+        />
       )}
 
 
@@ -1628,7 +1724,6 @@ export default function ClassroomRevisionPanel({
       ==================================================== */}
 
       {temaSeleccionado && (
-
         <div
           className="
             rounded-2xl
@@ -1644,10 +1739,10 @@ export default function ClassroomRevisionPanel({
             className="
               flex
               flex-col
+              gap-4
               sm:flex-row
               sm:items-center
               sm:justify-between
-              gap-4
             "
           >
 
@@ -1707,7 +1802,6 @@ export default function ClassroomRevisionPanel({
           </div>
 
         </div>
-
       )}
 
 
@@ -1716,7 +1810,6 @@ export default function ClassroomRevisionPanel({
       ==================================================== */}
 
       {cargandoActividades && (
-
         <div
           className="
             rounded-2xl
@@ -1753,7 +1846,6 @@ export default function ClassroomRevisionPanel({
           </p>
 
         </div>
-
       )}
 
 
@@ -1763,11 +1855,34 @@ export default function ClassroomRevisionPanel({
 
       {temaSeleccionado &&
         !cargandoActividades && (
+          <ClassroomDeliverables
+            actividades={actividades}
+            onSelectDeliverable={
+              manejarSeleccionEntregable
+            }
+          />
+        )}
 
-         <ClassroomDeliverables
-  actividades={actividades}
-/>
 
+      {/* ====================================================
+          ESTUDIANTES DEL ENTREGABLE SELECCIONADO
+      ==================================================== */}
+
+      {tipoEntregableSeleccionado &&
+        !cargandoEntregas && (
+          <ClassroomStudents
+            entregas={
+              entregas[
+                tipoEntregableSeleccionado
+              ] || []
+            }
+            tipo={
+              tipoEntregableSeleccionado
+            }
+            onSelectStudent={
+              manejarSeleccionEstudiante
+            }
+          />
         )}
 
 
@@ -1776,7 +1891,6 @@ export default function ClassroomRevisionPanel({
       ==================================================== */}
 
       {cargandoEntregas && (
-
         <div
           className="
             rounded-2xl
@@ -1820,7 +1934,6 @@ export default function ClassroomRevisionPanel({
           </div>
 
         </div>
-
       )}
 
 
@@ -1834,42 +1947,44 @@ export default function ClassroomRevisionPanel({
 
           <div
             className="
-            grid
-            grid-cols-2
-            lg:grid-cols-5
-            gap-3
-          "
+              grid
+              grid-cols-2
+              gap-3
+              lg:grid-cols-5
+            "
           >
+
+            {/* ESTUDIANTES */}
 
             <div
               className="
-              rounded-2xl
-              border
-              border-slate-200
-              bg-white
-              p-4
-              shadow-sm
-            "
+                rounded-2xl
+                border
+                border-slate-200
+                bg-white
+                p-4
+                shadow-sm
+              "
             >
 
               <p
                 className="
-                text-xs
-                font-bold
-                uppercase
-                text-slate-400
-              "
+                  text-xs
+                  font-bold
+                  uppercase
+                  text-slate-400
+                "
               >
                 Estudiantes
               </p>
 
               <p
                 className="
-                mt-2
-                text-2xl
-                font-black
-                text-slate-900
-              "
+                  mt-2
+                  text-2xl
+                  font-black
+                  text-slate-900
+                "
               >
                 {estadisticas.estudiantes}
               </p>
@@ -1877,34 +1992,36 @@ export default function ClassroomRevisionPanel({
             </div>
 
 
+            {/* EN1 */}
+
             <div
               className="
-              rounded-2xl
-              border
-              border-blue-100
-              bg-blue-50
-              p-4
-            "
+                rounded-2xl
+                border
+                border-blue-100
+                bg-blue-50
+                p-4
+              "
             >
 
               <p
                 className="
-                text-xs
-                font-bold
-                uppercase
-                text-blue-500
-              "
+                  text-xs
+                  font-bold
+                  uppercase
+                  text-blue-500
+                "
               >
                 EN1
               </p>
 
               <p
                 className="
-                mt-2
-                text-2xl
-                font-black
-                text-blue-700
-              "
+                  mt-2
+                  text-2xl
+                  font-black
+                  text-blue-700
+                "
               >
                 {estadisticas.EN1}
               </p>
@@ -1912,34 +2029,36 @@ export default function ClassroomRevisionPanel({
             </div>
 
 
+            {/* EN2 */}
+
             <div
               className="
-              rounded-2xl
-              border
-              border-violet-100
-              bg-violet-50
-              p-4
-            "
+                rounded-2xl
+                border
+                border-violet-100
+                bg-violet-50
+                p-4
+              "
             >
 
               <p
                 className="
-                text-xs
-                font-bold
-                uppercase
-                text-violet-500
-              "
+                  text-xs
+                  font-bold
+                  uppercase
+                  text-violet-500
+                "
               >
                 EN2
               </p>
 
               <p
                 className="
-                mt-2
-                text-2xl
-                font-black
-                text-violet-700
-              "
+                  mt-2
+                  text-2xl
+                  font-black
+                  text-violet-700
+                "
               >
                 {estadisticas.EN2}
               </p>
@@ -1947,34 +2066,36 @@ export default function ClassroomRevisionPanel({
             </div>
 
 
+            {/* EN3 */}
+
             <div
               className="
-              rounded-2xl
-              border
-              border-emerald-100
-              bg-emerald-50
-              p-4
-            "
+                rounded-2xl
+                border
+                border-emerald-100
+                bg-emerald-50
+                p-4
+              "
             >
 
               <p
                 className="
-                text-xs
-                font-bold
-                uppercase
-                text-emerald-500
-              "
+                  text-xs
+                  font-bold
+                  uppercase
+                  text-emerald-500
+                "
               >
                 EN3
               </p>
 
               <p
                 className="
-                mt-2
-                text-2xl
-                font-black
-                text-emerald-700
-              "
+                  mt-2
+                  text-2xl
+                  font-black
+                  text-emerald-700
+                "
               >
                 {estadisticas.EN3}
               </p>
@@ -1982,34 +2103,36 @@ export default function ClassroomRevisionPanel({
             </div>
 
 
+            {/* COMPLETOS */}
+
             <div
               className="
-              rounded-2xl
-              border
-              border-amber-100
-              bg-amber-50
-              p-4
-            "
+                rounded-2xl
+                border
+                border-amber-100
+                bg-amber-50
+                p-4
+              "
             >
 
               <p
                 className="
-                text-xs
-                font-bold
-                uppercase
-                text-amber-600
-              "
+                  text-xs
+                  font-bold
+                  uppercase
+                  text-amber-600
+                "
               >
                 Completos
               </p>
 
               <p
                 className="
-                mt-2
-                text-2xl
-                font-black
-                text-amber-700
-              "
+                  mt-2
+                  text-2xl
+                  font-black
+                  text-amber-700
+                "
               >
                 {estadisticas.completos}
               </p>
@@ -2022,7 +2145,7 @@ export default function ClassroomRevisionPanel({
 
 
       {/* ====================================================
-          ESTUDIANTES
+          ESTUDIANTES CONSOLIDADOS
       ==================================================== */}
 
       {temaSeleccionado &&
@@ -2061,36 +2184,32 @@ export default function ClassroomRevisionPanel({
 
           <div
             className="
-            rounded-2xl
-            border
-            border-dashed
-            border-slate-300
-            bg-white
-            px-6
-            py-12
-            text-center
-          "
+              rounded-2xl
+              border
+              border-dashed
+              border-slate-300
+              bg-white
+              px-6
+              py-12
+              text-center
+            "
           >
 
             <div
               className="
-              mx-auto
-              flex
-              h-14
-              w-14
-              items-center
-              justify-center
-              rounded-2xl
-              bg-slate-100
-              text-slate-400
-            "
+                mx-auto
+                flex
+                h-14
+                w-14
+                items-center
+                justify-center
+                rounded-2xl
+                bg-slate-100
+                text-slate-400
+              "
             >
 
-              <span
-                className="
-                text-2xl
-              "
-              >
+              <span className="text-2xl">
                 👥
               </span>
 
@@ -2099,11 +2218,11 @@ export default function ClassroomRevisionPanel({
 
             <h3
               className="
-              mt-4
-              text-lg
-              font-black
-              text-slate-800
-            "
+                mt-4
+                text-lg
+                font-black
+                text-slate-800
+              "
             >
               No se encontraron estudiantes
             </h3>
@@ -2111,12 +2230,12 @@ export default function ClassroomRevisionPanel({
 
             <p
               className="
-              mx-auto
-              mt-2
-              max-w-md
-              text-sm
-              text-slate-500
-            "
+                mx-auto
+                mt-2
+                max-w-md
+                text-sm
+                text-slate-500
+              "
             >
               No se encontraron entregas para
               EN1, EN2 o EN3 dentro del tema
