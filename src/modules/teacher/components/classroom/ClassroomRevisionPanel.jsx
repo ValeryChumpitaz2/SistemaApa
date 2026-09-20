@@ -287,7 +287,6 @@ export default function ClassroomRevisionPanel({
     );
 
 
-    // Guardar entregable seleccionado
     setTipoEntregableSeleccionado(
       tipo || ""
     );
@@ -498,8 +497,6 @@ export default function ClassroomRevisionPanel({
     }
 
   }
-
-
   // ============================================================
   // SELECCIONAR TEMA
   // ============================================================
@@ -959,8 +956,6 @@ export default function ClassroomRevisionPanel({
     }
 
   }
-
-
   // ============================================================
   // CARGAR ENTREGAS EN1 / EN2 / EN3
   // ============================================================
@@ -1310,8 +1305,6 @@ export default function ClassroomRevisionPanel({
   }, [
     entregas,
   ]);
-
-
   // ============================================================
   // CANTIDAD DE ESTUDIANTES
   // ============================================================
@@ -1560,8 +1553,6 @@ export default function ClassroomRevisionPanel({
     setError("");
 
   }
-
-
   // ============================================================
   // RENDER
   // ============================================================
@@ -1586,7 +1577,6 @@ export default function ClassroomRevisionPanel({
             text-red-700
           "
         >
-
           <div
             className="
               flex
@@ -1595,7 +1585,6 @@ export default function ClassroomRevisionPanel({
               gap-4
             "
           >
-
             <div>
 
               <p className="font-bold">
@@ -1607,7 +1596,6 @@ export default function ClassroomRevisionPanel({
               </p>
 
             </div>
-
 
             <button
               type="button"
@@ -1625,7 +1613,6 @@ export default function ClassroomRevisionPanel({
             </button>
 
           </div>
-
         </div>
       )}
 
@@ -1935,8 +1922,6 @@ export default function ClassroomRevisionPanel({
 
         </div>
       )}
-
-
       {/* ====================================================
           ESTADÍSTICAS
       ==================================================== */}

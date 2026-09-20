@@ -51,855 +51,855 @@
   // VERSION
   // ============================================================
 
-  export const CLASSROOM_FRONT_VERSION = "7.1.0";
+    export const CLASSROOM_FRONT_VERSION = "7.1.0";
 
 
-  // ============================================================
-  // CONFIGURACIÓN
-  // ============================================================
+    // ============================================================
+    // CONFIGURACIÓN
+    // ============================================================
 
-  const CLASSROOM_DEBUG = true;
+    const CLASSROOM_DEBUG = true;
 
-  export const PUNTAJE_POR_ENTREGABLE = 2;
+    export const PUNTAJE_POR_ENTREGABLE = 2;
 
-  export const CLASSROOM_ENTREGABLES = [
-    "EN1",
-    "EN2",
-    "EN3"
-  ];
+    export const CLASSROOM_ENTREGABLES = [
+      "EN1",
+      "EN2",
+      "EN3"
+    ];
 
-  // Alias interno para compatibilidad
-  const ENTREGABLES_OBJETIVO =
-    CLASSROOM_ENTREGABLES;
+    // Alias interno para compatibilidad
+    const ENTREGABLES_OBJETIVO =
+      CLASSROOM_ENTREGABLES;
 
 
-  // ============================================================
-  // LOG
-  // ============================================================
+    // ============================================================
+    // LOG
+    // ============================================================
 
-  function classroomLog(...args) {
+    function classroomLog(...args) {
 
-    if (CLASSROOM_DEBUG) {
-      console.log(...args);
+      if (CLASSROOM_DEBUG) {
+        console.log(...args);
+      }
+
     }
 
-  }
+
+    function classroomWarn(...args) {
+
+      console.warn(...args);
+
+    }
 
 
-  function classroomWarn(...args) {
+    function classroomError(...args) {
 
-    console.warn(...args);
+      console.error(...args);
 
-  }
-
-
-  function classroomError(...args) {
-
-    console.error(...args);
-
-  }
+    }
 
 
-  // ============================================================
-  // NORMALIZAR TEXTO
-  // ============================================================
+    // ============================================================
+    // NORMALIZAR TEXTO
+    // ============================================================
 
-  export function classroomNormalizarTexto(
-    texto = ""
-  ) {
-
-    return String(texto)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase()
-      .trim();
-
-  }
-
-
-  // Alias de compatibilidad
-  export const normalizarTexto =
-    classroomNormalizarTexto;
-
-
-  // ============================================================
-  // RECONOCER ENTREGABLE
-  // ============================================================
-
-  export function classroomReconocerEntregable(
-    actividad
-  ) {
-
-    const titulo =
-      actividad?.title ||
-      actividad?.name ||
-      actividad?.nombre ||
-      actividad?.courseWorkTitle ||
-      actividad?.courseworkTitle ||
-      "";
-
-    const texto =
-      classroomNormalizarTexto(
-        titulo
-      );
-
-
-    if (
-      texto.includes("ENTREGABLE 1") ||
-      texto.includes("ENTREGABLE1")
+    export function classroomNormalizarTexto(
+      texto = ""
     ) {
 
-      return "EN1";
+      return String(texto)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .trim();
 
     }
 
 
-    if (
-      texto.includes("ENTREGABLE 2") ||
-      texto.includes("ENTREGABLE2")
+    // Alias de compatibilidad
+    export const normalizarTexto =
+      classroomNormalizarTexto;
+
+
+    // ============================================================
+    // RECONOCER ENTREGABLE
+    // ============================================================
+
+    export function classroomReconocerEntregable(
+      actividad
     ) {
 
-      return "EN2";
+      const titulo =
+        actividad?.title ||
+        actividad?.name ||
+        actividad?.nombre ||
+        actividad?.courseWorkTitle ||
+        actividad?.courseworkTitle ||
+        "";
+
+      const texto =
+        classroomNormalizarTexto(
+          titulo
+        );
+
+
+      if (
+        texto.includes("ENTREGABLE 1") ||
+        texto.includes("ENTREGABLE1")
+      ) {
+
+        return "EN1";
+
+      }
+
+
+      if (
+        texto.includes("ENTREGABLE 2") ||
+        texto.includes("ENTREGABLE2")
+      ) {
+
+        return "EN2";
+
+      }
+
+
+      if (
+        texto.includes("ENTREGABLE 3") ||
+        texto.includes("ENTREGABLE3")
+      ) {
+
+        return "EN3";
+
+      }
+
+
+      return null;
 
     }
 
 
-    if (
-      texto.includes("ENTREGABLE 3") ||
-      texto.includes("ENTREGABLE3")
+    // ============================================================
+    // RECONOCER REVISOR DE INFORMES
+    // ============================================================
+
+    export function classroomEsRevisorInformes(
+      actividad
     ) {
 
-      return "EN3";
-
-    }
-
-
-    return null;
-
-  }
+      const titulo =
+        actividad?.title ||
+        actividad?.name ||
+        actividad?.nombre ||
+        actividad?.courseWorkTitle ||
+        "";
 
 
-  // ============================================================
-  // RECONOCER REVISOR DE INFORMES
-  // ============================================================
-
-  export function classroomEsRevisorInformes(
-    actividad
-  ) {
-
-    const titulo =
-      actividad?.title ||
-      actividad?.name ||
-      actividad?.nombre ||
-      actividad?.courseWorkTitle ||
-      "";
+      const texto =
+        classroomNormalizarTexto(
+          titulo
+        );
 
 
-    const texto =
-      classroomNormalizarTexto(
-        titulo
-      );
-
-
-    return (
-      texto.includes("REVISOR") &&
-      texto.includes("INFORME")
-    );
-
-  }
-
-
-  // ============================================================
-  // OBTENER COURSE ID
-  // ============================================================
-
-  export function classroomObtenerCourseId(
-    curso
-  ) {
-
-    return String(
-
-      curso?.courseId ||
-      curso?.courseID ||
-      curso?.courseid ||
-      curso?.id ||
-      ""
-
-    ).trim();
-
-  }
-
-
-  // ============================================================
-  // OBTENER TOPIC ID
-  // ============================================================
-
-  export function classroomObtenerTopicId(
-    tema
-  ) {
-
-    return String(
-
-      tema?.topicId ||
-      tema?.topicID ||
-      tema?.topicid ||
-      tema?.id ||
-      ""
-
-    ).trim();
-
-  }
-
-
-  // ============================================================
-  // OBTENER COURSEWORK ID
-  // ============================================================
-
-  export function classroomObtenerCourseWorkId(
-    actividad
-  ) {
-
-    return String(
-
-      actividad?.courseWorkId ||
-      actividad?.courseworkId ||
-      actividad?.courseworkID ||
-      actividad?.id ||
-      ""
-
-    ).trim();
-
-  }
-
-
-  // ============================================================
-  // OBTENER TÍTULO
-  // ============================================================
-
-  export function classroomObtenerTituloActividad(
-    actividad
-  ) {
-
-    return String(
-
-      actividad?.title ||
-      actividad?.name ||
-      actividad?.nombre ||
-      actividad?.courseWorkTitle ||
-      actividad?.courseworkTitle ||
-      "Actividad sin título"
-
-    ).trim();
-
-  }
-
-
-  // ============================================================
-  // OBTENER NOMBRE DEL TEMA
-  // ============================================================
-
-  export function classroomObtenerNombreTema(
-    tema
-  ) {
-
-    return String(
-
-      tema?.name ||
-      tema?.nombre ||
-      tema?.title ||
-      "Tema sin nombre"
-
-    ).trim();
-
-  }
-
-
-  // ============================================================
-  // OBTENER NOMBRE DEL CURSO
-  // ============================================================
-
-  export function classroomObtenerNombreCurso(
-    curso
-  ) {
-
-    return String(
-
-      curso?.name ||
-      curso?.nombre ||
-      curso?.courseName ||
-      curso?.title ||
-      "Curso sin nombre"
-
-    ).trim();
-
-  }
-
-
-  // ============================================================
-  // REQUEST GENERAL
-  // ============================================================
-
-  async function classroomRequest(
-    accion,
-    params = {}
-  ) {
-
-    if (!accion) {
-
-      throw new Error(
-        "Debe especificarse una acción para Classroom."
+      return (
+        texto.includes("REVISOR") &&
+        texto.includes("INFORME")
       );
 
     }
 
 
-    const query =
-      new URLSearchParams();
+    // ============================================================
+    // OBTENER COURSE ID
+    // ============================================================
+
+    export function classroomObtenerCourseId(
+      curso
+    ) {
+
+      return String(
+
+        curso?.courseId ||
+        curso?.courseID ||
+        curso?.courseid ||
+        curso?.id ||
+        ""
+
+      ).trim();
+
+    }
 
 
-    query.append(
-      "accion",
-      accion
-    );
+    // ============================================================
+    // OBTENER TOPIC ID
+    // ============================================================
+
+    export function classroomObtenerTopicId(
+      tema
+    ) {
+
+      return String(
+
+        tema?.topicId ||
+        tema?.topicID ||
+        tema?.topicid ||
+        tema?.id ||
+        ""
+
+      ).trim();
+
+    }
 
 
-    Object.entries(params)
-      .forEach(
-        ([key, value]) => {
+    // ============================================================
+    // OBTENER COURSEWORK ID
+    // ============================================================
 
-          if (
-            value !== undefined &&
-            value !== null &&
-            value !== ""
-          ) {
+    export function classroomObtenerCourseWorkId(
+      actividad
+    ) {
 
-            query.append(
-              key,
-              String(value)
-            );
+      return String(
 
-          }
+        actividad?.courseWorkId ||
+        actividad?.courseworkId ||
+        actividad?.courseworkID ||
+        actividad?.id ||
+        ""
 
-        }
+      ).trim();
+
+    }
+
+
+    // ============================================================
+    // OBTENER TÍTULO
+    // ============================================================
+
+    export function classroomObtenerTituloActividad(
+      actividad
+    ) {
+
+      return String(
+
+        actividad?.title ||
+        actividad?.name ||
+        actividad?.nombre ||
+        actividad?.courseWorkTitle ||
+        actividad?.courseworkTitle ||
+        "Actividad sin título"
+
+      ).trim();
+
+    }
+
+
+    // ============================================================
+    // OBTENER NOMBRE DEL TEMA
+    // ============================================================
+
+    export function classroomObtenerNombreTema(
+      tema
+    ) {
+
+      return String(
+
+        tema?.name ||
+        tema?.nombre ||
+        tema?.title ||
+        "Tema sin nombre"
+
+      ).trim();
+
+    }
+
+
+    // ============================================================
+    // OBTENER NOMBRE DEL CURSO
+    // ============================================================
+
+    export function classroomObtenerNombreCurso(
+      curso
+    ) {
+
+      return String(
+
+        curso?.name ||
+        curso?.nombre ||
+        curso?.courseName ||
+        curso?.title ||
+        "Curso sin nombre"
+
+      ).trim();
+
+    }
+
+
+    // ============================================================
+    // REQUEST GENERAL
+    // ============================================================
+
+    async function classroomRequest(
+      accion,
+      params = {}
+    ) {
+
+      if (!accion) {
+
+        throw new Error(
+          "Debe especificarse una acción para Classroom."
+        );
+
+      }
+
+
+      const query =
+        new URLSearchParams();
+
+
+      query.append(
+        "accion",
+        accion
       );
 
 
-    const url =
-      `${API_URL}?${query.toString()}`;
+      Object.entries(params)
+        .forEach(
+          ([key, value]) => {
 
+            if (
+              value !== undefined &&
+              value !== null &&
+              value !== ""
+            ) {
 
-    classroomLog(
-      "============================================================"
-    );
+              query.append(
+                key,
+                String(value)
+              );
 
-    classroomLog(
-      "🌐 CLASSROOM REQUEST:",
-      accion
-    );
+            }
 
-    classroomLog(
-      "PARAMS:",
-      params
-    );
-
-
-    try {
-
-      const response =
-        await fetch(
-          url,
-          {
-            method: "GET",
-
-            headers: {
-              Accept:
-                "application/json"
-            },
-
-            cache:
-              "no-store"
           }
         );
 
 
-      const rawText =
-        await response.text();
+      const url =
+        `${API_URL}?${query.toString()}`;
 
 
       classroomLog(
-        "📡 HTTP:",
-        response.status
+        "============================================================"
       );
 
       classroomLog(
-        "📦 RAW:",
-        rawText
+        "🌐 CLASSROOM REQUEST:",
+        accion
       );
 
-
-      let raw;
+      classroomLog(
+        "PARAMS:",
+        params
+      );
 
 
       try {
 
-        raw =
-          JSON.parse(
-            rawText
+        const response =
+          await fetch(
+            url,
+            {
+              method: "GET",
+
+              headers: {
+                Accept:
+                  "application/json"
+              },
+
+              cache:
+                "no-store"
+            }
           );
 
-      }
-      catch {
 
-        throw new Error(
-          "La API no devolvió JSON válido."
+        const rawText =
+          await response.text();
+
+
+        classroomLog(
+          "📡 HTTP:",
+          response.status
         );
 
-      }
-
-
-      if (!response.ok) {
-
-        throw new Error(
-          raw?.error ||
-          raw?.message ||
-          raw?.data?.error ||
-          `Error HTTP ${response.status}`
+        classroomLog(
+          "📦 RAW:",
+          rawText
         );
 
-      }
+
+        let raw;
 
 
-      if (raw?.ok === false) {
+        try {
 
-        throw new Error(
-          raw?.error ||
-          raw?.message ||
-          raw?.data?.error ||
-          "La API devolvió un error."
-        );
-
-      }
-
-
-      return raw;
-
-    }
-    catch (error) {
-
-      classroomError(
-        "💥 ERROR CLASSROOM:",
-        error
-      );
-
-      throw error;
-
-    }
-
-  }
-
-
-  // ============================================================
-  // EXTRAER DATA
-  // ============================================================
-
-  export function classroomExtraerData(
-    response,
-    fallback = null
-  ) {
-
-    if (
-      response &&
-      response.data !== undefined &&
-      response.data !== null
-    ) {
-
-      return response.data;
-
-    }
-
-
-    return (
-      response ??
-      fallback
-    );
-
-  }
-
-
-  // ============================================================
-  // BUSCAR ARRAYS RECURSIVAMENTE
-  // ============================================================
-
-  function classroomBuscarArrays(
-    objeto,
-    nombres = [],
-    ruta = "response",
-    resultados = [],
-    visitados = new WeakSet()
-  ) {
-
-    if (
-      objeto === null ||
-      objeto === undefined ||
-      typeof objeto !== "object"
-    ) {
-
-      return resultados;
-
-    }
-
-
-    if (
-      visitados.has(objeto)
-    ) {
-
-      return resultados;
-
-    }
-
-
-    visitados.add(
-      objeto
-    );
-
-
-    if (
-      Array.isArray(objeto)
-    ) {
-
-      resultados.push({
-        ruta,
-        array: objeto,
-        nombreCoincide: false
-      });
-
-      return resultados;
-
-    }
-
-
-    const nombresLower =
-      nombres.map(
-        nombre =>
-          String(nombre)
-            .toLowerCase()
-      );
-
-
-    Object.entries(objeto)
-      .forEach(
-        ([key, value]) => {
-
-          const keyLower =
-            String(key)
-              .toLowerCase();
-
-
-          const nuevaRuta =
-            `${ruta}.${key}`;
-
-
-          if (
-            Array.isArray(value)
-          ) {
-
-            resultados.push({
-
-              ruta:
-                nuevaRuta,
-
-              array:
-                value,
-
-              nombreCoincide:
-                nombresLower.includes(
-                  keyLower
-                )
-
-            });
-
-            return;
-
-          }
-
-
-          if (
-            value &&
-            typeof value === "object"
-          ) {
-
-            classroomBuscarArrays(
-              value,
-              nombres,
-              nuevaRuta,
-              resultados,
-              visitados
+          raw =
+            JSON.parse(
+              rawText
             );
 
+        }
+        catch {
+
+          throw new Error(
+            "La API no devolvió JSON válido."
+          );
+
+        }
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            raw?.error ||
+            raw?.message ||
+            raw?.data?.error ||
+            `Error HTTP ${response.status}`
+          );
+
+        }
+
+
+        if (raw?.ok === false) {
+
+          throw new Error(
+            raw?.error ||
+            raw?.message ||
+            raw?.data?.error ||
+            "La API devolvió un error."
+          );
+
+        }
+
+
+        return raw;
+
+      }
+      catch (error) {
+
+        classroomError(
+          "💥 ERROR CLASSROOM:",
+          error
+        );
+
+        throw error;
+
+      }
+
+    }
+
+
+    // ============================================================
+    // EXTRAER DATA
+    // ============================================================
+
+    export function classroomExtraerData(
+      response,
+      fallback = null
+    ) {
+
+      if (
+        response &&
+        response.data !== undefined &&
+        response.data !== null
+      ) {
+
+        return response.data;
+
+      }
+
+
+      return (
+        response ??
+        fallback
+      );
+
+    }
+
+
+    // ============================================================
+    // BUSCAR ARRAYS RECURSIVAMENTE
+    // ============================================================
+
+    function classroomBuscarArrays(
+      objeto,
+      nombres = [],
+      ruta = "response",
+      resultados = [],
+      visitados = new WeakSet()
+    ) {
+
+      if (
+        objeto === null ||
+        objeto === undefined ||
+        typeof objeto !== "object"
+      ) {
+
+        return resultados;
+
+      }
+
+
+      if (
+        visitados.has(objeto)
+      ) {
+
+        return resultados;
+
+      }
+
+
+      visitados.add(
+        objeto
+      );
+
+
+      if (
+        Array.isArray(objeto)
+      ) {
+
+        resultados.push({
+          ruta,
+          array: objeto,
+          nombreCoincide: false
+        });
+
+        return resultados;
+
+      }
+
+
+      const nombresLower =
+        nombres.map(
+          nombre =>
+            String(nombre)
+              .toLowerCase()
+        );
+
+
+      Object.entries(objeto)
+        .forEach(
+          ([key, value]) => {
+
+            const keyLower =
+              String(key)
+                .toLowerCase();
+
+
+            const nuevaRuta =
+              `${ruta}.${key}`;
+
+
+            if (
+              Array.isArray(value)
+            ) {
+
+              resultados.push({
+
+                ruta:
+                  nuevaRuta,
+
+                array:
+                  value,
+
+                nombreCoincide:
+                  nombresLower.includes(
+                    keyLower
+                  )
+
+              });
+
+              return;
+
+            }
+
+
+            if (
+              value &&
+              typeof value === "object"
+            ) {
+
+              classroomBuscarArrays(
+                value,
+                nombres,
+                nuevaRuta,
+                resultados,
+                visitados
+              );
+
+            }
+
           }
-
-        }
-      );
+        );
 
 
-    return resultados;
-
-  }
-
-
-  // ============================================================
-  // EXTRAER ARRAY
-  // ============================================================
-
-  export function classroomExtraerArray(
-    response,
-    nombres = []
-  ) {
-
-    if (
-      Array.isArray(response)
-    ) {
-
-      return response;
+      return resultados;
 
     }
 
 
-    const resultados =
-      classroomBuscarArrays(
+    // ============================================================
+    // EXTRAER ARRAY
+    // ============================================================
+
+    export function classroomExtraerArray(
+      response,
+      nombres = []
+    ) {
+
+      if (
+        Array.isArray(response)
+      ) {
+
+        return response;
+
+      }
+
+
+      const resultados =
+        classroomBuscarArrays(
+          response,
+          nombres
+        );
+
+
+      if (
+        resultados.length === 0
+      ) {
+
+        return [];
+
+      }
+
+
+      const encontrado =
+        resultados.find(
+          resultado =>
+            resultado.nombreCoincide
+        );
+
+
+      return (
+        encontrado?.array ||
+        resultados[0].array ||
+        []
+      );
+
+    }
+
+
+    // ============================================================
+    // CURSOS
+    // ============================================================
+
+    export async function classroomObtenerCursos() {
+
+      const response =
+        await classroomRequest(
+          "classroomObtenerCursos"
+        );
+
+
+      return classroomExtraerArray(
         response,
-        nombres
+        [
+          "cursos",
+          "courses"
+        ]
       );
 
+    }
 
-    if (
-      resultados.length === 0
+
+    // ============================================================
+    // OBTENER CURSO
+    // ============================================================
+
+    export async function classroomObtenerCurso(
+      courseId
     ) {
 
-      return [];
+      if (!courseId) {
 
-    }
+        throw new Error(
+          "Debe especificarse courseId."
+        );
 
-
-    const encontrado =
-      resultados.find(
-        resultado =>
-          resultado.nombreCoincide
-      );
+      }
 
 
-    return (
-      encontrado?.array ||
-      resultados[0].array ||
-      []
-    );
-
-  }
-
-
-  // ============================================================
-  // CURSOS
-  // ============================================================
-
-  export async function classroomObtenerCursos() {
-
-    const response =
-      await classroomRequest(
-        "classroomObtenerCursos"
-      );
+      const response =
+        await classroomRequest(
+          "classroomObtenerCurso",
+          {
+            courseId
+          }
+        );
 
 
-    return classroomExtraerArray(
-      response,
-      [
-        "cursos",
-        "courses"
-      ]
-    );
-
-  }
-
-
-  // ============================================================
-  // OBTENER CURSO
-  // ============================================================
-
-  export async function classroomObtenerCurso(
-    courseId
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
+      return classroomExtraerData(
+        response,
+        null
       );
 
     }
 
 
-    const response =
-      await classroomRequest(
-        "classroomObtenerCurso",
-        {
-          courseId
-        }
-      );
+    // ============================================================
+    // TEMAS
+    // ============================================================
+
+    export async function classroomObtenerTemas(
+      courseId
+    ) {
+
+      if (!courseId) {
+
+        throw new Error(
+          "Debe especificarse courseId."
+        );
+
+      }
 
 
-    return classroomExtraerData(
-      response,
-      null
-    );
-
-  }
-
-
-  // ============================================================
-  // TEMAS
-  // ============================================================
-
-  export async function classroomObtenerTemas(
-    courseId
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
+      const response =
+        await classroomRequest(
+          "classroomObtenerTemas",
+          {
+            courseId
+          }
+        );
 
 
-    const response =
-      await classroomRequest(
-        "classroomObtenerTemas",
-        {
-          courseId
-        }
-      );
-
-
-    return classroomExtraerArray(
-      response,
-      [
-        "temas",
-        "topics"
-      ]
-    );
-
-  }
-
-
-  // ============================================================
-  // OBTENER TEMA
-  // ============================================================
-
-  export async function classroomObtenerTema(
-    courseId,
-    topicId
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
+      return classroomExtraerArray(
+        response,
+        [
+          "temas",
+          "topics"
+        ]
       );
 
     }
 
 
-    if (!topicId) {
+    // ============================================================
+    // OBTENER TEMA
+    // ============================================================
 
-      throw new Error(
-        "Debe especificarse topicId."
+    export async function classroomObtenerTema(
+      courseId,
+      topicId
+    ) {
+
+      if (!courseId) {
+
+        throw new Error(
+          "Debe especificarse courseId."
+        );
+
+      }
+
+
+      if (!topicId) {
+
+        throw new Error(
+          "Debe especificarse topicId."
+        );
+
+      }
+
+
+      const response =
+        await classroomRequest(
+          "classroomObtenerTema",
+          {
+            courseId,
+            topicId
+          }
+        );
+
+
+      return classroomExtraerData(
+        response,
+        null
       );
 
     }
 
 
-    const response =
-      await classroomRequest(
-        "classroomObtenerTema",
-        {
-          courseId,
-          topicId
-        }
-      );
+    // ============================================================
+    // ACTIVIDADES DEL CURSO
+    // ============================================================
+
+    export async function classroomObtenerActividades(
+      courseId
+    ) {
+
+      if (!courseId) {
+
+        throw new Error(
+          "Debe especificarse courseId."
+        );
+
+      }
 
 
-    return classroomExtraerData(
-      response,
-      null
-    );
-
-  }
-
-
-  // ============================================================
-  // ACTIVIDADES DEL CURSO
-  // ============================================================
-
-  export async function classroomObtenerActividades(
-    courseId
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
+      const response =
+        await classroomRequest(
+          "classroomObtenerActividades",
+          {
+            courseId
+          }
+        );
 
 
-    const response =
-      await classroomRequest(
-        "classroomObtenerActividades",
-        {
-          courseId
-        }
-      );
-
-
-    return classroomExtraerArray(
-      response,
-      [
-        "actividades",
-        "activities",
-        "courseWork",
-        "coursework"
-      ]
-    );
-
-  }
-
-
-  // ============================================================
-  // OBTENER ACTIVIDAD
-  // ============================================================
-
-  export async function classroomObtenerActividad(
-    courseId,
-    courseWorkId
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
+      return classroomExtraerArray(
+        response,
+        [
+          "actividades",
+          "activities",
+          "courseWork",
+          "coursework"
+        ]
       );
 
     }
 
 
-    if (!courseWorkId) {
+    // ============================================================
+    // OBTENER ACTIVIDAD
+    // ============================================================
 
-      throw new Error(
-        "Debe especificarse courseWorkId."
-      );
+    export async function classroomObtenerActividad(
+      courseId,
+      courseWorkId
+    ) {
 
-    }
+      if (!courseId) {
+
+        throw new Error(
+          "Debe especificarse courseId."
+        );
+
+      }
+
+
+      if (!courseWorkId) {
+
+        throw new Error(
+          "Debe especificarse courseWorkId."
+        );
+
+      }
 
 
     const response =
@@ -3854,6 +3854,7 @@
     }
 
   }
+
 
 
   // ============================================================
