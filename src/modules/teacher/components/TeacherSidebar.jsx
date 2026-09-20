@@ -88,10 +88,11 @@ export default function TeacherSidebar({
     },
 
     {
-      id: "calificar",
-      nombre: "Calificar entregables",
+      id: "revisionClassroom",
+      nombre: "Revisión de entregables",
       icon: ClipboardCheck,
     },
+
 
     {
       id: "historial-consolidacion",
@@ -210,16 +211,15 @@ export default function TeacherSidebar({
           duration-200
           outline-none
 
-          ${
-            isActive
+          ${isActive
 
-              ? `
+            ? `
                 bg-[#EEF3FF]
                 text-[#1D3681]
                 shadow-sm
               `
 
-              : `
+            : `
                 text-slate-600
                 dark:text-slate-300
 
@@ -270,14 +270,13 @@ export default function TeacherSidebar({
             transition-all
             duration-200
 
-            ${
-              isActive
+            ${isActive
 
-                ? `
+              ? `
                   text-[#1D3681]
                 `
 
-                : `
+              : `
                   text-slate-400
                   group-hover:text-[#1D3681]
                   group-hover:scale-105

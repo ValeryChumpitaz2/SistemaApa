@@ -1709,7 +1709,7 @@
   // ============================================================
   // BUSCAR SUBMISSION
   // ============================================================
-  //
+
   // Esta función consulta la entrega específica de un estudiante.
   // ============================================================
 
@@ -2278,7 +2278,7 @@
   // ============================================================
   //
   // Esta función todavía NO aplica lineamientos de IA/documento.
-  // Prepara toda la información necesaria.
+  // Prepara toda la información necesaria.<
   // ============================================================
 
   export async function classroomAnalizarEntregableAlumno({

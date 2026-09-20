@@ -52,12 +52,14 @@ import PerformanceChart
 
 import ConsolidacionPage
   from "./ConsolidacionPage";
+import ClassroomRevisionPanel
+  from "../components/classroom/ClassroomRevisionPanel.jsx";
+
+
 
 import HistorialConsolidacionPage
   from "./HistorialConsolidacionPage";
 
-import CalificarEntregables
-  from "../components/CalificarEntregables";
 
 import { useAuth } from "../../../auth/AuthContext";
 
@@ -656,9 +658,8 @@ export default function TeacherDashboard() {
         <PageHeader
           eyebrow="Panel docente"
           title={
-            `Buenos días, ${
-              user?.usuario ||
-              "Docente"
+            `Buenos días, ${user?.usuario ||
+            "Docente"
             } 👋`
           }
           description="
@@ -1012,12 +1013,13 @@ export default function TeacherDashboard() {
 
             <QuickAction
               icon={ClipboardCheck}
-              title="Calificar entregables"
-              description="Gestiona las calificaciones."
+              title="Revisión de entregables"
+              description="Revisa EN1, EN2 y EN3, analiza sus documentos y calcula la nota final."
               onClick={() =>
-                setActive("calificar")
+                setActive("revisionClassroom")
               }
             />
+
 
             <QuickAction
               icon={History}
@@ -1251,28 +1253,28 @@ export default function TeacherDashboard() {
       // =====================================================
       // CALIFICAR ENTREGABLES
       // =====================================================
-
-      case "calificar":
+      case "revisionClassroom":
 
         return (
           <section>
 
             <PageHeader
               eyebrow="Evaluación"
-              title="Calificar entregables"
+              title="Revisión de entregables"
               description="
-                Selecciona el semestre y el curso
-                para gestionar las calificaciones.
-              "
+          Selecciona la experiencia formativa y
+          revisa los entregables de los estudiantes.
+        "
             />
 
-            <CalificarEntregables
+            <ClassroomRevisionPanel
               resultados={resultados}
               user={user}
             />
 
           </section>
         );
+
 
 
       case "historial-consolidacion":
