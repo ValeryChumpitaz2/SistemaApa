@@ -584,13 +584,13 @@ export default function ClassroomRevisionPanel() {
         Array.isArray(resultado)
 
           ? resultado.filter(
-              tema =>
-                Boolean(
-                  obtenerIdTema(
-                    tema
-                  )
+            tema =>
+              Boolean(
+                obtenerIdTema(
+                  tema
                 )
-            )
+              )
+          )
 
           : [];
 
@@ -956,15 +956,15 @@ export default function ClassroomRevisionPanel() {
             titulo:
               actividad
                 ? obtenerTitulo(
-                    actividad
-                  )
+                  actividad
+                )
                 : "",
 
             courseWorkId:
               actividad
                 ? obtenerCourseWorkId(
-                    actividad
-                  )
+                  actividad
+                )
                 : "",
 
             puntajeMaximo:
@@ -1512,12 +1512,26 @@ export default function ClassroomRevisionPanel() {
 
     <div
       style={{
-        padding: "24px",
-        fontFamily: "Arial, sans-serif"
+        minHeight: "100vh",
+        background: "#f5f7fb",
+        padding: "32px",
+        fontFamily: "Arial, sans-serif",
+        color: "#1f2937",
+        maxWidth: "1400px",
+        margin: "0 auto",
+
+
       }}
     >
 
-      <h2>
+      <h2
+        style={{
+          margin: "0 0 8px 0",
+          fontSize: "28px",
+          fontWeight: "700",
+          color: "#111827"
+        }}
+      >
         Revisión de Informes — Google Classroom
       </h2>
 
@@ -1550,10 +1564,23 @@ export default function ClassroomRevisionPanel() {
       ==================================================== */}
 
       <section>
-
-        <h3>
+        <h3
+          style={{
+            margin: "24px 0 12px 0",
+            padding: "14px 18px",
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            fontSize: "17px",
+            fontWeight: "700",
+            color: "#1f2937",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)"
+          }}
+        >
           1. Experiencia Formativa
         </h3>
+
+
 
 
         <select
@@ -1630,25 +1657,84 @@ export default function ClassroomRevisionPanel() {
       {/* ====================================================
           PASO 2 — TEMAS
       ==================================================== */}
-
       {courseId && (
 
         <section
           style={{
-            marginTop: "30px"
+            marginTop: "24px",
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: "16px",
+            padding: "22px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.04)"
           }}
         >
 
-          <h3>
-            2. Temas
-          </h3>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "18px"
+            }}
+          >
+
+            <div>
+
+              <h3
+                style={{
+                  margin: "0 0 4px 0",
+                  fontSize: "18px",
+                  fontWeight: "700",
+                  color: "#111827"
+                }}
+              >
+                2. Temas
+              </h3>
+
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "13px",
+                  color: "#6b7280"
+                }}
+              >
+                Selecciona el tema que deseas revisar.
+              </p>
+
+            </div>
+
+            {!cargandoTemas && temas.length > 0 && (
+
+              <span
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "999px",
+                  background: "#eff6ff",
+                  color: "#2563eb",
+                  fontSize: "12px",
+                  fontWeight: "600"
+                }}
+              >
+                {temas.length} temas
+              </span>
+
+            )}
+
+          </div>
 
 
           {cargandoTemas && (
 
-            <p>
+            <div
+              style={{
+                padding: "20px",
+                textAlign: "center",
+                color: "#6b7280"
+              }}
+            >
               Cargando temas...
-            </p>
+            </div>
 
           )}
 
@@ -1656,10 +1742,18 @@ export default function ClassroomRevisionPanel() {
           {!cargandoTemas &&
             temas.length === 0 && (
 
-              <p>
+              <div
+                style={{
+                  padding: "20px",
+                  borderRadius: "10px",
+                  background: "#f9fafb",
+                  color: "#6b7280",
+                  fontSize: "14px"
+                }}
+              >
                 No se encontraron temas para esta
                 experiencia formativa.
-              </p>
+              </div>
 
             )}
 
@@ -1668,7 +1762,7 @@ export default function ClassroomRevisionPanel() {
             style={{
               display: "grid",
               gridTemplateColumns:
-                "repeat(auto-fill, minmax(220px, 1fr))",
+                "repeat(auto-fill, minmax(240px, 1fr))",
               gap: "12px"
             }}
           >
@@ -1705,24 +1799,62 @@ export default function ClassroomRevisionPanel() {
                       )
                     }
                     style={{
-                      padding: "16px",
+                      padding: "16px 18px",
                       textAlign: "left",
-                      borderRadius: "10px",
+                      borderRadius: "12px",
                       border:
                         activo
                           ? "2px solid #2563eb"
-                          : "1px solid #d1d5db",
+                          : "1px solid #e5e7eb",
                       background:
                         activo
                           ? "#eff6ff"
-                          : "#fff",
-                      cursor: "pointer"
+                          : "#ffffff",
+                      color:
+                        activo
+                          ? "#1d4ed8"
+                          : "#374151",
+                      cursor: "pointer",
+                      transition:
+                        "all 0.2s ease",
+                      boxShadow:
+                        activo
+                          ? "0 3px 8px rgba(37, 99, 235, 0.12)"
+                          : "0 1px 3px rgba(0, 0, 0, 0.03)"
                     }}
                   >
 
-                    <strong>
-                      {nombre}
-                    </strong>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px"
+                      }}
+                    >
+
+                      <span
+                        style={{
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "50%",
+                          background:
+                            activo
+                              ? "#2563eb"
+                              : "#d1d5db",
+                          flexShrink: 0
+                        }}
+                      />
+
+                      <strong
+                        style={{
+                          fontSize: "14px",
+                          lineHeight: "1.4"
+                        }}
+                      >
+                        {nombre}
+                      </strong>
+
+                    </div>
 
                   </button>
 
@@ -1736,6 +1868,7 @@ export default function ClassroomRevisionPanel() {
         </section>
 
       )}
+
 
 
       {/* ====================================================
@@ -1874,8 +2007,8 @@ export default function ClassroomRevisionPanel() {
 
       )}
       {/* ====================================================
-          PASO 4 — ENTREGABLES RECONOCIDOS
-      ==================================================== */}
+    PASO 4 — ENTREGABLES RECONOCIDOS
+==================================================== */}
 
       {temaSeleccionado && (
 
@@ -1885,17 +2018,29 @@ export default function ClassroomRevisionPanel() {
           }}
         >
 
-          <h3>
+          <h3
+            style={{
+              marginBottom: "16px",
+              color: "#111827",
+              fontSize: "20px",
+              fontWeight: "700"
+            }}
+          >
             4. Entregables
           </h3>
 
+
+          {/* =================================================
+        TARJETAS EN1 / EN2 / EN3
+    ================================================= */}
 
           <div
             style={{
               display: "grid",
               gridTemplateColumns:
-                "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: "15px"
+                "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: "20px",
+              alignItems: "stretch"
             }}
           >
 
@@ -1903,9 +2048,7 @@ export default function ClassroomRevisionPanel() {
               item => {
 
                 const actividad =
-                  entregables[
-                    item.codigo
-                  ];
+                  entregables[item.codigo];
 
 
                 return (
@@ -1913,50 +2056,260 @@ export default function ClassroomRevisionPanel() {
                   <div
                     key={item.codigo}
                     style={{
-                      padding: "18px",
-                      borderRadius: "10px",
+                      padding: "20px",
+                      borderRadius: "16px",
+
                       border:
                         item.encontrado
-                          ? "2px solid #16a34a"
-                          : "1px solid #d1d5db",
+                          ? "1px solid #bbf7d0"
+                          : "1px solid #e5e7eb",
+
                       background:
                         item.encontrado
-                          ? "#f0fdf4"
-                          : "#f9fafb"
+                          ? "linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)"
+                          : "#f9fafb",
+
+                      boxShadow:
+                        "0 4px 12px rgba(0,0,0,0.06)"
                     }}
                   >
 
-                    <h4>
-                      {item.codigo}
-                    </h4>
+                    {/* CABECERA */}
 
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "16px"
+                      }}
+                    >
+
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px"
+                        }}
+                      >
+
+                        <div
+                          style={{
+                            width: "44px",
+                            height: "44px",
+                            borderRadius: "12px",
+
+                            background:
+                              item.encontrado
+                                ? "#16a34a"
+                                : "#e5e7eb",
+
+                            color:
+                              item.encontrado
+                                ? "#ffffff"
+                                : "#6b7280",
+
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+
+                            fontWeight: "700",
+                            fontSize: "15px"
+                          }}
+                        >
+                          {item.codigo}
+                        </div>
+
+
+                        <div>
+
+                          <div
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: "700",
+                              color: "#111827"
+                            }}
+                          >
+                            {item.encontrado
+                              ? "Entregable encontrado"
+                              : "Entregable no encontrado"}
+                          </div>
+
+
+                          <div
+                            style={{
+                              fontSize: "13px",
+                              color: "#6b7280",
+                              marginTop: "3px"
+                            }}
+                          >
+                            {item.encontrado
+                              ? "Disponible para revisión"
+                              : "Aún no existe en este tema"}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* ESTADO */}
+
+                      <span
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "999px",
+                          fontSize: "11px",
+                          fontWeight: "700",
+
+                          background:
+                            item.encontrado
+                              ? "#dcfce7"
+                              : "#f3f4f6",
+
+                          color:
+                            item.encontrado
+                              ? "#166534"
+                              : "#6b7280"
+                        }}
+                      >
+                        {item.encontrado
+                          ? "DISPONIBLE"
+                          : "PENDIENTE"}
+                      </span>
+
+                    </div>
+
+
+                    {/* CONTENIDO */}
 
                     {actividad ? (
 
                       <>
 
-                        <p>
-                          <strong>
+                        {/* TÍTULO */}
+
+                        <div
+                          style={{
+                            padding: "14px",
+                            background: "#ffffff",
+                            borderRadius: "10px",
+                            border: "1px solid #e5e7eb",
+                            marginBottom: "14px"
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              color: "#6b7280",
+                              fontWeight: "700",
+                              marginBottom: "5px"
+                            }}
+                          >
+                            ACTIVIDAD
+                          </div>
+
+
+                          <div
+                            style={{
+                              fontWeight: "600",
+                              color: "#1f2937",
+                              lineHeight: "1.4"
+                            }}
+                          >
                             {item.titulo}
-                          </strong>
-                        </p>
+                          </div>
+
+                        </div>
 
 
-                        <p>
-                          Valor:
-                          {" "}
-                          {PUNTAJE_POR_ENTREGABLE}
-                          {" "}
-                          puntos
-                        </p>
+                        {/* INFORMACIÓN */}
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns:
+                              "1fr 1fr",
+                            gap: "10px",
+                            marginBottom: "16px"
+                          }}
+                        >
+
+                          {/* VALOR */}
+
+                          <div
+                            style={{
+                              padding: "12px",
+                              borderRadius: "10px",
+                              background: "#eff6ff"
+                            }}
+                          >
+
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                color: "#6b7280",
+                                fontWeight: "600"
+                              }}
+                            >
+                              VALOR
+                            </div>
 
 
-                        <p>
-                          CourseWork ID:
-                          {" "}
-                          {item.courseWorkId}
-                        </p>
+                            <div
+                              style={{
+                                marginTop: "4px",
+                                fontSize: "18px",
+                                fontWeight: "700",
+                                color: "#2563eb"
+                              }}
+                            >
+                              {PUNTAJE_POR_ENTREGABLE} pts
+                            </div>
 
+                          </div>
+
+
+                          {/* COURSEWORK ID */}
+
+                          <div
+                            style={{
+                              padding: "12px",
+                              borderRadius: "10px",
+                              background: "#f9fafb"
+                            }}
+                          >
+
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                color: "#6b7280",
+                                fontWeight: "600"
+                              }}
+                            >
+                              COURSEWORK ID
+                            </div>
+
+
+                            <div
+                              style={{
+                                marginTop: "4px",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                color: "#374151",
+                                wordBreak: "break-all"
+                              }}
+                            >
+                              {item.courseWorkId}
+                            </div>
+
+                          </div>
+
+                        </div>
+
+
+                        {/* BOTÓN */}
 
                         <button
                           onClick={() =>
@@ -1968,33 +2321,53 @@ export default function ClassroomRevisionPanel() {
                             cargandoEntregas
                           }
                           style={{
-                            padding:
-                              "8px 14px",
-                            borderRadius:
-                              "8px",
-                            border:
-                              "none",
+                            width: "100%",
+                            padding: "11px 16px",
+                            borderRadius: "10px",
+                            border: "none",
+
                             background:
-                              "#2563eb",
-                            color:
-                              "#fff",
+                              cargandoEntregas
+                                ? "#93c5fd"
+                                : "#2563eb",
+
+                            color: "#ffffff",
+
+                            fontWeight: "600",
+                            fontSize: "14px",
+
                             cursor:
-                              "pointer"
+                              cargandoEntregas
+                                ? "not-allowed"
+                                : "pointer",
+
+                            boxShadow:
+                              "0 3px 8px rgba(37,99,235,0.25)"
                           }}
                         >
-
-                          Ver entregas
-
+                          {cargandoEntregas
+                            ? "Cargando entregas..."
+                            : "📂 Ver entregas"}
                         </button>
 
                       </>
 
                     ) : (
 
-                      <p>
-                        No se encontró este entregable
+                      <div
+                        style={{
+                          padding: "14px",
+                          borderRadius: "10px",
+                          background: "#ffffff",
+                          border: "1px dashed #d1d5db",
+                          color: "#6b7280",
+                          fontSize: "14px",
+                          lineHeight: "1.5"
+                        }}
+                      >
+                        ⚠️ No se encontró este entregable
                         dentro del tema.
-                      </p>
+                      </div>
 
                     )}
 
@@ -2009,385 +2382,1088 @@ export default function ClassroomRevisionPanel() {
 
 
           {/* =================================================
-              CARGAR TODAS
-          ================================================= */}
+        CARGAR TODAS LAS ENTREGAS
+    ================================================= */}
 
-          <button
-            onClick={
-              cargarTodasLasEntregas
-            }
-            disabled={
-              cargandoEntregas
-            }
+          <div
             style={{
-              marginTop: "20px",
-              padding: "10px 18px",
-              borderRadius: "8px",
-              border: "none",
-              background: "#111827",
-              color: "#fff",
-              cursor: "pointer"
+              marginTop: "24px",
+              padding: "18px",
+              borderRadius: "14px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+
+              gap: "16px",
+              flexWrap: "wrap"
             }}
           >
 
-            {cargandoEntregas
-              ? "Cargando entregas..."
-              : "Cargar entregas EN1 + EN2 + EN3"}
-
-          </button>
-
-        </section>
-
-      )}
-      {/* ====================================================
-          PASO 5 — ENTREGAS DE ESTUDIANTES
-      ==================================================== */}
-
-      {temaSeleccionado && (
-
-        <section
-          style={{
-            marginTop: "30px"
-          }}
-        >
-
-          <h3>
-            5. Entregas de estudiantes
-          </h3>
-
-
-          {ENTREGABLES_OBJETIVO.map(
-            codigo => {
-
-              const lista =
-                Array.isArray(
-                  entregas[codigo]
-                )
-                  ? entregas[codigo]
-                  : [];
-
-
-              if (
-                !entregables[codigo]
-              ) {
-
-                return null;
-
-              }
-
-
-              return (
-
-                <div
-                  key={codigo}
-                  style={{
-                    marginBottom: "25px",
-                    padding: "20px",
-                    border:
-                      "1px solid #ddd",
-                    borderRadius: "12px"
-                  }}
-                >
-
-                  <h4>
-                    {codigo}
-                  </h4>
-
-
-                  <p>
-                    <strong>
-                      Actividad:
-                    </strong>
-                    {" "}
-                    {obtenerTitulo(
-                      entregables[codigo]
-                    )}
-                  </p>
-
-
-                  <p>
-                    <strong>
-                      Entregas encontradas:
-                    </strong>
-                    {" "}
-                    {lista.length}
-                  </p>
-
-
-                  {lista.length === 0 ? (
-
-                    <p>
-                      No hay entregas cargadas.
-                    </p>
-
-                  ) : (
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gap: "10px"
-                      }}
-                    >
-
-                      {lista.map(
-                        (
-                          entrega,
-                          index
-                        ) => {
-
-                          const info =
-                            obtenerInformacionEntrega(
-                              entrega
-                            );
-
-
-                          return (
-
-                            <div
-                              key={
-                                info.id ||
-                                `${codigo}-${index}`
-                              }
-                              style={{
-                                padding: "14px",
-                                background:
-                                  "#f9fafb",
-                                borderRadius:
-                                  "8px"
-                              }}
-                            >
-
-                              <strong>
-                                {info.nombre}
-                              </strong>
-
-
-                              {info.email && (
-
-                                <div>
-                                  {info.email}
-                                </div>
-
-                              )}
-
-
-                              {info.userId && (
-
-                                <div
-                                  style={{
-                                    fontSize:
-                                      "12px",
-                                    color:
-                                      "#666"
-                                  }}
-                                >
-
-                                  User ID:
-                                  {" "}
-                                  {info.userId}
-
-                                </div>
-
-                              )}
-
-
-                              {info.estado && (
-
-                                <div>
-                                  Estado:
-                                  {" "}
-                                  {info.estado}
-                                </div>
-
-                              )}
-
-
-                              <div
-                                style={{
-                                  marginTop:
-                                    "8px"
-                                }}
-                              >
-
-                                Documentos/
-                                archivos:
-                                {" "}
-                                {info.documentos.length}
-
-                              </div>
-
-
-                              {info.documentos.length >
-                                0 && (
-
-                                <ul>
-
-                                  {info.documentos.map(
-                                    (
-                                      documento,
-                                      documentoIndex
-                                    ) => (
-
-                                      <li
-                                        key={
-                                          documento?.id ||
-                                          documentoIndex
-                                        }
-                                      >
-
-                                        {documento?.title ||
-                                          documento?.name ||
-                                          documento?.driveFile?.title ||
-                                          "Documento sin nombre"}
-
-                                      </li>
-
-                                    )
-                                  )}
-
-                                </ul>
-
-                              )}
-
-                            </div>
-
-                          );
-
-                        }
-                      )}
-
-                    </div>
-
-                  )}
-
-                </div>
-
-              );
-
-            }
-          )}
-
-        </section>
-
-      )}
-      {/* ====================================================
-          PASO 6 — ACTIVIDAD DESTINO
-      ==================================================== */}
-
-      {temaSeleccionado && (
-
-        <section
-          style={{
-            marginTop: "30px",
-            padding: "20px",
-            background: "#f5f3ff",
-            borderRadius: "12px"
-          }}
-        >
-
-          <h3>
-            6. Actividad destino de calificación
-          </h3>
-
-
-          {actividadRevisor ? (
-
-            <>
-
-              <p>
-                <strong>
-                  {obtenerTitulo(
-                    actividadRevisor
-                  )}
-                </strong>
-              </p>
-
-
-              <p>
-                CourseWork ID:
-                {" "}
-                {obtenerCourseWorkId(
-                  actividadRevisor
-                )}
-              </p>
-
-
-              <p>
-                Esta actividad recibirá posteriormente
-                la suma de EN1 + EN2 + EN3.
-              </p>
+            <div>
+
+              <div
+                style={{
+                  fontSize: "15px",
+                  fontWeight: "700",
+                  color: "#111827",
+                  marginBottom: "4px"
+                }}
+              >
+                📚 Cargar todas las entregas
+              </div>
 
 
               <div
                 style={{
-                  marginTop: "15px",
-                  padding: "12px",
-                  background: "#fff",
-                  borderRadius: "8px"
+                  fontSize: "13px",
+                  color: "#6b7280"
                 }}
               >
-
-                <strong>
-                  Fórmula final
-                </strong>
-
-
-                <div
-                  style={{
-                    marginTop: "8px"
-                  }}
-                >
-
-                  EN1 + EN2 + EN3
-
-                </div>
-
-
-                <div
-                  style={{
-                    marginTop: "8px",
-                    color: "#666"
-                  }}
-                >
-
-                  Cada entregable vale{" "}
-                  {PUNTAJE_POR_ENTREGABLE}{" "}
-                  puntos.
-
-                </div>
-
-
-                <div
-                  style={{
-                    marginTop: "8px",
-                    color: "#666"
-                  }}
-                >
-
-                  Máximo total:{" "}
-                  {PUNTAJE_POR_ENTREGABLE *
-                    ENTREGABLES_OBJETIVO.length}{" "}
-                  puntos.
-
-                </div>
-
+                Obtiene las entregas disponibles de EN1, EN2 y EN3.
               </div>
 
-            </>
+            </div>
 
-          ) : (
 
-            <p>
-              No se encontró la actividad
-              "REVISOR DE INFORMES" dentro
-              de este tema.
-            </p>
+            <button
+              onClick={
+                cargarTodasLasEntregas
+              }
+              disabled={
+                cargandoEntregas
+              }
+              style={{
+                padding: "11px 20px",
+                borderRadius: "10px",
+                border: "none",
 
-          )}
+                background:
+                  cargandoEntregas
+                    ? "#9ca3af"
+                    : "#111827",
+
+                color: "#ffffff",
+
+                fontSize: "14px",
+                fontWeight: "600",
+
+                cursor:
+                  cargandoEntregas
+                    ? "not-allowed"
+                    : "pointer",
+
+                boxShadow:
+                  "0 3px 8px rgba(17,24,39,0.18)",
+
+                transition:
+                  "all 0.2s ease"
+              }}
+            >
+
+              {cargandoEntregas
+                ? "⏳ Cargando entregas..."
+                : "📥 Cargar EN1 + EN2 + EN3"}
+
+            </button>
+
+          </div>
 
         </section>
 
       )}
+
+      {/* ====================================================
+    PASO 5 — ENTREGAS DE ESTUDIANTES
+==================================================== */}
+
+      {
+        temaSeleccionado && (
+
+          <section
+            style={{
+              marginTop: "36px"
+            }}
+          >
+
+            {/* ==================================================
+          CABECERA
+      ================================================== */}
+
+            <div
+              style={{
+                marginBottom: "20px"
+              }}
+            >
+
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "20px",
+                  fontWeight: "700",
+                  color: "#111827"
+                }}
+              >
+                5. Entregas de estudiantes
+              </h3>
+
+              <p
+                style={{
+                  marginTop: "6px",
+                  marginBottom: 0,
+                  fontSize: "14px",
+                  color: "#6b7280"
+                }}
+              >
+                Revisa las entregas recibidas de cada estudiante.
+              </p>
+
+            </div>
+
+
+            {/* ==================================================
+          ENTREGABLES
+      ================================================== */}
+
+            {ENTREGABLES_OBJETIVO.map(
+              codigo => {
+
+                const lista =
+                  Array.isArray(
+                    entregas[codigo]
+                  )
+                    ? entregas[codigo]
+                    : [];
+
+
+                if (
+                  !entregables[codigo]
+                ) {
+
+                  return null;
+
+                }
+
+
+                return (
+
+                  <div
+                    key={codigo}
+                    style={{
+                      marginBottom: "24px",
+                      borderRadius: "16px",
+                      border: "1px solid #e5e7eb",
+                      background: "#ffffff",
+                      boxShadow:
+                        "0 4px 14px rgba(0,0,0,0.05)",
+                      overflow: "hidden"
+                    }}
+                  >
+
+                    {/* ==========================================
+                  CABECERA DEL ENTREGABLE
+              ========================================== */}
+
+                    <div
+                      style={{
+                        padding: "18px 20px",
+                        background:
+                          "linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)",
+                        borderBottom:
+                          "1px solid #e5e7eb"
+                      }}
+                    >
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: "12px",
+                          flexWrap: "wrap"
+                        }}
+                      >
+
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px"
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              width: "44px",
+                              height: "44px",
+                              borderRadius: "12px",
+                              background: "#2563eb",
+                              color: "#ffffff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: "700",
+                              fontSize: "14px",
+                              flexShrink: 0
+                            }}
+                          >
+                            {codigo}
+                          </div>
+
+
+                          <div>
+
+                            <div
+                              style={{
+                                fontSize: "16px",
+                                fontWeight: "700",
+                                color: "#111827"
+                              }}
+                            >
+                              {codigo}
+                            </div>
+
+
+                            <div
+                              style={{
+                                marginTop: "3px",
+                                fontSize: "13px",
+                                color: "#6b7280"
+                              }}
+                            >
+                              {obtenerTitulo(
+                                entregables[codigo]
+                              )}
+                            </div>
+
+                          </div>
+
+                        </div>
+
+
+                        {/* CONTADOR */}
+
+                        <div
+                          style={{
+                            padding: "7px 12px",
+                            borderRadius: "999px",
+                            background: "#dbeafe",
+                            color: "#1d4ed8",
+                            fontSize: "12px",
+                            fontWeight: "700"
+                          }}
+                        >
+                          {lista.length}{" "}
+                          {lista.length === 1
+                            ? "entrega"
+                            : "entregas"}
+                        </div>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* ==========================================
+                  CONTENIDO
+              ========================================== */}
+
+                    <div
+                      style={{
+                        padding: "20px"
+                      }}
+                    >
+
+                      {lista.length === 0 ? (
+
+                        <div
+                          style={{
+                            padding: "24px",
+                            borderRadius: "12px",
+                            background: "#f9fafb",
+                            border: "1px dashed #d1d5db",
+                            textAlign: "center",
+                            color: "#6b7280"
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              fontSize: "28px",
+                              marginBottom: "8px"
+                            }}
+                          >
+                            📭
+                          </div>
+
+                          <div
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: "600"
+                            }}
+                          >
+                            No hay entregas cargadas.
+                          </div>
+
+                        </div>
+
+                      ) : (
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns:
+                              "repeat(auto-fit, minmax(300px, 1fr))",
+                            gap: "14px"
+                          }}
+                        >
+
+                          {lista.map(
+                            (
+                              entrega,
+                              index
+                            ) => {
+
+                              const info =
+                                obtenerInformacionEntrega(
+                                  entrega
+                                );
+
+
+                              return (
+
+                                <div
+                                  key={
+                                    info.id ||
+                                    `${codigo}-${index}`
+                                  }
+                                  style={{
+                                    padding: "16px",
+                                    borderRadius: "14px",
+                                    border:
+                                      "1px solid #e5e7eb",
+                                    background: "#ffffff",
+                                    boxShadow:
+                                      "0 2px 8px rgba(0,0,0,0.04)"
+                                  }}
+                                >
+
+                                  {/* ==================================
+                                ALUMNO
+                            ================================== */}
+
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "12px",
+                                      marginBottom: "14px"
+                                    }}
+                                  >
+
+                                    <div
+                                      style={{
+                                        width: "42px",
+                                        height: "42px",
+                                        borderRadius: "50%",
+                                        background: "#e0e7ff",
+                                        color: "#4338ca",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontWeight: "700",
+                                        fontSize: "14px",
+                                        flexShrink: 0
+                                      }}
+                                    >
+                                      {(info.nombre || "A")
+                                        .charAt(0)
+                                        .toUpperCase()}
+                                    </div>
+
+
+                                    <div
+                                      style={{
+                                        minWidth: 0
+                                      }}
+                                    >
+
+                                      <div
+                                        style={{
+                                          fontSize: "15px",
+                                          fontWeight: "700",
+                                          color: "#111827",
+                                          wordBreak: "break-word"
+                                        }}
+                                      >
+                                        {info.nombre}
+                                      </div>
+
+
+                                      {info.email && (
+
+                                        <div
+                                          style={{
+                                            marginTop: "3px",
+                                            fontSize: "12px",
+                                            color: "#6b7280",
+                                            wordBreak: "break-word"
+                                          }}
+                                        >
+                                          {info.email}
+                                        </div>
+
+                                      )}
+
+                                    </div>
+
+                                  </div>
+
+
+                                  {/* ==================================
+                                ESTADO
+                            ================================== */}
+
+                                  {info.estado && (
+
+                                    <div
+                                      style={{
+                                        marginBottom: "12px"
+                                      }}
+                                    >
+
+                                      <span
+                                        style={{
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          padding: "5px 10px",
+                                          borderRadius: "999px",
+                                          background:
+                                            info.estado ===
+                                              "TURNED_IN"
+                                              ? "#dcfce7"
+                                              : "#f3f4f6",
+                                          color:
+                                            info.estado ===
+                                              "TURNED_IN"
+                                              ? "#166534"
+                                              : "#6b7280",
+                                          fontSize: "11px",
+                                          fontWeight: "700"
+                                        }}
+                                      >
+
+                                        {info.estado ===
+                                          "TURNED_IN"
+                                          ? "✓ ENTREGADO"
+                                          : info.estado}
+
+                                      </span>
+
+                                    </div>
+
+                                  )}
+
+
+                                  {/* ==================================
+                                USER ID
+                            ================================== */}
+
+                                  {info.userId && (
+
+                                    <div
+                                      style={{
+                                        padding: "10px",
+                                        borderRadius: "9px",
+                                        background: "#f9fafb",
+                                        marginBottom: "12px"
+                                      }}
+                                    >
+
+                                      <div
+                                        style={{
+                                          fontSize: "10px",
+                                          color: "#9ca3af",
+                                          fontWeight: "700",
+                                          marginBottom: "3px"
+                                        }}
+                                      >
+                                        USER ID
+                                      </div>
+
+
+                                      <div
+                                        style={{
+                                          fontSize: "11px",
+                                          color: "#4b5563",
+                                          wordBreak: "break-all"
+                                        }}
+                                      >
+                                        {info.userId}
+                                      </div>
+
+                                    </div>
+
+                                  )}
+
+
+                                  {/* ==================================
+                                DOCUMENTOS
+                            ================================== */}
+
+                                  <div
+                                    style={{
+                                      marginTop: "12px"
+                                    }}
+                                  >
+
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        justifyContent:
+                                          "space-between",
+                                        alignItems: "center",
+                                        marginBottom: "8px"
+                                      }}
+                                    >
+
+                                      <span
+                                        style={{
+                                          fontSize: "12px",
+                                          fontWeight: "700",
+                                          color: "#374151"
+                                        }}
+                                      >
+                                        📎 Documentos
+                                      </span>
+
+
+                                      <span
+                                        style={{
+                                          fontSize: "11px",
+                                          fontWeight: "700",
+                                          color: "#2563eb"
+                                        }}
+                                      >
+                                        {info.documentos.length}
+                                      </span>
+
+                                    </div>
+
+
+                                    {info.documentos.length >
+                                      0 ? (
+
+                                      <div
+                                        style={{
+                                          display: "grid",
+                                          gap: "6px"
+                                        }}
+                                      >
+
+                                        {info.documentos.map(
+                                          (
+                                            documento,
+                                            documentoIndex
+                                          ) => (
+
+                                            <div
+                                              key={
+                                                documento?.id ||
+                                                documentoIndex
+                                              }
+                                              style={{
+                                                padding:
+                                                  "9px 10px",
+                                                borderRadius:
+                                                  "8px",
+                                                background:
+                                                  "#f8fafc",
+                                                border:
+                                                  "1px solid #e5e7eb",
+                                                fontSize:
+                                                  "12px",
+                                                color:
+                                                  "#374151",
+                                                wordBreak:
+                                                  "break-word"
+                                              }}
+                                            >
+
+                                              📄{" "}
+                                              {documento?.title ||
+                                                documento?.name ||
+                                                documento?.driveFile?.title ||
+                                                "Documento sin nombre"}
+
+                                            </div>
+
+                                          )
+                                        )}
+
+                                      </div>
+
+                                    ) : (
+
+                                      <div
+                                        style={{
+                                          padding: "10px",
+                                          borderRadius: "8px",
+                                          background: "#f9fafb",
+                                          color: "#9ca3af",
+                                          fontSize: "12px"
+                                        }}
+                                      >
+                                        No hay archivos adjuntos.
+                                      </div>
+
+                                    )}
+
+                                  </div>
+
+
+                                  {/* ==================================
+                                ZONA PARA CALIFICACIÓN
+                            ================================== */}
+
+                                  <div
+                                    style={{
+                                      marginTop: "16px",
+                                      paddingTop: "14px",
+                                      borderTop:
+                                        "1px solid #e5e7eb"
+                                    }}
+                                  >
+
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        justifyContent:
+                                          "space-between",
+                                        alignItems: "center"
+                                      }}
+                                    >
+
+                                      <span
+                                        style={{
+                                          fontSize: "12px",
+                                          color: "#6b7280",
+                                          fontWeight: "600"
+                                        }}
+                                      >
+                                        Calificación
+                                      </span>
+
+
+                                      <span
+                                        style={{
+                                          fontSize: "13px",
+                                          color: "#9ca3af"
+                                        }}
+                                      >
+                                        Pendiente
+                                      </span>
+
+                                    </div>
+
+                                  </div>
+
+                                </div>
+
+                              );
+
+                            }
+                          )}
+
+                        </div>
+
+                      )}
+
+                    </div>
+
+                  </div>
+
+                );
+
+              }
+            )}
+
+          </section>
+
+        )
+      }
+
+      {/* ====================================================
+    PASO 6 — ACTIVIDAD DESTINO
+==================================================== */}
+
+      {
+        temaSeleccionado && (
+
+          <section
+            style={{
+              marginTop: "30px",
+              padding: "22px",
+              borderRadius: "16px",
+              background:
+                "linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%)",
+              border: "1px solid #ddd6fe",
+              boxShadow:
+                "0 4px 14px rgba(0,0,0,0.05)"
+            }}
+          >
+
+            {/* ================================================
+          CABECERA
+      ================================================ */}
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "20px"
+              }}
+            >
+
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "12px",
+                  background: "#7c3aed",
+                  color: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  fontWeight: "700"
+                }}
+              >
+                6
+              </div>
+
+
+              <div>
+
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: "20px",
+                    fontWeight: "700",
+                    color: "#111827"
+                  }}
+                >
+                  Actividad destino de calificación
+                </h3>
+
+
+                <p
+                  style={{
+                    margin: "4px 0 0",
+                    fontSize: "13px",
+                    color: "#6b7280"
+                  }}
+                >
+                  Aquí se enviará posteriormente la calificación
+                  final del estudiante.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            {actividadRevisor ? (
+
+              <>
+
+                {/* ==============================================
+              ACTIVIDAD ENCONTRADA
+          ============================================== */}
+
+                <div
+                  style={{
+                    padding: "18px",
+                    borderRadius: "12px",
+                    background: "#ffffff",
+                    border: "1px solid #ddd6fe",
+                    marginBottom: "16px"
+                  }}
+                >
+
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      color: "#7c3aed",
+                      marginBottom: "6px"
+                    }}
+                  >
+                    ACTIVIDAD DESTINO
+                  </div>
+
+
+                  <div
+                    style={{
+                      fontSize: "17px",
+                      fontWeight: "700",
+                      color: "#111827",
+                      lineHeight: "1.4"
+                    }}
+                  >
+                    {obtenerTitulo(
+                      actividadRevisor
+                    )}
+                  </div>
+
+
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      background: "#f9fafb",
+                      color: "#4b5563",
+                      fontSize: "12px",
+                      wordBreak: "break-all"
+                    }}
+                  >
+
+                    <strong>
+                      CourseWork ID:
+                    </strong>
+
+                    {" "}
+
+                    {obtenerCourseWorkId(
+                      actividadRevisor
+                    )}
+
+                  </div>
+
+                </div>
+
+
+                {/* ==============================================
+              INFORMACIÓN
+          ============================================== */}
+
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "12px",
+                    background: "#faf5ff",
+                    border: "1px solid #e9d5ff",
+                    marginBottom: "16px"
+                  }}
+                >
+
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: "#581c87",
+                      fontWeight: "600",
+                      lineHeight: "1.5"
+                    }}
+                  >
+                    Esta actividad recibirá posteriormente
+                    la suma de EN1 + EN2 + EN3.
+                  </div>
+
+                </div>
+
+
+                {/* ==============================================
+              FÓRMULA
+          ============================================== */}
+
+                <div
+                  style={{
+                    padding: "18px",
+                    borderRadius: "12px",
+                    background: "#ffffff",
+                    border: "1px solid #e5e7eb"
+                  }}
+                >
+
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "700",
+                      color: "#6b7280",
+                      marginBottom: "12px"
+                    }}
+                  >
+                    FÓRMULA FINAL
+                  </div>
+
+
+                  <div
+                    style={{
+                      padding: "16px",
+                      borderRadius: "10px",
+                      background: "#f5f3ff",
+                      textAlign: "center",
+                      fontSize: "20px",
+                      fontWeight: "700",
+                      color: "#6d28d9",
+                      letterSpacing: "1px"
+                    }}
+                  >
+                    EN1 + EN2 + EN3
+                  </div>
+
+
+                  {/* ==========================================
+                INFORMACIÓN DE PUNTAJE
+            ========================================== */}
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: "10px",
+                      marginTop: "14px"
+                    }}
+                  >
+
+                    <div
+                      style={{
+                        padding: "12px",
+                        borderRadius: "10px",
+                        background: "#eff6ff"
+                      }}
+                    >
+
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          color: "#6b7280",
+                          fontWeight: "700"
+                        }}
+                      >
+                        VALOR POR ENTREGABLE
+                      </div>
+
+
+                      <div
+                        style={{
+                          marginTop: "4px",
+                          fontSize: "18px",
+                          fontWeight: "700",
+                          color: "#2563eb"
+                        }}
+                      >
+                        {PUNTAJE_POR_ENTREGABLE} pts
+                      </div>
+
+                    </div>
+
+
+                    <div
+                      style={{
+                        padding: "12px",
+                        borderRadius: "10px",
+                        background: "#f0fdf4"
+                      }}
+                    >
+
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          color: "#6b7280",
+                          fontWeight: "700"
+                        }}
+                      >
+                        MÁXIMO TOTAL
+                      </div>
+
+
+                      <div
+                        style={{
+                          marginTop: "4px",
+                          fontSize: "18px",
+                          fontWeight: "700",
+                          color: "#16a34a"
+                        }}
+                      >
+                        {PUNTAJE_POR_ENTREGABLE *
+                          ENTREGABLES_OBJETIVO.length}{" "}
+                        pts
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </>
+
+            ) : (
+
+              /* ================================================
+                 ACTIVIDAD NO ENCONTRADA
+              ================================================ */
+
+              <div
+                style={{
+                  padding: "20px",
+                  borderRadius: "12px",
+                  background: "#fff7ed",
+                  border: "1px dashed #fdba74",
+                  color: "#9a3412"
+                }}
+              >
+
+                <div
+                  style={{
+                    fontSize: "24px",
+                    marginBottom: "8px"
+                  }}
+                >
+                  ⚠️
+                </div>
+
+
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "700",
+                    marginBottom: "4px"
+                  }}
+                >
+                  Actividad destino no encontrada
+                </div>
+
+
+                <div
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: "1.5"
+                  }}
+                >
+                  No se encontró la actividad
+                  {" "}
+                  <strong>
+                    "REVISOR DE INFORMES"
+                  </strong>
+                  {" "}
+                  dentro de este tema.
+                </div>
+
+              </div>
+
+            )}
+
+          </section>
+
+        )
+      }
 
     </div>
 
