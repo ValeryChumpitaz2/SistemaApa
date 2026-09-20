@@ -1200,198 +1200,153 @@ export default function ClassroomRevisionPanel() {
       entregas
     ]);
 
+// ==========================================================
+// OBTENER INFORMACIÓN DE UNA ENTREGA
+// ==========================================================
 
-  // ==========================================================
-  // OBTENER INFORMACIÓN DE UNA ENTREGA
-  // ==========================================================
+function obtenerInformacionEntrega(entrega) {
 
-  function obtenerInformacionEntrega(
-    entrega
-  ) {
-
-    if (!entrega) {
-
-      return {
-
-        id: "",
-
-        userId: "",
-
-        nombre: "",
-
-        email: "",
-
-        estado: "",
-
-        puntos: null,
-
-        documentos: [],
-
-        raw: null
-
-      };
-
-    }
-
-
-    const profile =
-      entrega?.userProfile ||
-      entrega?.profile ||
-      entrega?.student ||
-      entrega?.estudiante ||
-      {};
-
-
-    const name =
-      profile?.name ||
-      profile?.nombre ||
-      {};
-
-
-    const nombre =
-
-      name?.fullName ||
-
-      name?.fullName ||
-
-      entrega?.studentName ||
-
-      entrega?.nombre ||
-
-      entrega?.nombreCompleto ||
-
-      entrega?.userName ||
-
-      "Alumno";
-
-
-    const userId =
-
-      entrega?.userId ||
-
-      entrega?.userID ||
-
-      entrega?.userid ||
-
-      entrega?.studentId ||
-
-      entrega?.studentID ||
-
-      entrega?.student?.userId ||
-
-      "";
-
-
-    const email =
-
-      profile?.emailAddress ||
-
-      profile?.email ||
-
-      entrega?.emailAddress ||
-
-      entrega?.email ||
-
-      entrega?.correo ||
-
-      "";
-
-
-    const estado =
-
-      entrega?.state ||
-
-      entrega?.status ||
-
-      entrega?.estado ||
-
-      "";
-
-
-    const puntos =
-
-      entrega?.assignedGrade ??
-
-      entrega?.assignedPoints ??
-
-      entrega?.grade ??
-
-      entrega?.puntaje ??
-
-      null;
-
-
-    const documentos =
-
-      entrega?.assignmentSubmission?.attachments ||
-
-      entrega?.attachments ||
-
-      entrega?.documentos ||
-
-      [];
-
-
+  if (!entrega) {
     return {
-
-      id:
-
-        String(
-
-          entrega?.id ||
-
-          entrega?.studentSubmissionId ||
-
-          ""
-
-        ).trim(),
-
-
-      userId:
-
-        String(
-          userId
-        ).trim(),
-
-
-      nombre:
-
-        String(
-          nombre
-        ).trim(),
-
-
-      email:
-
-        String(
-          email
-        ).trim(),
-
-
-      estado:
-
-        String(
-          estado
-        ).trim(),
-
-
-      puntos,
-
-      documentos:
-
-        Array.isArray(
-          documentos
-        )
-          ? documentos
-          : [],
-
-
-      raw:
-        entrega
-
+      id: "",
+      userId: "",
+      nombre: "",
+      email: "",
+      estado: "",
+      puntos: null,
+      documentos: [],
+      raw: null
     };
-
   }
+
+  // ----------------------------------------------------------
+  // PERFIL DEL ALUMNO
+  // ----------------------------------------------------------
+
+  const profile =
+    entrega?.userProfile ||
+    entrega?.profile ||
+    entrega?.student ||
+    entrega?.estudiante ||
+    entrega?.user ||
+    {};
+
+  const name =
+    profile?.name ||
+    profile?.nombre ||
+    {};
+
+  // ----------------------------------------------------------
+  // USER ID
+  // ----------------------------------------------------------
+
+  const userId =
+    entrega?.userId ||
+    entrega?.userID ||
+    entrega?.userid ||
+    entrega?.studentId ||
+    entrega?.studentID ||
+    entrega?.student?.userId ||
+    entrega?.student?.id ||
+    profile?.userId ||
+    profile?.id ||
+    "";
+
+  // ----------------------------------------------------------
+  // NOMBRE
+  // ----------------------------------------------------------
+
+  const nombre =
+    name?.fullName ||
+    name?.displayName ||
+    name?.nombreCompleto ||
+    name?.givenName ||
+    entrega?.studentName ||
+    entrega?.nombre ||
+    entrega?.nombreCompleto ||
+    entrega?.userName ||
+    entrega?.student?.name?.fullName ||
+    entrega?.student?.name?.displayName ||
+    "";
+
+  // ----------------------------------------------------------
+  // EMAIL
+  // ----------------------------------------------------------
+
+  const email =
+    profile?.emailAddress ||
+    profile?.email ||
+    entrega?.emailAddress ||
+    entrega?.email ||
+    entrega?.correo ||
+    "";
+
+  // ----------------------------------------------------------
+  // ESTADO
+  // ----------------------------------------------------------
+
+  const estado =
+    entrega?.state ||
+    entrega?.status ||
+    entrega?.estado ||
+    "";
+
+  // ----------------------------------------------------------
+  // PUNTAJE
+  // ----------------------------------------------------------
+
+  const puntos =
+    entrega?.assignedGrade ??
+    entrega?.assignedPoints ??
+    entrega?.grade ??
+    entrega?.puntaje ??
+    null;
+
+  // ----------------------------------------------------------
+  // DOCUMENTOS
+  // ----------------------------------------------------------
+
+  const documentos =
+    entrega?.assignmentSubmission?.attachments ||
+    entrega?.assignmentSubmission?.driveFileAttachments ||
+    entrega?.attachments ||
+    entrega?.documentos ||
+    [];
+
+  return {
+
+    id:
+      String(
+        entrega?.id ||
+        entrega?.studentSubmissionId ||
+        ""
+      ).trim(),
+
+    userId:
+      String(userId).trim(),
+
+    nombre:
+      String(nombre).trim() || "Alumno",
+
+    email:
+      String(email).trim(),
+
+    estado:
+      String(estado).trim(),
+
+    puntos,
+
+    documentos:
+      Array.isArray(documentos)
+        ? documentos
+        : [],
+
+    raw:
+      entrega
+
+  };
+}
+
   // ==========================================================
   // CALCULAR PUNTAJE DE UN ENTREGABLE
   //
@@ -2474,626 +2429,642 @@ export default function ClassroomRevisionPanel() {
         </section>
 
       )}
-
       {/* ====================================================
     PASO 5 — ENTREGAS DE ESTUDIANTES
 ==================================================== */}
 
-      {
-        temaSeleccionado && (
+      {temaSeleccionado && (
 
-          <section
+        <section
+          style={{
+            marginTop: "30px"
+          }}
+        >
+
+          <h3
             style={{
-              marginTop: "36px"
+              marginBottom: "16px",
+              color: "#111827",
+              fontSize: "20px",
+              fontWeight: "700"
+            }}
+          >
+            5. Calificación de estudiantes
+          </h3>
+
+
+          <div
+            style={{
+              padding: "16px",
+              marginBottom: "18px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: "14px"
             }}
           >
 
-            {/* ==================================================
-          CABECERA
-      ================================================== */}
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: "700",
+                color: "#111827"
+              }}
+            >
+              📊 Resumen de entregas
+            </div>
 
             <div
               style={{
-                marginBottom: "20px"
+                marginTop: "5px",
+                fontSize: "13px",
+                color: "#64748b"
+              }}
+            >
+              Revisa el puntaje obtenido por cada estudiante
+              en EN1, EN2 y EN3.
+            </div>
+
+          </div>
+
+
+          {/* =================================================
+        TABLA
+    ================================================= */}
+
+          <div
+            style={{
+              width: "100%",
+              overflowX: "auto",
+              border: "1px solid #e5e7eb",
+              borderRadius: "14px",
+              background: "#ffffff",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+            }}
+          >
+
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                minWidth: "850px"
               }}
             >
 
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  color: "#111827"
-                }}
-              >
-                5. Entregas de estudiantes
-              </h3>
+              <thead>
 
-              <p
-                style={{
-                  marginTop: "6px",
-                  marginBottom: 0,
-                  fontSize: "14px",
-                  color: "#6b7280"
-                }}
-              >
-                Revisa las entregas recibidas de cada estudiante.
-              </p>
+                <tr
+                  style={{
+                    background: "#111827",
+                    color: "#ffffff"
+                  }}
+                >
 
-            </div>
-
-
-            {/* ==================================================
-          ENTREGABLES
-      ================================================== */}
-
-            {ENTREGABLES_OBJETIVO.map(
-              codigo => {
-
-                const lista =
-                  Array.isArray(
-                    entregas[codigo]
-                  )
-                    ? entregas[codigo]
-                    : [];
-
-
-                if (
-                  !entregables[codigo]
-                ) {
-
-                  return null;
-
-                }
-
-
-                return (
-
-                  <div
-                    key={codigo}
+                  <th
                     style={{
-                      marginBottom: "24px",
-                      borderRadius: "16px",
-                      border: "1px solid #e5e7eb",
-                      background: "#ffffff",
-                      boxShadow:
-                        "0 4px 14px rgba(0,0,0,0.05)",
-                      overflow: "hidden"
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontSize: "13px"
                     }}
                   >
+                    ESTUDIANTE
+                  </th>
 
-                    {/* ==========================================
-                  CABECERA DEL ENTREGABLE
-              ========================================== */}
 
+                  <th
+                    style={{
+                      padding: "14px",
+                      textAlign: "center",
+                      fontSize: "13px"
+                    }}
+                  >
+                    EN1
                     <div
                       style={{
-                        padding: "18px 20px",
-                        background:
-                          "linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)",
-                        borderBottom:
-                          "1px solid #e5e7eb"
+                        fontSize: "11px",
+                        fontWeight: "400",
+                        opacity: 0.75,
+                        marginTop: "3px"
                       }}
                     >
-
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          gap: "12px",
-                          flexWrap: "wrap"
-                        }}
-                      >
-
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "12px"
-                          }}
-                        >
-
-                          <div
-                            style={{
-                              width: "44px",
-                              height: "44px",
-                              borderRadius: "12px",
-                              background: "#2563eb",
-                              color: "#ffffff",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontWeight: "700",
-                              fontSize: "14px",
-                              flexShrink: 0
-                            }}
-                          >
-                            {codigo}
-                          </div>
-
-
-                          <div>
-
-                            <div
-                              style={{
-                                fontSize: "16px",
-                                fontWeight: "700",
-                                color: "#111827"
-                              }}
-                            >
-                              {codigo}
-                            </div>
-
-
-                            <div
-                              style={{
-                                marginTop: "3px",
-                                fontSize: "13px",
-                                color: "#6b7280"
-                              }}
-                            >
-                              {obtenerTitulo(
-                                entregables[codigo]
-                              )}
-                            </div>
-
-                          </div>
-
-                        </div>
-
-
-                        {/* CONTADOR */}
-
-                        <div
-                          style={{
-                            padding: "7px 12px",
-                            borderRadius: "999px",
-                            background: "#dbeafe",
-                            color: "#1d4ed8",
-                            fontSize: "12px",
-                            fontWeight: "700"
-                          }}
-                        >
-                          {lista.length}{" "}
-                          {lista.length === 1
-                            ? "entrega"
-                            : "entregas"}
-                        </div>
-
-                      </div>
-
+                      Máx. {PUNTAJE_POR_ENTREGABLE} pts
                     </div>
+                  </th>
 
 
-                    {/* ==========================================
-                  CONTENIDO
-              ========================================== */}
-
+                  <th
+                    style={{
+                      padding: "14px",
+                      textAlign: "center",
+                      fontSize: "13px"
+                    }}
+                  >
+                    EN2
                     <div
                       style={{
-                        padding: "20px"
+                        fontSize: "11px",
+                        fontWeight: "400",
+                        opacity: 0.75,
+                        marginTop: "3px"
                       }}
                     >
+                      Máx. {PUNTAJE_POR_ENTREGABLE} pts
+                    </div>
+                  </th>
 
-                      {lista.length === 0 ? (
 
-                        <div
+                  <th
+                    style={{
+                      padding: "14px",
+                      textAlign: "center",
+                      fontSize: "13px"
+                    }}
+                  >
+                    EN3
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: "400",
+                        opacity: 0.75,
+                        marginTop: "3px"
+                      }}
+                    >
+                      Máx. {PUNTAJE_POR_ENTREGABLE} pts
+                    </div>
+                  </th>
+
+
+                  <th
+                    style={{
+                      padding: "14px",
+                      textAlign: "center",
+                      fontSize: "13px"
+                    }}
+                  >
+                    TOTAL
+                  </th>
+
+
+                  <th
+                    style={{
+                      padding: "14px",
+                      textAlign: "center",
+                      fontSize: "13px"
+                    }}
+                  >
+                    ACCIÓN
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {(() => {
+
+                  const estudiantes = {};
+
+
+                  /*
+                   * =====================================================
+                   * CONSTRUIR ALUMNOS DESDE LAS ENTREGAS
+                   * =====================================================
+                   */
+
+                  ENTREGABLES_OBJETIVO.forEach(
+                    codigo => {
+
+                      const lista =
+                        Array.isArray(
+                          entregas[codigo]
+                        )
+                          ? entregas[codigo]
+                          : [];
+
+
+                      lista.forEach(
+                        entrega => {
+
+                          const info =
+                            obtenerInformacionEntrega(
+                              entrega
+                            );
+
+
+                          const userId =
+                            String(
+                              info.userId ||
+                              entrega.userId ||
+                              ""
+                            ).trim();
+
+
+                          if (!userId) {
+                            return;
+                          }
+
+
+                          if (!estudiantes[userId]) {
+
+                            estudiantes[userId] = {
+
+                              userId:
+                                userId,
+
+                              nombre:
+                                info.nombre ||
+                                "Estudiante",
+
+                              email:
+                                info.email ||
+                                "",
+
+                              EN1:
+                                null,
+
+                              EN2:
+                                null,
+
+                              EN3:
+                                null
+
+                            };
+
+                          }
+
+
+                          estudiantes[userId][codigo] = {
+
+                            entrega:
+                              entrega,
+
+                            info:
+                              info
+
+                          };
+
+                        }
+                      );
+
+                    }
+                  );
+
+
+                  const listaEstudiantes =
+                    Object.values(
+                      estudiantes
+                    );
+
+
+                  /*
+                   * =====================================================
+                   * SIN ALUMNOS
+                   * =====================================================
+                   */
+
+                  if (
+                    listaEstudiantes.length === 0
+                  ) {
+
+                    return (
+
+                      <tr>
+
+                        <td
+                          colSpan="6"
                           style={{
-                            padding: "24px",
-                            borderRadius: "12px",
-                            background: "#f9fafb",
-                            border: "1px dashed #d1d5db",
+                            padding: "40px",
                             textAlign: "center",
                             color: "#6b7280"
                           }}
                         >
 
-                          <div
-                            style={{
-                              fontSize: "28px",
-                              marginBottom: "8px"
-                            }}
-                          >
-                            📭
-                          </div>
+                          No hay entregas cargadas todavía.
 
-                          <div
-                            style={{
-                              fontSize: "14px",
-                              fontWeight: "600"
-                            }}
-                          >
-                            No hay entregas cargadas.
-                          </div>
+                        </td>
 
-                        </div>
+                      </tr>
 
-                      ) : (
+                    );
 
-                        <div
+                  }
+
+
+                  /*
+                   * =====================================================
+                   * MOSTRAR ALUMNOS
+                   * =====================================================
+                   */
+
+                  return listaEstudiantes.map(
+                    estudiante => {
+
+                      const tieneEN1 =
+                        !!estudiante.EN1;
+
+                      const tieneEN2 =
+                        !!estudiante.EN2;
+
+                      const tieneEN3 =
+                        !!estudiante.EN3;
+
+
+                      return (
+
+                        <tr
+                          key={
+                            estudiante.userId
+                          }
                           style={{
-                            display: "grid",
-                            gridTemplateColumns:
-                              "repeat(auto-fit, minmax(300px, 1fr))",
-                            gap: "14px"
+                            borderBottom:
+                              "1px solid #e5e7eb"
                           }}
                         >
 
-                          {lista.map(
-                            (
-                              entrega,
-                              index
-                            ) => {
-
-                              const info =
-                                obtenerInformacionEntrega(
-                                  entrega
-                                );
-
-
-                              return (
-
-                                <div
-                                  key={
-                                    info.id ||
-                                    `${codigo}-${index}`
-                                  }
-                                  style={{
-                                    padding: "16px",
-                                    borderRadius: "14px",
-                                    border:
-                                      "1px solid #e5e7eb",
-                                    background: "#ffffff",
-                                    boxShadow:
-                                      "0 2px 8px rgba(0,0,0,0.04)"
-                                  }}
-                                >
-
-                                  {/* ==================================
-                                ALUMNO
-                            ================================== */}
-
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "12px",
-                                      marginBottom: "14px"
-                                    }}
-                                  >
-
-                                    <div
-                                      style={{
-                                        width: "42px",
-                                        height: "42px",
-                                        borderRadius: "50%",
-                                        background: "#e0e7ff",
-                                        color: "#4338ca",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontWeight: "700",
-                                        fontSize: "14px",
-                                        flexShrink: 0
-                                      }}
-                                    >
-                                      {(info.nombre || "A")
-                                        .charAt(0)
-                                        .toUpperCase()}
-                                    </div>
-
-
-                                    <div
-                                      style={{
-                                        minWidth: 0
-                                      }}
-                                    >
-
-                                      <div
-                                        style={{
-                                          fontSize: "15px",
-                                          fontWeight: "700",
-                                          color: "#111827",
-                                          wordBreak: "break-word"
-                                        }}
-                                      >
-                                        {info.nombre}
-                                      </div>
-
-
-                                      {info.email && (
-
-                                        <div
-                                          style={{
-                                            marginTop: "3px",
-                                            fontSize: "12px",
-                                            color: "#6b7280",
-                                            wordBreak: "break-word"
-                                          }}
-                                        >
-                                          {info.email}
-                                        </div>
-
-                                      )}
-
-                                    </div>
-
-                                  </div>
-
+                          {/* ESTUDIANTE */}
 
-                                  {/* ==================================
-                                ESTADO
-                            ================================== */}
-
-                                  {info.estado && (
-
-                                    <div
-                                      style={{
-                                        marginBottom: "12px"
-                                      }}
-                                    >
-
-                                      <span
-                                        style={{
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          padding: "5px 10px",
-                                          borderRadius: "999px",
-                                          background:
-                                            info.estado ===
-                                              "TURNED_IN"
-                                              ? "#dcfce7"
-                                              : "#f3f4f6",
-                                          color:
-                                            info.estado ===
-                                              "TURNED_IN"
-                                              ? "#166534"
-                                              : "#6b7280",
-                                          fontSize: "11px",
-                                          fontWeight: "700"
-                                        }}
-                                      >
-
-                                        {info.estado ===
-                                          "TURNED_IN"
-                                          ? "✓ ENTREGADO"
-                                          : info.estado}
-
-                                      </span>
-
-                                    </div>
-
-                                  )}
-
-
-                                  {/* ==================================
-                                USER ID
-                            ================================== */}
-
-                                  {info.userId && (
-
-                                    <div
-                                      style={{
-                                        padding: "10px",
-                                        borderRadius: "9px",
-                                        background: "#f9fafb",
-                                        marginBottom: "12px"
-                                      }}
-                                    >
-
-                                      <div
-                                        style={{
-                                          fontSize: "10px",
-                                          color: "#9ca3af",
-                                          fontWeight: "700",
-                                          marginBottom: "3px"
-                                        }}
-                                      >
-                                        USER ID
-                                      </div>
-
-
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#4b5563",
-                                          wordBreak: "break-all"
-                                        }}
-                                      >
-                                        {info.userId}
-                                      </div>
-
-                                    </div>
-
-                                  )}
-
-
-                                  {/* ==================================
-                                DOCUMENTOS
-                            ================================== */}
-
-                                  <div
-                                    style={{
-                                      marginTop: "12px"
-                                    }}
-                                  >
-
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        justifyContent:
-                                          "space-between",
-                                        alignItems: "center",
-                                        marginBottom: "8px"
-                                      }}
-                                    >
-
-                                      <span
-                                        style={{
-                                          fontSize: "12px",
-                                          fontWeight: "700",
-                                          color: "#374151"
-                                        }}
-                                      >
-                                        📎 Documentos
-                                      </span>
-
-
-                                      <span
-                                        style={{
-                                          fontSize: "11px",
-                                          fontWeight: "700",
-                                          color: "#2563eb"
-                                        }}
-                                      >
-                                        {info.documentos.length}
-                                      </span>
-
-                                    </div>
-
-
-                                    {info.documentos.length >
-                                      0 ? (
-
-                                      <div
-                                        style={{
-                                          display: "grid",
-                                          gap: "6px"
-                                        }}
-                                      >
-
-                                        {info.documentos.map(
-                                          (
-                                            documento,
-                                            documentoIndex
-                                          ) => (
-
-                                            <div
-                                              key={
-                                                documento?.id ||
-                                                documentoIndex
-                                              }
-                                              style={{
-                                                padding:
-                                                  "9px 10px",
-                                                borderRadius:
-                                                  "8px",
-                                                background:
-                                                  "#f8fafc",
-                                                border:
-                                                  "1px solid #e5e7eb",
-                                                fontSize:
-                                                  "12px",
-                                                color:
-                                                  "#374151",
-                                                wordBreak:
-                                                  "break-word"
-                                              }}
-                                            >
-
-                                              📄{" "}
-                                              {documento?.title ||
-                                                documento?.name ||
-                                                documento?.driveFile?.title ||
-                                                "Documento sin nombre"}
-
-                                            </div>
-
-                                          )
-                                        )}
-
-                                      </div>
-
-                                    ) : (
-
-                                      <div
-                                        style={{
-                                          padding: "10px",
-                                          borderRadius: "8px",
-                                          background: "#f9fafb",
-                                          color: "#9ca3af",
-                                          fontSize: "12px"
-                                        }}
-                                      >
-                                        No hay archivos adjuntos.
-                                      </div>
-
-                                    )}
-
-                                  </div>
-
-
-                                  {/* ==================================
-                                ZONA PARA CALIFICACIÓN
-                            ================================== */}
-
-                                  <div
-                                    style={{
-                                      marginTop: "16px",
-                                      paddingTop: "14px",
-                                      borderTop:
-                                        "1px solid #e5e7eb"
-                                    }}
-                                  >
-
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        justifyContent:
-                                          "space-between",
-                                        alignItems: "center"
-                                      }}
-                                    >
-
-                                      <span
-                                        style={{
-                                          fontSize: "12px",
-                                          color: "#6b7280",
-                                          fontWeight: "600"
-                                        }}
-                                      >
-                                        Calificación
-                                      </span>
-
-
-                                      <span
-                                        style={{
-                                          fontSize: "13px",
-                                          color: "#9ca3af"
-                                        }}
-                                      >
-                                        Pendiente
-                                      </span>
-
-                                    </div>
-
-                                  </div>
-
-                                </div>
-
-                              );
-
-                            }
-                          )}
-
-                        </div>
-
-                      )}
-
-                    </div>
-
-                  </div>
-
-                );
-
-              }
-            )}
-
-          </section>
-
-        )
-      }
+                          <td
+                            style={{
+                              padding: "14px 16px"
+                            }}
+                          >
+
+                            <div
+                              style={{
+                                fontWeight: "700",
+                                color: "#111827"
+                              }}
+                            >
+
+                              {estudiante.nombre}
+
+                            </div>
+
+
+                            {estudiante.email && (
+
+                              <div
+                                style={{
+                                  marginTop: "3px",
+                                  fontSize: "12px",
+                                  color: "#6b7280"
+                                }}
+                              >
+
+                                {estudiante.email}
+
+                              </div>
+
+                            )}
+
+
+                            <div
+                              style={{
+                                marginTop: "4px",
+                                fontSize: "11px",
+                                color: "#9ca3af"
+                              }}
+                            >
+
+                              User ID: {estudiante.userId}
+
+                            </div>
+
+                          </td>
+
+
+                          {/* EN1 */}
+
+                          <td
+                            style={{
+                              padding: "14px",
+                              textAlign: "center"
+                            }}
+                          >
+
+                            {tieneEN1 ? (
+
+                              <span
+                                style={{
+                                  padding: "6px 12px",
+                                  borderRadius: "8px",
+                                  background: "#dcfce7",
+                                  color: "#166534",
+                                  fontWeight: "700"
+                                }}
+                              >
+                                ✓
+                              </span>
+
+                            ) : (
+
+                              <span
+                                style={{
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                —
+                              </span>
+
+                            )}
+
+                          </td>
+
+
+                          {/* EN2 */}
+
+                          <td
+                            style={{
+                              padding: "14px",
+                              textAlign: "center"
+                            }}
+                          >
+
+                            {tieneEN2 ? (
+
+                              <span
+                                style={{
+                                  padding: "6px 12px",
+                                  borderRadius: "8px",
+                                  background: "#dcfce7",
+                                  color: "#166534",
+                                  fontWeight: "700"
+                                }}
+                              >
+                                ✓
+                              </span>
+
+                            ) : (
+
+                              <span
+                                style={{
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                —
+                              </span>
+
+                            )}
+
+                          </td>
+
+
+                          {/* EN3 */}
+
+                          <td
+                            style={{
+                              padding: "14px",
+                              textAlign: "center"
+                            }}
+                          >
+
+                            {tieneEN3 ? (
+
+                              <span
+                                style={{
+                                  padding: "6px 12px",
+                                  borderRadius: "8px",
+                                  background: "#dcfce7",
+                                  color: "#166534",
+                                  fontWeight: "700"
+                                }}
+                              >
+                                ✓
+                              </span>
+
+                            ) : (
+
+                              <span
+                                style={{
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                —
+                              </span>
+
+                            )}
+
+                          </td>
+
+
+                          {/* TOTAL */}
+
+                          <td
+                            style={{
+                              padding: "14px",
+                              textAlign: "center"
+                            }}
+                          >
+
+                            <strong
+                              style={{
+                                fontSize: "17px",
+                                color: "#2563eb"
+                              }}
+                            >
+                              —
+                            </strong>
+
+                          </td>
+
+
+                          {/* ACCIÓN */}
+
+                          <td
+                            style={{
+                              padding: "14px",
+                              textAlign: "center"
+                            }}
+                          >
+
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "8px",
+                                alignItems: "center"
+                              }}
+                            >
+
+                              <button
+                                onClick={() =>
+                                  analizarAlumno(
+                                    estudiante
+                                  )
+                                }
+                                style={{
+                                  width: "120px",
+                                  padding: "8px 14px",
+                                  borderRadius: "8px",
+                                  border: "none",
+                                  background: "#2563eb",
+                                  color: "#ffffff",
+                                  fontWeight: "600",
+                                  cursor: "pointer"
+                                }}
+                              >
+
+                                🔍 Analizar
+
+                              </button>
+
+
+                              <button
+                                onClick={() =>
+                                  enviarNotaClassroom(
+                                    estudiante
+                                  )
+                                }
+                                disabled={
+                                  !estudiante.puntajeFinal
+                                }
+                                style={{
+                                  width: "120px",
+                                  padding: "8px 14px",
+                                  borderRadius: "8px",
+                                  border: "none",
+                                  background:
+                                    estudiante.puntajeFinal
+                                      ? "#16a34a"
+                                      : "#9ca3af",
+                                  color: "#ffffff",
+                                  fontWeight: "600",
+                                  cursor:
+                                    estudiante.puntajeFinal
+                                      ? "pointer"
+                                      : "not-allowed"
+                                }}
+                              >
+
+                                📤 Enviar nota
+
+                              </button>
+
+                            </div>
+
+                          </td>
+
+                        </tr>
+
+                      );
+
+                    }
+                  );
+
+                })()}
+
+              </tbody>
+
+
+
+            </table>
+
+          </div>
+
+        </section>
+
+      )}
 
       {/* ====================================================
     PASO 6 — ACTIVIDAD DESTINO
