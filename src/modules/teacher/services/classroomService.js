@@ -1,1943 +1,1908 @@
-  // ============================================================
-  // classroomService.js
-  // SERVICIO ÚNICO DE GOOGLE CLASSROOM
-  //
-  // FLUJO VG SMART REVIEW
-  //
-  // DOCENTE
-  //   ↓
-  // EXPERIENCIA FORMATIVA = COURSE
-  //   ↓
-  // TEMA = TOPIC
-  //   ↓
-  // ACTIVIDADES DEL TEMA
-  //   ↓
-  // EN1 / EN2 / EN3
-  //   ↓
-  // ENTREGAS DE ESTUDIANTES
-  //   ↓
-  // DOCUMENTO ENVIADO
-  //   ↓
-  // ANÁLISIS DEL DOCUMENTO
-  //   ↓
-  // DESCUENTO
-  //   ↓
-  // 2.00 - DESCUENTO
-  //   ↓
-  // PUNTAJE DEL ENTREGABLE
-  //   ↓
-  // EN1 + EN2 + EN3
-  //   ↓
-  // REVISOR DE INFORMES
-  //   ↓
-  // CALIFICACIÓN EN CLASSROOM
-  //
-  // IMPORTANTE:
-  // Este servicio NO califica automáticamente.
-  // Las funciones de escritura solamente se ejecutan cuando
-  // otra parte de la aplicación las llama explícitamente.
-  // ============================================================
+// ============================================================
+// classroomService.js
+// SERVICIO ÚNICO DE GOOGLE CLASSROOM
+//
+// FLUJO VG SMART REVIEW
+//
+// DOCENTE
+//   ↓
+// EXPERIENCIA FORMATIVA = COURSE
+//   ↓
+// TEMA = TOPIC
+//   ↓
+// ACTIVIDADES DEL TEMA
+//   ↓
+// EN1 / EN2 / EN3
+//   ↓
+// ENTREGAS DE ESTUDIANTES
+//   ↓
+// DOCUMENTO ENVIADO
+//   ↓
+// ANÁLISIS DEL DOCUMENTO
+//   ↓
+// DESCUENTO
+//   ↓
+// 2.00 - DESCUENTO
+//   ↓
+// PUNTAJE DEL ENTREGABLE
+//   ↓
+// EN1 + EN2 + EN3
+//   ↓
+// REVISOR DE INFORMES
+//   ↓
+// CALIFICACIÓN EN CLASSROOM
+//
+// IMPORTANTE:
+// Este servicio NO califica automáticamente.
+// Las funciones de escritura solamente se ejecutan cuando
+// otra parte de la aplicación las llama explícitamente.
+// ============================================================
 
+import {
+  analizarDocumento
+} from "./teacherService.js";
 
-  // ============================================================
-  // API
-  // ============================================================
+// ============================================================
+// API
+// ============================================================
 
-  const API_URL =
-    "https://script.google.com/macros/s/AKfycbwAI4TnbB-roLNDcN5Do71dUC3ql7g6SMSkUhrDEiGa5ZkD3eA1JzU-XpqhvKpC4ufI/exec";
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbwAI4TnbB-roLNDcN5Do71dUC3ql7g6SMSkUhrDEiGa5ZkD3eA1JzU-XpqhvKpC4ufI/exec";
 
 
-  // ============================================================
-  // VERSION
-  // ============================================================
+// ============================================================
+// VERSION
+// ============================================================
 
-    export const CLASSROOM_FRONT_VERSION = "7.1.0";
+export const CLASSROOM_FRONT_VERSION = "7.1.0";
 
 
-    // ============================================================
-    // CONFIGURACIÓN
-    // ============================================================
+// ============================================================
+// CONFIGURACIÓN
+// ============================================================
 
-    const CLASSROOM_DEBUG = true;
+const CLASSROOM_DEBUG = true;
 
-    export const PUNTAJE_POR_ENTREGABLE = 2;
+export const PUNTAJE_POR_ENTREGABLE = 2;
 
-    export const CLASSROOM_ENTREGABLES = [
-      "EN1",
-      "EN2",
-      "EN3"
-    ];
+export const CLASSROOM_ENTREGABLES = [
+  "EN1",
+  "EN2",
+  "EN3"
+];
 
-    // Alias interno para compatibilidad
-    const ENTREGABLES_OBJETIVO =
-      CLASSROOM_ENTREGABLES;
+// Alias interno para compatibilidad
+const ENTREGABLES_OBJETIVO =
+  CLASSROOM_ENTREGABLES;
 
 
-    // ============================================================
-    // LOG
-    // ============================================================
+// ============================================================
+// LOG
+// ============================================================
 
-    function classroomLog(...args) {
+function classroomLog(...args) {
 
-      if (CLASSROOM_DEBUG) {
-        console.log(...args);
-      }
+  if (CLASSROOM_DEBUG) {
+    console.log(...args);
+  }
 
-    }
+}
 
 
-    function classroomWarn(...args) {
+function classroomWarn(...args) {
 
-      console.warn(...args);
+  console.warn(...args);
 
-    }
+}
 
 
-    function classroomError(...args) {
+function classroomError(...args) {
 
-      console.error(...args);
+  console.error(...args);
 
-    }
+}
 
 
-    // ============================================================
-    // NORMALIZAR TEXTO
-    // ============================================================
+// ============================================================
+// NORMALIZAR TEXTO
+// ============================================================
 
-    export function classroomNormalizarTexto(
-      texto = ""
-    ) {
+export function classroomNormalizarTexto(
+  texto = ""
+) {
 
-      return String(texto)
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toUpperCase()
-        .trim();
+  return String(texto)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim();
 
-    }
+}
 
 
-    // Alias de compatibilidad
-    export const normalizarTexto =
-      classroomNormalizarTexto;
+// Alias de compatibilidad
+export const normalizarTexto =
+  classroomNormalizarTexto;
 
 
-    // ============================================================
-    // RECONOCER ENTREGABLE
-    // ============================================================
+// ============================================================
+// RECONOCER ENTREGABLE
+// ============================================================
 
-    export function classroomReconocerEntregable(
-      actividad
-    ) {
+export function classroomReconocerEntregable(
+  actividad
+) {
 
-      const titulo =
-        actividad?.title ||
-        actividad?.name ||
-        actividad?.nombre ||
-        actividad?.courseWorkTitle ||
-        actividad?.courseworkTitle ||
-        "";
+  const titulo =
+    actividad?.title ||
+    actividad?.name ||
+    actividad?.nombre ||
+    actividad?.courseWorkTitle ||
+    actividad?.courseworkTitle ||
+    "";
 
-      const texto =
-        classroomNormalizarTexto(
-          titulo
-        );
+  const texto =
+    classroomNormalizarTexto(
+      titulo
+    );
 
 
-      if (
-        texto.includes("ENTREGABLE 1") ||
-        texto.includes("ENTREGABLE1")
-      ) {
+  if (
+    texto.includes("ENTREGABLE 1") ||
+    texto.includes("ENTREGABLE1")
+  ) {
 
-        return "EN1";
+    return "EN1";
 
-      }
+  }
 
 
-      if (
-        texto.includes("ENTREGABLE 2") ||
-        texto.includes("ENTREGABLE2")
-      ) {
+  if (
+    texto.includes("ENTREGABLE 2") ||
+    texto.includes("ENTREGABLE2")
+  ) {
 
-        return "EN2";
+    return "EN2";
 
-      }
+  }
 
 
-      if (
-        texto.includes("ENTREGABLE 3") ||
-        texto.includes("ENTREGABLE3")
-      ) {
+  if (
+    texto.includes("ENTREGABLE 3") ||
+    texto.includes("ENTREGABLE3")
+  ) {
 
-        return "EN3";
+    return "EN3";
 
-      }
+  }
 
 
-      return null;
+  return null;
 
-    }
+}
 
 
-    // ============================================================
-    // RECONOCER REVISOR DE INFORMES
-    // ============================================================
+// ============================================================
+// RECONOCER REVISOR DE INFORMES
+// ============================================================
 
-    export function classroomEsRevisorInformes(
-      actividad
-    ) {
+export function classroomEsRevisorInformes(
+  actividad
+) {
 
-      const titulo =
-        actividad?.title ||
-        actividad?.name ||
-        actividad?.nombre ||
-        actividad?.courseWorkTitle ||
-        "";
+  const titulo =
+    actividad?.title ||
+    actividad?.name ||
+    actividad?.nombre ||
+    actividad?.courseWorkTitle ||
+    "";
 
 
-      const texto =
-        classroomNormalizarTexto(
-          titulo
-        );
+  const texto =
+    classroomNormalizarTexto(
+      titulo
+    );
 
 
-      return (
-        texto.includes("REVISOR") &&
-        texto.includes("INFORME")
-      );
+  return (
+    texto.includes("REVISOR") &&
+    texto.includes("INFORME")
+  );
 
-    }
+}
 
 
-    // ============================================================
-    // OBTENER COURSE ID
-    // ============================================================
+// ============================================================
+// OBTENER COURSE ID
+// ============================================================
 
-    export function classroomObtenerCourseId(
-      curso
-    ) {
+export function classroomObtenerCourseId(
+  curso
+) {
 
-      return String(
+  return String(
 
-        curso?.courseId ||
-        curso?.courseID ||
-        curso?.courseid ||
-        curso?.id ||
-        ""
+    curso?.courseId ||
+    curso?.courseID ||
+    curso?.courseid ||
+    curso?.id ||
+    ""
 
-      ).trim();
+  ).trim();
 
-    }
+}
 
 
-    // ============================================================
-    // OBTENER TOPIC ID
-    // ============================================================
+// ============================================================
+// OBTENER TOPIC ID
+// ============================================================
 
-    export function classroomObtenerTopicId(
-      tema
-    ) {
+export function classroomObtenerTopicId(
+  tema
+) {
 
-      return String(
+  return String(
 
-        tema?.topicId ||
-        tema?.topicID ||
-        tema?.topicid ||
-        tema?.id ||
-        ""
+    tema?.topicId ||
+    tema?.topicID ||
+    tema?.topicid ||
+    tema?.id ||
+    ""
 
-      ).trim();
+  ).trim();
 
-    }
+}
 
 
-    // ============================================================
-    // OBTENER COURSEWORK ID
-    // ============================================================
+// ============================================================
+// OBTENER COURSEWORK ID
+// ============================================================
 
-    export function classroomObtenerCourseWorkId(
-      actividad
-    ) {
+export function classroomObtenerCourseWorkId(
+  actividad
+) {
 
-      return String(
+  return String(
 
-        actividad?.courseWorkId ||
-        actividad?.courseworkId ||
-        actividad?.courseworkID ||
-        actividad?.id ||
-        ""
+    actividad?.courseWorkId ||
+    actividad?.courseworkId ||
+    actividad?.courseworkID ||
+    actividad?.id ||
+    ""
 
-      ).trim();
+  ).trim();
 
-    }
+}
 
 
-    // ============================================================
-    // OBTENER TÍTULO
-    // ============================================================
+// ============================================================
+// OBTENER TÍTULO
+// ============================================================
 
-    export function classroomObtenerTituloActividad(
-      actividad
-    ) {
+export function classroomObtenerTituloActividad(
+  actividad
+) {
 
-      return String(
+  return String(
 
-        actividad?.title ||
-        actividad?.name ||
-        actividad?.nombre ||
-        actividad?.courseWorkTitle ||
-        actividad?.courseworkTitle ||
-        "Actividad sin título"
+    actividad?.title ||
+    actividad?.name ||
+    actividad?.nombre ||
+    actividad?.courseWorkTitle ||
+    actividad?.courseworkTitle ||
+    "Actividad sin título"
 
-      ).trim();
+  ).trim();
 
-    }
+}
 
 
-    // ============================================================
-    // OBTENER NOMBRE DEL TEMA
-    // ============================================================
+// ============================================================
+// OBTENER NOMBRE DEL TEMA
+// ============================================================
 
-    export function classroomObtenerNombreTema(
-      tema
-    ) {
+export function classroomObtenerNombreTema(
+  tema
+) {
 
-      return String(
+  return String(
 
-        tema?.name ||
-        tema?.nombre ||
-        tema?.title ||
-        "Tema sin nombre"
+    tema?.name ||
+    tema?.nombre ||
+    tema?.title ||
+    "Tema sin nombre"
 
-      ).trim();
+  ).trim();
 
-    }
+}
 
 
-    // ============================================================
-    // OBTENER NOMBRE DEL CURSO
-    // ============================================================
+// ============================================================
+// OBTENER NOMBRE DEL CURSO
+// ============================================================
 
-    export function classroomObtenerNombreCurso(
-      curso
-    ) {
+export function classroomObtenerNombreCurso(
+  curso
+) {
 
-      return String(
+  return String(
 
-        curso?.name ||
-        curso?.nombre ||
-        curso?.courseName ||
-        curso?.title ||
-        "Curso sin nombre"
+    curso?.name ||
+    curso?.nombre ||
+    curso?.courseName ||
+    curso?.title ||
+    "Curso sin nombre"
 
-      ).trim();
+  ).trim();
 
-    }
+}
 
 
-    // ============================================================
-    // REQUEST GENERAL
-    // ============================================================
+// ============================================================
+// REQUEST GENERAL
+// ============================================================
 
-    async function classroomRequest(
-      accion,
-      params = {}
-    ) {
+async function classroomRequest(
+  accion,
+  params = {}
+) {
 
-      if (!accion) {
+  if (!accion) {
 
-        throw new Error(
-          "Debe especificarse una acción para Classroom."
-        );
-
-      }
-
-
-      const query =
-        new URLSearchParams();
-
-
-      query.append(
-        "accion",
-        accion
-      );
-
-
-      Object.entries(params)
-        .forEach(
-          ([key, value]) => {
-
-            if (
-              value !== undefined &&
-              value !== null &&
-              value !== ""
-            ) {
-
-              query.append(
-                key,
-                String(value)
-              );
-
-            }
-
-          }
-        );
-
-
-      const url =
-        `${API_URL}?${query.toString()}`;
-
-
-      classroomLog(
-        "============================================================"
-      );
-
-      classroomLog(
-        "🌐 CLASSROOM REQUEST:",
-        accion
-      );
-
-      classroomLog(
-        "PARAMS:",
-        params
-      );
-
-
-      try {
-
-        const response =
-          await fetch(
-            url,
-            {
-              method: "GET",
-
-              headers: {
-                Accept:
-                  "application/json"
-              },
-
-              cache:
-                "no-store"
-            }
-          );
-
-
-        const rawText =
-          await response.text();
-
-
-        classroomLog(
-          "📡 HTTP:",
-          response.status
-        );
-
-        classroomLog(
-          "📦 RAW:",
-          rawText
-        );
-
-
-        let raw;
-
-
-        try {
-
-          raw =
-            JSON.parse(
-              rawText
-            );
-
-        }
-        catch {
-
-          throw new Error(
-            "La API no devolvió JSON válido."
-          );
-
-        }
-
-
-        if (!response.ok) {
-
-          throw new Error(
-            raw?.error ||
-            raw?.message ||
-            raw?.data?.error ||
-            `Error HTTP ${response.status}`
-          );
-
-        }
-
-
-        if (raw?.ok === false) {
-
-          throw new Error(
-            raw?.error ||
-            raw?.message ||
-            raw?.data?.error ||
-            "La API devolvió un error."
-          );
-
-        }
-
-
-        return raw;
-
-      }
-      catch (error) {
-
-        classroomError(
-          "💥 ERROR CLASSROOM:",
-          error
-        );
-
-        throw error;
-
-      }
-
-    }
-
-
-    // ============================================================
-    // EXTRAER DATA
-    // ============================================================
-
-    export function classroomExtraerData(
-      response,
-      fallback = null
-    ) {
-
-      if (
-        response &&
-        response.data !== undefined &&
-        response.data !== null
-      ) {
-
-        return response.data;
-
-      }
-
-
-      return (
-        response ??
-        fallback
-      );
-
-    }
-
-
-    // ============================================================
-    // BUSCAR ARRAYS RECURSIVAMENTE
-    // ============================================================
-
-    function classroomBuscarArrays(
-      objeto,
-      nombres = [],
-      ruta = "response",
-      resultados = [],
-      visitados = new WeakSet()
-    ) {
-
-      if (
-        objeto === null ||
-        objeto === undefined ||
-        typeof objeto !== "object"
-      ) {
-
-        return resultados;
-
-      }
-
-
-      if (
-        visitados.has(objeto)
-      ) {
-
-        return resultados;
-
-      }
-
-
-      visitados.add(
-        objeto
-      );
-
-
-      if (
-        Array.isArray(objeto)
-      ) {
-
-        resultados.push({
-          ruta,
-          array: objeto,
-          nombreCoincide: false
-        });
-
-        return resultados;
-
-      }
-
-
-      const nombresLower =
-        nombres.map(
-          nombre =>
-            String(nombre)
-              .toLowerCase()
-        );
-
-
-      Object.entries(objeto)
-        .forEach(
-          ([key, value]) => {
-
-            const keyLower =
-              String(key)
-                .toLowerCase();
-
-
-            const nuevaRuta =
-              `${ruta}.${key}`;
-
-
-            if (
-              Array.isArray(value)
-            ) {
-
-              resultados.push({
-
-                ruta:
-                  nuevaRuta,
-
-                array:
-                  value,
-
-                nombreCoincide:
-                  nombresLower.includes(
-                    keyLower
-                  )
-
-              });
-
-              return;
-
-            }
-
-
-            if (
-              value &&
-              typeof value === "object"
-            ) {
-
-              classroomBuscarArrays(
-                value,
-                nombres,
-                nuevaRuta,
-                resultados,
-                visitados
-              );
-
-            }
-
-          }
-        );
-
-
-      return resultados;
-
-    }
-
-
-    // ============================================================
-    // EXTRAER ARRAY
-    // ============================================================
-
-    export function classroomExtraerArray(
-      response,
-      nombres = []
-    ) {
-
-      if (
-        Array.isArray(response)
-      ) {
-
-        return response;
-
-      }
-
-
-      const resultados =
-        classroomBuscarArrays(
-          response,
-          nombres
-        );
-
-
-      if (
-        resultados.length === 0
-      ) {
-
-        return [];
-
-      }
-
-
-      const encontrado =
-        resultados.find(
-          resultado =>
-            resultado.nombreCoincide
-        );
-
-
-      return (
-        encontrado?.array ||
-        resultados[0].array ||
-        []
-      );
-
-    }
-
-
-    // ============================================================
-    // CURSOS
-    // ============================================================
-
-    export async function classroomObtenerCursos() {
-
-      const response =
-        await classroomRequest(
-          "classroomObtenerCursos"
-        );
-
-
-      return classroomExtraerArray(
-        response,
-        [
-          "cursos",
-          "courses"
-        ]
-      );
-
-    }
-
-
-    // ============================================================
-    // OBTENER CURSO
-    // ============================================================
-
-    export async function classroomObtenerCurso(
-      courseId
-    ) {
-
-      if (!courseId) {
-
-        throw new Error(
-          "Debe especificarse courseId."
-        );
-
-      }
-
-
-      const response =
-        await classroomRequest(
-          "classroomObtenerCurso",
-          {
-            courseId
-          }
-        );
-
-
-      return classroomExtraerData(
-        response,
-        null
-      );
-
-    }
-
-
-    // ============================================================
-    // TEMAS
-    // ============================================================
-
-    export async function classroomObtenerTemas(
-      courseId
-    ) {
-
-      if (!courseId) {
-
-        throw new Error(
-          "Debe especificarse courseId."
-        );
-
-      }
-
-
-      const response =
-        await classroomRequest(
-          "classroomObtenerTemas",
-          {
-            courseId
-          }
-        );
-
-
-      return classroomExtraerArray(
-        response,
-        [
-          "temas",
-          "topics"
-        ]
-      );
-
-    }
-
-
-    // ============================================================
-    // OBTENER TEMA
-    // ============================================================
-
-    export async function classroomObtenerTema(
-      courseId,
-      topicId
-    ) {
-
-      if (!courseId) {
-
-        throw new Error(
-          "Debe especificarse courseId."
-        );
-
-      }
-
-
-      if (!topicId) {
-
-        throw new Error(
-          "Debe especificarse topicId."
-        );
-
-      }
-
-
-      const response =
-        await classroomRequest(
-          "classroomObtenerTema",
-          {
-            courseId,
-            topicId
-          }
-        );
-
-
-      return classroomExtraerData(
-        response,
-        null
-      );
-
-    }
-
-
-    // ============================================================
-    // ACTIVIDADES DEL CURSO
-    // ============================================================
-
-    export async function classroomObtenerActividades(
-      courseId
-    ) {
-
-      if (!courseId) {
-
-        throw new Error(
-          "Debe especificarse courseId."
-        );
-
-      }
-
-
-      const response =
-        await classroomRequest(
-          "classroomObtenerActividades",
-          {
-            courseId
-          }
-        );
-
-
-      return classroomExtraerArray(
-        response,
-        [
-          "actividades",
-          "activities",
-          "courseWork",
-          "coursework"
-        ]
-      );
-
-    }
-
-
-    // ============================================================
-    // OBTENER ACTIVIDAD
-    // ============================================================
-
-    export async function classroomObtenerActividad(
-      courseId,
-      courseWorkId
-    ) {
-
-      if (!courseId) {
-
-        throw new Error(
-          "Debe especificarse courseId."
-        );
-
-      }
-
-
-      if (!courseWorkId) {
-
-        throw new Error(
-          "Debe especificarse courseWorkId."
-        );
-
-      }
-
-
-    const response =
-      await classroomRequest(
-        "classroomObtenerActividad",
-        {
-          courseId,
-          courseWorkId
-        }
-      );
-
-
-    return classroomExtraerData(
-      response,
-      null
+    throw new Error(
+      "Debe especificarse una acción para Classroom."
     );
 
   }
 
 
-  // ============================================================
-  // ACTIVIDADES POR TEMA
-  // ============================================================
+  const query =
+    new URLSearchParams();
 
-  export async function classroomObtenerActividadesPorTema(
-    courseId,
-    topicId
+
+  query.append(
+    "accion",
+    accion
+  );
+
+
+  Object.entries(params)
+    .forEach(
+      ([key, value]) => {
+
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== ""
+        ) {
+
+          query.append(
+            key,
+            String(value)
+          );
+
+        }
+
+      }
+    );
+
+
+  const url =
+    `${API_URL}?${query.toString()}`;
+
+
+  classroomLog(
+    "============================================================"
+  );
+
+  classroomLog(
+    "🌐 CLASSROOM REQUEST:",
+    accion
+  );
+
+  classroomLog(
+    "PARAMS:",
+    params
+  );
+
+
+  try {
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "GET",
+
+          headers: {
+            Accept:
+              "application/json"
+          },
+
+          cache:
+            "no-store"
+        }
+      );
+
+
+    const rawText =
+      await response.text();
+
+
+    classroomLog(
+      "📡 HTTP:",
+      response.status
+    );
+
+    classroomLog(
+      "📦 RAW:",
+      rawText
+    );
+
+
+    let raw;
+
+
+    try {
+
+      raw =
+        JSON.parse(
+          rawText
+        );
+
+    }
+    catch {
+
+      throw new Error(
+        "La API no devolvió JSON válido."
+      );
+
+    }
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        raw?.error ||
+        raw?.message ||
+        raw?.data?.error ||
+        `Error HTTP ${response.status}`
+      );
+
+    }
+
+
+    if (raw?.ok === false) {
+
+      throw new Error(
+        raw?.error ||
+        raw?.message ||
+        raw?.data?.error ||
+        "La API devolvió un error."
+      );
+
+    }
+
+
+    return raw;
+
+  }
+  catch (error) {
+
+    classroomError(
+      "💥 ERROR CLASSROOM:",
+      error
+    );
+
+    throw error;
+
+  }
+
+}
+
+
+// ============================================================
+// EXTRAER DATA
+// ============================================================
+
+export function classroomExtraerData(
+  response,
+  fallback = null
+) {
+
+  if (
+    response &&
+    response.data !== undefined &&
+    response.data !== null
   ) {
 
-    if (!courseId) {
+    return response.data;
 
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
+  }
 
 
-    if (!topicId) {
+  return (
+    response ??
+    fallback
+  );
 
-      throw new Error(
-        "Debe especificarse topicId."
-      );
-
-    }
+}
 
 
-    const actividades =
-      await classroomObtenerActividades(
+// ============================================================
+// BUSCAR ARRAYS RECURSIVAMENTE
+// ============================================================
+
+function classroomBuscarArrays(
+  objeto,
+  nombres = [],
+  ruta = "response",
+  resultados = [],
+  visitados = new WeakSet()
+) {
+
+  if (
+    objeto === null ||
+    objeto === undefined ||
+    typeof objeto !== "object"
+  ) {
+
+    return resultados;
+
+  }
+
+
+  if (
+    visitados.has(objeto)
+  ) {
+
+    return resultados;
+
+  }
+
+
+  visitados.add(
+    objeto
+  );
+
+
+  if (
+    Array.isArray(objeto)
+  ) {
+
+    resultados.push({
+      ruta,
+      array: objeto,
+      nombreCoincide: false
+    });
+
+    return resultados;
+
+  }
+
+
+  const nombresLower =
+    nombres.map(
+      nombre =>
+        String(nombre)
+          .toLowerCase()
+    );
+
+
+  Object.entries(objeto)
+    .forEach(
+      ([key, value]) => {
+
+        const keyLower =
+          String(key)
+            .toLowerCase();
+
+
+        const nuevaRuta =
+          `${ruta}.${key}`;
+
+
+        if (
+          Array.isArray(value)
+        ) {
+
+          resultados.push({
+
+            ruta:
+              nuevaRuta,
+
+            array:
+              value,
+
+            nombreCoincide:
+              nombresLower.includes(
+                keyLower
+              )
+
+          });
+
+          return;
+
+        }
+
+
+        if (
+          value &&
+          typeof value === "object"
+        ) {
+
+          classroomBuscarArrays(
+            value,
+            nombres,
+            nuevaRuta,
+            resultados,
+            visitados
+          );
+
+        }
+
+      }
+    );
+
+
+  return resultados;
+
+}
+
+
+// ============================================================
+// EXTRAER ARRAY
+// ============================================================
+
+export function classroomExtraerArray(
+  response,
+  nombres = []
+) {
+
+  if (
+    Array.isArray(response)
+  ) {
+
+    return response;
+
+  }
+
+
+  const resultados =
+    classroomBuscarArrays(
+      response,
+      nombres
+    );
+
+
+  if (
+    resultados.length === 0
+  ) {
+
+    return [];
+
+  }
+
+
+  const encontrado =
+    resultados.find(
+      resultado =>
+        resultado.nombreCoincide
+    );
+
+
+  return (
+    encontrado?.array ||
+    resultados[0].array ||
+    []
+  );
+
+}
+
+
+// ============================================================
+// CURSOS
+// ============================================================
+
+export async function classroomObtenerCursos() {
+
+  const response =
+    await classroomRequest(
+      "classroomObtenerCursos"
+    );
+
+
+  return classroomExtraerArray(
+    response,
+    [
+      "cursos",
+      "courses"
+    ]
+  );
+
+}
+
+
+// ============================================================
+// OBTENER CURSO
+// ============================================================
+
+export async function classroomObtenerCurso(
+  courseId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  const response =
+    await classroomRequest(
+      "classroomObtenerCurso",
+      {
         courseId
+      }
+    );
+
+
+  return classroomExtraerData(
+    response,
+    null
+  );
+
+}
+
+
+// ============================================================
+// TEMAS
+// ============================================================
+
+export async function classroomObtenerTemas(
+  courseId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  const response =
+    await classroomRequest(
+      "classroomObtenerTemas",
+      {
+        courseId
+      }
+    );
+
+
+  return classroomExtraerArray(
+    response,
+    [
+      "temas",
+      "topics"
+    ]
+  );
+
+}
+
+
+// ============================================================
+// OBTENER TEMA
+// ============================================================
+
+export async function classroomObtenerTema(
+  courseId,
+  topicId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  if (!topicId) {
+
+    throw new Error(
+      "Debe especificarse topicId."
+    );
+
+  }
+
+
+  const response =
+    await classroomRequest(
+      "classroomObtenerTema",
+      {
+        courseId,
+        topicId
+      }
+    );
+
+
+  return classroomExtraerData(
+    response,
+    null
+  );
+
+}
+
+
+// ============================================================
+// ACTIVIDADES DEL CURSO
+// ============================================================
+
+export async function classroomObtenerActividades(
+  courseId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  const response =
+    await classroomRequest(
+      "classroomObtenerActividades",
+      {
+        courseId
+      }
+    );
+
+
+  return classroomExtraerArray(
+    response,
+    [
+      "actividades",
+      "activities",
+      "courseWork",
+      "coursework"
+    ]
+  );
+
+}
+
+
+// ============================================================
+// OBTENER ACTIVIDAD
+// ============================================================
+
+export async function classroomObtenerActividad(
+  courseId,
+  courseWorkId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  if (!courseWorkId) {
+
+    throw new Error(
+      "Debe especificarse courseWorkId."
+    );
+
+  }
+
+
+  const response =
+    await classroomRequest(
+      "classroomObtenerActividad",
+      {
+        courseId,
+        courseWorkId
+      }
+    );
+
+
+  return classroomExtraerData(
+    response,
+    null
+  );
+
+}
+
+
+// ============================================================
+// ACTIVIDADES POR TEMA
+// ============================================================
+
+export async function classroomObtenerActividadesPorTema(
+  courseId,
+  topicId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  if (!topicId) {
+
+    throw new Error(
+      "Debe especificarse topicId."
+    );
+
+  }
+
+
+  const actividades =
+    await classroomObtenerActividades(
+      courseId
+    );
+
+
+  const topicNormalizado =
+    String(topicId).trim();
+
+
+  return actividades.filter(
+    actividad => {
+
+      const actividadTopicId =
+        String(
+
+          actividad?.topicId ||
+
+          actividad?.topic?.topicId ||
+
+          actividad?.topic?.id ||
+
+          actividad?.topicID ||
+
+          actividad?.topicid ||
+
+          ""
+
+        ).trim();
+
+
+      return (
+        actividadTopicId ===
+        topicNormalizado
       );
 
+    }
+  );
 
-    const topicNormalizado =
-      String(topicId).trim();
+}
 
 
-    return actividades.filter(
-      actividad => {
+// ============================================================
+// ALIAS TOPIC
+// ============================================================
 
-        const actividadTopicId =
+export async function classroomObtenerActividadesPorTopic(
+  courseId,
+  topicId
+) {
+
+  return classroomObtenerActividadesPorTema(
+    courseId,
+    topicId
+  );
+
+}
+
+
+// ============================================================
+// ACTIVIDADES POR ENTREGABLE
+// ============================================================
+
+export async function classroomObtenerActividadesPorEntregable(
+  courseId,
+  entregable
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  const codigo =
+    String(
+      entregable || ""
+    )
+      .trim()
+      .toUpperCase();
+
+
+  if (
+    !CLASSROOM_ENTREGABLES.includes(
+      codigo
+    )
+  ) {
+
+    throw new Error(
+      "Entregable inválido. Debe ser EN1, EN2 o EN3."
+    );
+
+  }
+
+
+  const actividades =
+    await classroomObtenerActividades(
+      courseId
+    );
+
+
+  return actividades.filter(
+    actividad =>
+      classroomReconocerEntregable(
+        actividad
+      ) === codigo
+  );
+
+}
+
+
+// ============================================================
+// ESTRUCTURA COMPLETA
+// ============================================================
+
+export async function classroomObtenerEstructura(
+  courseId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  const response =
+    await classroomRequest(
+      "classroomObtenerEstructura",
+      {
+        courseId
+      }
+    );
+
+
+  return classroomExtraerData(
+    response,
+    null
+  );
+
+}
+
+
+// ============================================================
+// CONSTRUIR ESTRUCTURA LOCAL
+// ============================================================
+
+export async function classroomConstruirEstructuraLocal(
+  courseId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  const [
+    curso,
+    temas,
+    actividades
+  ] =
+    await Promise.all([
+
+      classroomObtenerCurso(
+        courseId
+      ),
+
+      classroomObtenerTemas(
+        courseId
+      ),
+
+      classroomObtenerActividades(
+        courseId
+      )
+
+    ]);
+
+
+  const temasConActividades =
+    temas.map(
+      tema => {
+
+        const topicId =
+          classroomObtenerTopicId(
+            tema
+          );
+
+
+        const actividadesTema =
+          actividades.filter(
+            actividad => {
+
+              const actividadTopicId =
+                String(
+
+                  actividad?.topicId ||
+
+                  actividad?.topic?.topicId ||
+
+                  actividad?.topic?.id ||
+
+                  ""
+
+                ).trim();
+
+
+              return (
+                actividadTopicId ===
+                String(topicId)
+              );
+
+            }
+          );
+
+
+        return {
+
+          ...tema,
+
+          topicId,
+
+          actividades:
+            actividadesTema
+
+        };
+
+      }
+    );
+
+
+  return {
+
+    curso,
+
+    courseId,
+
+    temas:
+      temasConActividades,
+
+    actividades
+
+  };
+
+}
+
+
+// ============================================================
+// PREPARAR ENTREGABLE
+// ============================================================
+
+export function classroomPrepararEntregable(
+  actividad,
+  codigo
+) {
+
+  if (!actividad) {
+
+    return null;
+
+  }
+
+
+  const codigoNormalizado =
+    String(
+      codigo || ""
+    )
+      .trim()
+      .toUpperCase();
+
+
+  if (
+    !CLASSROOM_ENTREGABLES.includes(
+      codigoNormalizado
+    )
+  ) {
+
+    return null;
+
+  }
+
+
+  const courseWorkId =
+    classroomObtenerCourseWorkId(
+      actividad
+    );
+
+
+  const titulo =
+    classroomObtenerTituloActividad(
+      actividad
+    );
+
+
+  const maxPoints =
+    Number(
+      actividad?.maxPoints ??
+      actividad?.maxpoints ??
+      PUNTAJE_POR_ENTREGABLE
+    );
+
+
+  return {
+
+    codigo:
+      codigoNormalizado,
+
+    courseWorkId,
+
+    titulo,
+
+    maxPoints:
+      Number.isFinite(maxPoints)
+        ? maxPoints
+        : PUNTAJE_POR_ENTREGABLE,
+
+    actividad
+
+  };
+
+}
+
+
+// ============================================================
+// EXTRAER DOCUMENTOS DE UNA ENTREGA
+// ============================================================
+
+export function classroomExtraerDocumentosEntrega(
+  entrega
+) {
+
+  if (!entrega) {
+
+    return [];
+
+  }
+
+
+  const documentos = [];
+
+
+  const attachments =
+    Array.isArray(
+      entrega.attachments
+    )
+      ? entrega.attachments
+      : [];
+
+
+  attachments.forEach(
+    attachment => {
+
+      if (!attachment) {
+        return;
+      }
+
+
+      documentos.push({
+
+        tipo:
+          "attachment",
+
+        id:
+          attachment.id ||
+          "",
+
+        title:
+          attachment.title ||
+          attachment.name ||
+          "",
+
+        url:
+          attachment.url ||
+          attachment.alternateLink ||
+          attachment.webViewLink ||
+          "",
+
+        driveFileId:
+          attachment.driveFileId ||
+          attachment.driveFile?.id ||
+          "",
+
+        raw:
+          attachment
+
+      });
+
+    }
+  );
+
+
+  const driveFiles =
+    Array.isArray(
+      entrega.driveFiles
+    )
+      ? entrega.driveFiles
+      : [];
+
+
+  driveFiles.forEach(
+    archivo => {
+
+      if (!archivo) {
+        return;
+      }
+
+
+      const driveFile =
+        archivo.driveFile ||
+        archivo;
+
+
+      documentos.push({
+
+        tipo:
+          "driveFile",
+
+        id:
+          driveFile.id ||
+          "",
+
+        title:
+          driveFile.title ||
+          driveFile.name ||
+          "",
+
+        url:
+          driveFile.alternateLink ||
+          driveFile.webViewLink ||
+          driveFile.url ||
+          "",
+
+        driveFileId:
+          driveFile.id ||
+          "",
+
+        raw:
+          archivo
+
+      });
+
+    }
+  );
+
+
+  if (
+    entrega.link &&
+    typeof entrega.link === "object"
+  ) {
+
+    documentos.push({
+
+      tipo:
+        "link",
+
+      id:
+        entrega.link.id ||
+        "",
+
+      title:
+        entrega.link.title ||
+        "",
+
+      url:
+        entrega.link.url ||
+        "",
+
+      driveFileId:
+        "",
+
+      raw:
+        entrega.link
+
+    });
+
+  }
+
+
+  const mapa =
+    new Map();
+
+
+  documentos.forEach(
+    documento => {
+
+      const clave =
+        documento.driveFileId ||
+        documento.id ||
+        documento.url ||
+        `${documento.tipo}-${documento.title}`;
+
+
+      if (
+        !mapa.has(
+          clave
+        )
+      ) {
+
+        mapa.set(
+          clave,
+          documento
+        );
+
+      }
+
+    }
+  );
+
+
+  return Array.from(
+    mapa.values()
+  );
+
+}
+
+
+// ============================================================
+// NORMALIZAR ENTREGA
+// ============================================================
+
+export function classroomNormalizarEntrega(
+  entrega,
+  courseId = "",
+  courseWorkId = ""
+) {
+
+  if (!entrega) {
+
+    return null;
+
+  }
+
+
+  const studentSubmissionId =
+    String(
+
+      entrega.studentSubmissionId ||
+      entrega.studentSubmissionID ||
+      entrega.submissionId ||
+      entrega.id ||
+      ""
+
+    ).trim();
+
+
+  const userId =
+    String(
+
+      entrega.userId ||
+      entrega.userID ||
+      entrega.userid ||
+      entrega.studentId ||
+      entrega.studentID ||
+      entrega.studentid ||
+      entrega.user?.userId ||
+      entrega.user?.id ||
+      ""
+
+    ).trim();
+
+
+  const estado =
+    String(
+
+      entrega.state ||
+      entrega.status ||
+      ""
+
+    )
+      .trim()
+      .toUpperCase();
+
+
+  const documentos =
+    classroomExtraerDocumentosEntrega(
+      entrega
+    );
+
+
+  const assignedGrade =
+    entrega.assignedGrade !== undefined
+      ? Number(
+        entrega.assignedGrade
+      )
+      : null;
+
+
+  const draftGrade =
+    entrega.draftGrade !== undefined
+      ? Number(
+        entrega.draftGrade
+      )
+      : null;
+
+
+  return {
+
+    courseId:
+      String(
+        entrega.courseId ||
+        courseId ||
+        ""
+      ).trim(),
+
+    courseWorkId:
+      String(
+        entrega.courseWorkId ||
+        courseWorkId ||
+        ""
+      ).trim(),
+
+    studentSubmissionId,
+
+    userId,
+
+    estado,
+
+    submitted:
+      estado === "TURNED_IN" ||
+      estado === "RETURNED" ||
+      entrega.submitted === true,
+
+    assignedGrade:
+      Number.isFinite(
+        assignedGrade
+      )
+        ? assignedGrade
+        : null,
+
+    draftGrade:
+      Number.isFinite(
+        draftGrade
+      )
+        ? draftGrade
+        : null,
+
+    documentos,
+
+    raw:
+      entrega
+
+  };
+
+}
+
+
+// ============================================================
+// NORMALIZAR TODAS LAS ENTREGAS
+// ============================================================
+
+export function classroomNormalizarEntregas(
+  entregas,
+  courseId = "",
+  courseWorkId = ""
+) {
+
+  if (
+    !Array.isArray(
+      entregas
+    )
+  ) {
+
+    return [];
+
+  }
+
+
+  return entregas
+    .filter(Boolean)
+    .map(
+      entrega =>
+        classroomNormalizarEntrega(
+          entrega,
+          courseId,
+          courseWorkId
+        )
+    )
+    .filter(Boolean);
+
+}
+
+
+// ============================================================
+// BUSCAR ENTREGA DE ALUMNO
+// ============================================================
+
+export function classroomBuscarEntregaAlumno(
+  entregas,
+  userId
+) {
+
+  if (
+    !Array.isArray(
+      entregas
+    )
+  ) {
+
+    return null;
+
+  }
+
+
+  const buscado =
+    String(
+      userId || ""
+    ).trim();
+
+
+  if (!buscado) {
+
+    return null;
+
+  }
+
+
+  return (
+
+    entregas.find(
+      entrega => {
+
+        const id =
           String(
 
-            actividad?.topicId ||
-
-            actividad?.topic?.topicId ||
-
-            actividad?.topic?.id ||
-
-            actividad?.topicID ||
-
-            actividad?.topicid ||
-
+            entrega?.userId ||
+            entrega?.userID ||
+            entrega?.userid ||
+            entrega?.studentId ||
+            entrega?.studentID ||
+            entrega?.studentid ||
+            entrega?.user?.userId ||
+            entrega?.user?.id ||
             ""
 
           ).trim();
 
 
         return (
-          actividadTopicId ===
-          topicNormalizado
+          id ===
+          buscado
         );
 
       }
+    ) ||
+
+    null
+
+  );
+
+}
+
+
+// ============================================================
+// BUSCAR SUBMISSION
+// ============================================================
+
+// Esta función consulta la entrega específica de un estudiante.
+// ============================================================
+
+export async function classroomBuscarSubmission(
+  courseId,
+  courseWorkId,
+  userId
+) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
     );
 
   }
 
 
-  // ============================================================
-  // ALIAS TOPIC
-  // ============================================================
+  if (!courseWorkId) {
 
-  export async function classroomObtenerActividadesPorTopic(
-    courseId,
-    topicId
-  ) {
-
-    return classroomObtenerActividadesPorTema(
-      courseId,
-      topicId
+    throw new Error(
+      "Debe especificarse courseWorkId."
     );
 
   }
 
 
-  // ============================================================
-  // ACTIVIDADES POR ENTREGABLE
-  // ============================================================
+  if (!userId) {
 
-  export async function classroomObtenerActividadesPorEntregable(
-    courseId,
-    entregable
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
-
-
-    const codigo =
-      String(
-        entregable || ""
-      )
-        .trim()
-        .toUpperCase();
-
-
-    if (
-      !CLASSROOM_ENTREGABLES.includes(
-        codigo
-      )
-    ) {
-
-      throw new Error(
-        "Entregable inválido. Debe ser EN1, EN2 o EN3."
-      );
-
-    }
-
-
-    const actividades =
-      await classroomObtenerActividades(
-        courseId
-      );
-
-
-    return actividades.filter(
-      actividad =>
-        classroomReconocerEntregable(
-          actividad
-        ) === codigo
+    throw new Error(
+      "Debe especificarse userId."
     );
 
   }
 
 
-  // ============================================================
-  // ESTRUCTURA COMPLETA
-  // ============================================================
-
-  export async function classroomObtenerEstructura(
-    courseId
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
+  const response =
+    await classroomRequest(
+      "classroomBuscarSubmission",
+      {
+        courseId,
+        courseWorkId,
+        userId
+      }
+    );
 
 
-    const response =
-      await classroomRequest(
-        "classroomObtenerEstructura",
-        {
-          courseId
-        }
-      );
-
-
-    return classroomExtraerData(
+  const data =
+    classroomExtraerData(
       response,
       null
     );
 
-  }
 
-
-  // ============================================================
-  // CONSTRUIR ESTRUCTURA LOCAL
-  // ============================================================
-
-  export async function classroomConstruirEstructuraLocal(
-    courseId
+  if (
+    Array.isArray(data)
   ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
-
-
-    const [
-      curso,
-      temas,
-      actividades
-    ] =
-      await Promise.all([
-
-        classroomObtenerCurso(
-          courseId
-        ),
-
-        classroomObtenerTemas(
-          courseId
-        ),
-
-        classroomObtenerActividades(
-          courseId
-        )
-
-      ]);
-
-
-    const temasConActividades =
-      temas.map(
-        tema => {
-
-          const topicId =
-            classroomObtenerTopicId(
-              tema
-            );
-
-
-          const actividadesTema =
-            actividades.filter(
-              actividad => {
-
-                const actividadTopicId =
-                  String(
-
-                    actividad?.topicId ||
-
-                    actividad?.topic?.topicId ||
-
-                    actividad?.topic?.id ||
-
-                    ""
-
-                  ).trim();
-
-
-                return (
-                  actividadTopicId ===
-                  String(topicId)
-                );
-
-              }
-            );
-
-
-          return {
-
-            ...tema,
-
-            topicId,
-
-            actividades:
-              actividadesTema
-
-          };
-
-        }
-      );
-
-
-    return {
-
-      curso,
-
-      courseId,
-
-      temas:
-        temasConActividades,
-
-      actividades
-
-    };
-
-  }
-
-
-  // ============================================================
-  // PREPARAR ENTREGABLE
-  // ============================================================
-
-  export function classroomPrepararEntregable(
-    actividad,
-    codigo
-  ) {
-
-    if (!actividad) {
-
-      return null;
-
-    }
-
-
-    const codigoNormalizado =
-      String(
-        codigo || ""
-      )
-        .trim()
-        .toUpperCase();
-
-
-    if (
-      !CLASSROOM_ENTREGABLES.includes(
-        codigoNormalizado
-      )
-    ) {
-
-      return null;
-
-    }
-
-
-    const courseWorkId =
-      classroomObtenerCourseWorkId(
-        actividad
-      );
-
-
-    const titulo =
-      classroomObtenerTituloActividad(
-        actividad
-      );
-
-
-    const maxPoints =
-      Number(
-        actividad?.maxPoints ??
-        actividad?.maxpoints ??
-        PUNTAJE_POR_ENTREGABLE
-      );
-
-
-    return {
-
-      codigo:
-        codigoNormalizado,
-
-      courseWorkId,
-
-      titulo,
-
-      maxPoints:
-        Number.isFinite(maxPoints)
-          ? maxPoints
-          : PUNTAJE_POR_ENTREGABLE,
-
-      actividad
-
-    };
-
-  }
-
-
-  // ============================================================
-  // EXTRAER DOCUMENTOS DE UNA ENTREGA
-  // ============================================================
-
-  export function classroomExtraerDocumentosEntrega(
-    entrega
-  ) {
-
-    if (!entrega) {
-
-      return [];
-
-    }
-
-
-    const documentos = [];
-
-
-    const attachments =
-      Array.isArray(
-        entrega.attachments
-      )
-        ? entrega.attachments
-        : [];
-
-
-    attachments.forEach(
-      attachment => {
-
-        if (!attachment) {
-          return;
-        }
-
-
-        documentos.push({
-
-          tipo:
-            "attachment",
-
-          id:
-            attachment.id ||
-            "",
-
-          title:
-            attachment.title ||
-            attachment.name ||
-            "",
-
-          url:
-            attachment.url ||
-            attachment.alternateLink ||
-            attachment.webViewLink ||
-            "",
-
-          driveFileId:
-            attachment.driveFileId ||
-            attachment.driveFile?.id ||
-            "",
-
-          raw:
-            attachment
-
-        });
-
-      }
-    );
-
-
-    const driveFiles =
-      Array.isArray(
-        entrega.driveFiles
-      )
-        ? entrega.driveFiles
-        : [];
-
-
-    driveFiles.forEach(
-      archivo => {
-
-        if (!archivo) {
-          return;
-        }
-
-
-        const driveFile =
-          archivo.driveFile ||
-          archivo;
-
-
-        documentos.push({
-
-          tipo:
-            "driveFile",
-
-          id:
-            driveFile.id ||
-            "",
-
-          title:
-            driveFile.title ||
-            driveFile.name ||
-            "",
-
-          url:
-            driveFile.alternateLink ||
-            driveFile.webViewLink ||
-            driveFile.url ||
-            "",
-
-          driveFileId:
-            driveFile.id ||
-            "",
-
-          raw:
-            archivo
-
-        });
-
-      }
-    );
-
-
-    if (
-      entrega.link &&
-      typeof entrega.link === "object"
-    ) {
-
-      documentos.push({
-
-        tipo:
-          "link",
-
-        id:
-          entrega.link.id ||
-          "",
-
-        title:
-          entrega.link.title ||
-          "",
-
-        url:
-          entrega.link.url ||
-          "",
-
-        driveFileId:
-          "",
-
-        raw:
-          entrega.link
-
-      });
-
-    }
-
-
-    const mapa =
-      new Map();
-
-
-    documentos.forEach(
-      documento => {
-
-        const clave =
-          documento.driveFileId ||
-          documento.id ||
-          documento.url ||
-          `${documento.tipo}-${documento.title}`;
-
-
-        if (
-          !mapa.has(
-            clave
-          )
-        ) {
-
-          mapa.set(
-            clave,
-            documento
-          );
-
-        }
-
-      }
-    );
-
-
-    return Array.from(
-      mapa.values()
-    );
-
-  }
-
-
-  // ============================================================
-  // NORMALIZAR ENTREGA
-  // ============================================================
-
-  export function classroomNormalizarEntrega(
-    entrega,
-    courseId = "",
-    courseWorkId = ""
-  ) {
-
-    if (!entrega) {
-
-      return null;
-
-    }
-
-
-    const studentSubmissionId =
-      String(
-
-        entrega.studentSubmissionId ||
-        entrega.studentSubmissionID ||
-        entrega.submissionId ||
-        entrega.id ||
-        ""
-
-      ).trim();
-
-
-    const userId =
-      String(
-
-        entrega.userId ||
-        entrega.userID ||
-        entrega.userid ||
-        entrega.studentId ||
-        entrega.studentID ||
-        entrega.studentid ||
-        entrega.user?.userId ||
-        entrega.user?.id ||
-        ""
-
-      ).trim();
-
-
-    const estado =
-      String(
-
-        entrega.state ||
-        entrega.status ||
-        ""
-
-      )
-        .trim()
-        .toUpperCase();
-
-
-    const documentos =
-      classroomExtraerDocumentosEntrega(
-        entrega
-      );
-
-
-    const assignedGrade =
-      entrega.assignedGrade !== undefined
-        ? Number(
-            entrega.assignedGrade
-          )
-        : null;
-
-
-    const draftGrade =
-      entrega.draftGrade !== undefined
-        ? Number(
-            entrega.draftGrade
-          )
-        : null;
-
-
-    return {
-
-      courseId:
-        String(
-          entrega.courseId ||
-          courseId ||
-          ""
-        ).trim(),
-
-      courseWorkId:
-        String(
-          entrega.courseWorkId ||
-          courseWorkId ||
-          ""
-        ).trim(),
-
-      studentSubmissionId,
-
-      userId,
-
-      estado,
-
-      submitted:
-        estado === "TURNED_IN" ||
-        estado === "RETURNED" ||
-        entrega.submitted === true,
-
-      assignedGrade:
-        Number.isFinite(
-          assignedGrade
-        )
-          ? assignedGrade
-          : null,
-
-      draftGrade:
-        Number.isFinite(
-          draftGrade
-        )
-          ? draftGrade
-          : null,
-
-      documentos,
-
-      raw:
-        entrega
-
-    };
-
-  }
-
-
-  // ============================================================
-  // NORMALIZAR TODAS LAS ENTREGAS
-  // ============================================================
-
-  export function classroomNormalizarEntregas(
-    entregas,
-    courseId = "",
-    courseWorkId = ""
-  ) {
-
-    if (
-      !Array.isArray(
-        entregas
-      )
-    ) {
-
-      return [];
-
-    }
-
-
-    return entregas
-      .filter(Boolean)
-      .map(
-        entrega =>
-          classroomNormalizarEntrega(
-            entrega,
-            courseId,
-            courseWorkId
-          )
-      )
-      .filter(Boolean);
-
-  }
-
-
-  // ============================================================
-  // BUSCAR ENTREGA DE ALUMNO
-  // ============================================================
-
-  export function classroomBuscarEntregaAlumno(
-    entregas,
-    userId
-  ) {
-
-    if (
-      !Array.isArray(
-        entregas
-      )
-    ) {
-
-      return null;
-
-    }
-
-
-    const buscado =
-      String(
-        userId || ""
-      ).trim();
-
-
-    if (!buscado) {
-
-      return null;
-
-    }
-
 
     return (
-
-      entregas.find(
-        entrega => {
-
-          const id =
-            String(
-
-              entrega?.userId ||
-              entrega?.userID ||
-              entrega?.userid ||
-              entrega?.studentId ||
-              entrega?.studentID ||
-              entrega?.studentid ||
-              entrega?.user?.userId ||
-              entrega?.user?.id ||
-              ""
-
-            ).trim();
-
-
-          return (
-            id ===
-            buscado
-          );
-
-        }
-      ) ||
-
+      data[0] ||
       null
-
     );
 
   }
 
 
-  // ============================================================
-  // BUSCAR SUBMISSION
-  // ============================================================
-
-  // Esta función consulta la entrega específica de un estudiante.
-  // ============================================================
-
-  export async function classroomBuscarSubmission(
-    courseId,
-    courseWorkId,
-    userId
+  if (
+    data?.submission
   ) {
 
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
-
-
-    if (!courseWorkId) {
-
-      throw new Error(
-        "Debe especificarse courseWorkId."
-      );
-
-    }
-
-
-    if (!userId) {
-
-      throw new Error(
-        "Debe especificarse userId."
-      );
-
-    }
-
-
-    const response =
-      await classroomRequest(
-        "classroomBuscarSubmission",
-        {
-          courseId,
-          courseWorkId,
-          userId
-        }
-      );
-
-
-    const data =
-      classroomExtraerData(
-        response,
-        null
-      );
-
-
-    if (
-      Array.isArray(data)
-    ) {
-
-      return (
-        data[0] ||
-        null
-      );
-
-    }
-
-
-    if (
-      data?.submission
-    ) {
-
-      return data.submission;
-
-    }
-
-
-    if (
-      data?.studentSubmission
-    ) {
-
-      return data.studentSubmission;
-
-    }
-
-
-    return data;
+    return data.submission;
 
   }
 
 
-  // ============================================================
-  // OBTENER TODAS LAS ENTREGAS
-  // ============================================================
-
-  export async function classroomObtenerEntregas(
-    courseId,
-    courseWorkId
+  if (
+    data?.studentSubmission
   ) {
 
-    if (!courseId) {
+    return data.studentSubmission;
 
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
+  }
 
 
-    if (!courseWorkId) {
+  return data;
 
-      throw new Error(
-        "Debe especificarse courseWorkId."
-      );
-
-    }
+}
 
 
-    const response =
-      await classroomRequest(
-        "classroomObtenerEntregas",
-        {
-          courseId,
-          courseWorkId
-        }
-      );
+// ============================================================
+// OBTENER TODAS LAS ENTREGAS
+// ============================================================
 
+export async function classroomObtenerEntregas(
+  courseId,
+  courseWorkId
+) {
 
-    return classroomExtraerArray(
-      response,
-      [
-        "entregas",
-        "submissions",
-        "studentSubmissions"
-      ]
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
     );
 
   }
 
 
-  // ============================================================
-  // PREPARAR REVISION DE ENTREGABLE
-  // ============================================================
+  if (!courseWorkId) {
 
-  export function classroomPrepararRevisionEntregable({
-    courseId,
-    userId,
-    codigo,
-    actividad,
-    entregas
-  }) {
+    throw new Error(
+      "Debe especificarse courseWorkId."
+    );
 
-    const entregable =
-      classroomPrepararEntregable(
-        actividad,
-        codigo
-      );
+  }
 
 
-    if (!entregable) {
-
-      return {
-
-        ok:
-          false,
-
-        codigo,
-
-        error:
-          "No se pudo preparar el entregable."
-
-      };
-
-    }
-
-
-    const entregasNormalizadas =
-      classroomNormalizarEntregas(
-        entregas,
+  const response =
+    await classroomRequest(
+      "classroomObtenerEntregas",
+      {
         courseId,
-        entregable.courseWorkId
-      );
+        courseWorkId
+      }
+    );
 
 
-    const entregaAlumno =
-      classroomBuscarEntregaAlumno(
-        entregasNormalizadas,
-        userId
-      );
+  return classroomExtraerArray(
+    response,
+    [
+      "entregas",
+      "submissions",
+      "studentSubmissions"
+    ]
+  );
+
+}
 
 
-    if (!entregaAlumno) {
+// ============================================================
+// PREPARAR REVISION DE ENTREGABLE
+// ============================================================
 
-      return {
+export function classroomPrepararRevisionEntregable({
+  courseId,
+  userId,
+  codigo,
+  actividad,
+  entregas
+}) {
 
-        ok:
-          true,
+  const entregable =
+    classroomPrepararEntregable(
+      actividad,
+      codigo
+    );
 
-        tieneEntrega:
-          false,
 
-        codigo:
-          entregable.codigo,
+  if (!entregable) {
 
-        courseId,
+    return {
 
-        userId,
+      ok:
+        false,
 
-        courseWorkId:
-          entregable.courseWorkId,
+      codigo,
 
-        titulo:
-          entregable.titulo,
+      error:
+        "No se pudo preparar el entregable."
 
-        maxPoints:
-          entregable.maxPoints,
+    };
 
-        entrega:
-          null,
+  }
 
-        documentos:
-          [],
 
-        entregas:
-          entregasNormalizadas
+  const entregasNormalizadas =
+    classroomNormalizarEntregas(
+      entregas,
+      courseId,
+      entregable.courseWorkId
+    );
 
-      };
 
-    }
+  const entregaAlumno =
+    classroomBuscarEntregaAlumno(
+      entregasNormalizadas,
+      userId
+    );
 
+
+  if (!entregaAlumno) {
 
     return {
 
@@ -1945,7 +1910,7 @@
         true,
 
       tieneEntrega:
-        true,
+        false,
 
       codigo:
         entregable.codigo,
@@ -1964,10 +1929,10 @@
         entregable.maxPoints,
 
       entrega:
-        entregaAlumno,
+        null,
 
       documentos:
-        entregaAlumno.documentos,
+        [],
 
       entregas:
         entregasNormalizadas
@@ -1977,37 +1942,255 @@
   }
 
 
-  // ============================================================
-  // PREPARAR REVISION DEL ALUMNO
-  // ============================================================
+  return {
 
-  export function classroomPrepararRevisionAlumno({
+    ok:
+      true,
+
+    tieneEntrega:
+      true,
+
+    codigo:
+      entregable.codigo,
+
     courseId,
+
     userId,
-    actividades,
-    entregasPorEntregable
-  }) {
 
-    const actividadesLista =
-      Array.isArray(
-        actividades
-      )
-        ? actividades
-        : [];
+    courseWorkId:
+      entregable.courseWorkId,
+
+    titulo:
+      entregable.titulo,
+
+    maxPoints:
+      entregable.maxPoints,
+
+    entrega:
+      entregaAlumno,
+
+    documentos:
+      entregaAlumno.documentos,
+
+    entregas:
+      entregasNormalizadas
+
+  };
+
+}
 
 
-    const entregasMapa =
-      entregasPorEntregable &&
+// ============================================================
+// PREPARAR REVISION DEL ALUMNO
+// ============================================================
+
+export function classroomPrepararRevisionAlumno({
+  courseId,
+  userId,
+  actividades,
+  entregasPorEntregable
+}) {
+
+  const actividadesLista =
+    Array.isArray(
+      actividades
+    )
+      ? actividades
+      : [];
+
+
+  const entregasMapa =
+    entregasPorEntregable &&
       typeof entregasPorEntregable === "object"
-        ? entregasPorEntregable
-        : {};
+      ? entregasPorEntregable
+      : {};
 
 
-    const resultado = {
+  const resultado = {
 
-      courseId,
+    courseId,
 
-      userId,
+    userId,
+
+    EN1:
+      null,
+
+    EN2:
+      null,
+
+    EN3:
+      null
+
+  };
+
+
+  ENTREGABLES_OBJETIVO.forEach(
+    codigo => {
+
+      const actividad =
+        actividadesLista.find(
+          item =>
+            classroomReconocerEntregable(
+              item
+            ) === codigo
+        ) ||
+        null;
+
+
+      resultado[codigo] =
+        classroomPrepararRevisionEntregable({
+
+          courseId,
+
+          userId,
+
+          codigo,
+
+          actividad,
+
+          entregas:
+            entregasMapa[codigo] || []
+
+        });
+
+    }
+  );
+
+
+  return resultado;
+
+}
+
+
+// ============================================================
+// RESUMEN DE REVISION
+// ============================================================
+
+export function classroomResumenRevisionAlumno(
+  revision
+) {
+
+  if (
+    !revision ||
+    typeof revision !== "object"
+  ) {
+
+    return {
+
+      total:
+        3,
+
+      conEntrega:
+        0,
+
+      sinEntrega:
+        3,
+
+      documentos:
+        0
+
+    };
+
+  }
+
+
+  let conEntrega = 0;
+
+  let documentos = 0;
+
+
+  ENTREGABLES_OBJETIVO.forEach(
+    codigo => {
+
+      const item =
+        revision[codigo];
+
+
+      if (
+        item?.tieneEntrega
+      ) {
+
+        conEntrega++;
+
+      }
+
+
+      if (
+        Array.isArray(
+          item?.documentos
+        )
+      ) {
+
+        documentos +=
+          item.documentos.length;
+
+      }
+
+    }
+  );
+
+
+  return {
+
+    total:
+      3,
+
+    conEntrega,
+
+    sinEntrega:
+      3 - conEntrega,
+
+    documentos
+
+  };
+
+}
+
+
+// ============================================================
+// TEST — ESTRUCTURA DE UN TEMA
+// ============================================================
+
+export async function classroomTestEstructuraTema(
+  courseId,
+  topicId
+) {
+
+  try {
+
+    const temas =
+      await classroomObtenerTemas(
+        courseId
+      );
+
+
+    const tema =
+      temas.find(
+        item =>
+          classroomObtenerTopicId(
+            item
+          ) ===
+          String(topicId)
+      );
+
+
+    if (!tema) {
+
+      throw new Error(
+        "No se encontró el tema solicitado."
+      );
+
+    }
+
+
+    const actividadesTema =
+      await classroomObtenerActividadesPorTema(
+        courseId,
+        topicId
+      );
+
+
+    const entregables = {
 
       EN1:
         null,
@@ -2021,105 +2204,21 @@
     };
 
 
-    ENTREGABLES_OBJETIVO.forEach(
-      codigo => {
+    actividadesTema.forEach(
+      actividad => {
 
-        const actividad =
-          actividadesLista.find(
-            item =>
-              classroomReconocerEntregable(
-                item
-              ) === codigo
-          ) ||
-          null;
-
-
-        resultado[codigo] =
-          classroomPrepararRevisionEntregable({
-
-            courseId,
-
-            userId,
-
-            codigo,
-
-            actividad,
-
-            entregas:
-              entregasMapa[codigo] || []
-
-          });
-
-      }
-    );
-
-
-    return resultado;
-
-  }
-
-
-  // ============================================================
-  // RESUMEN DE REVISION
-  // ============================================================
-
-  export function classroomResumenRevisionAlumno(
-    revision
-  ) {
-
-    if (
-      !revision ||
-      typeof revision !== "object"
-    ) {
-
-      return {
-
-        total:
-          3,
-
-        conEntrega:
-          0,
-
-        sinEntrega:
-          3,
-
-        documentos:
-          0
-
-      };
-
-    }
-
-
-    let conEntrega = 0;
-
-    let documentos = 0;
-
-
-    ENTREGABLES_OBJETIVO.forEach(
-      codigo => {
-
-        const item =
-          revision[codigo];
+        const codigo =
+          classroomReconocerEntregable(
+            actividad
+          );
 
 
         if (
-          item?.tieneEntrega
+          codigo
         ) {
 
-          conEntrega++;
-
-        }
-
-
-        if (
-          Array.isArray(
-            item?.documentos
-          )
-        ) {
-
-          documentos +=
-            item.documentos.length;
+          entregables[codigo] =
+            actividad;
 
         }
 
@@ -2129,271 +2228,721 @@
 
     return {
 
-      total:
-        3,
+      ok:
+        true,
 
-      conEntrega,
+      courseId,
 
-      sinEntrega:
-        3 - conEntrega,
+      topicId,
 
-      documentos
+      tema,
+
+      totalActividades:
+        actividadesTema.length,
+
+      actividades:
+        actividadesTema,
+
+      entregables
+
+    };
+
+  }
+  catch (error) {
+
+    classroomError(
+      "❌ ERROR TEST ESTRUCTURA:",
+      error
+    );
+
+
+    return {
+
+      ok:
+        false,
+
+      courseId,
+
+      topicId,
+
+      error:
+        error?.message ||
+        String(error)
+
+    };
+
+  }
+
+}
+
+// ============================================================
+// ANALIZAR DOCUMENTO ENTREGADO POR CLASSROOM
+//
+// Conecta Classroom con el motor de análisis.
+//
+// FLUJO:
+//
+// Classroom Submission
+//        ↓
+// Documento entregado
+//        ↓
+// analizarDocumento()
+//        ↓
+// resultado del análisis
+//
+// IMPORTANTE:
+// Esta función NO califica Classroom.
+// Solamente analiza el documento.
+//
+// ============================================================
+
+export async function classroomAnalizarDocumentoEntregado({
+  codigo,
+  documento,
+  courseId = "",
+  courseWorkId = "",
+  userId = ""
+}) {
+
+  // ----------------------------------------------------------
+  // VALIDAR CÓDIGO
+  // ----------------------------------------------------------
+
+  const codigoNormalizado =
+    String(
+      codigo || ""
+    )
+      .trim()
+      .toUpperCase();
+
+
+  if (
+    !ENTREGABLES_OBJETIVO.includes(
+      codigoNormalizado
+    )
+  ) {
+
+    throw new Error(
+      "Código de entregable inválido. Debe ser EN1, EN2 o EN3."
+    );
+
+  }
+
+
+  // ----------------------------------------------------------
+  // VALIDAR DOCUMENTO
+  // ----------------------------------------------------------
+
+  if (
+    !documento ||
+    typeof documento !== "object"
+  ) {
+
+    return {
+
+      ok:
+        false,
+
+      codigo:
+        codigoNormalizado,
+
+      tieneDocumento:
+        false,
+
+      analisis:
+        null,
+
+      descuento:
+        null,
+
+      puntaje:
+        null,
+
+      error:
+        "No se recibió un documento."
 
     };
 
   }
 
 
-  // ============================================================
-  // TEST — ESTRUCTURA DE UN TEMA
-  // ============================================================
+  // ----------------------------------------------------------
+  // OBTENER URL
+  // ----------------------------------------------------------
 
-  export async function classroomTestEstructuraTema(
-    courseId,
-    topicId
-  ) {
-
-    try {
-
-      const temas =
-        await classroomObtenerTemas(
-          courseId
-        );
+  const url =
+    String(
+      documento.url ||
+      documento.alternateLink ||
+      documento.webViewLink ||
+      ""
+    ).trim();
 
 
-      const tema =
-        temas.find(
-          item =>
-            classroomObtenerTopicId(
-              item
-            ) ===
-            String(topicId)
-        );
+  if (!url) {
 
+    return {
 
-      if (!tema) {
+      ok:
+        false,
 
-        throw new Error(
-          "No se encontró el tema solicitado."
-        );
+      codigo:
+        codigoNormalizado,
 
-      }
+      tieneDocumento:
+        false,
 
+      documento,
 
-      const actividadesTema =
-        await classroomObtenerActividadesPorTema(
-          courseId,
-          topicId
-        );
+      analisis:
+        null,
 
+      descuento:
+        null,
 
-      const entregables = {
+      puntaje:
+        null,
 
-        EN1:
-          null,
+      error:
+        "El documento entregado no tiene URL."
 
-        EN2:
-          null,
-
-        EN3:
-          null
-
-      };
-
-
-      actividadesTema.forEach(
-        actividad => {
-
-          const codigo =
-            classroomReconocerEntregable(
-              actividad
-            );
-
-
-          if (
-            codigo
-          ) {
-
-            entregables[codigo] =
-              actividad;
-
-          }
-
-        }
-      );
-
-
-      return {
-
-        ok:
-          true,
-
-        courseId,
-
-        topicId,
-
-        tema,
-
-        totalActividades:
-          actividadesTema.length,
-
-        actividades:
-          actividadesTema,
-
-        entregables
-
-      };
-
-    }
-    catch (error) {
-
-      classroomError(
-        "❌ ERROR TEST ESTRUCTURA:",
-        error
-      );
-
-
-      return {
-
-        ok:
-          false,
-
-        courseId,
-
-        topicId,
-
-        error:
-          error?.message ||
-          String(error)
-
-      };
-
-    }
+    };
 
   }
 
 
-  // ============================================================
-  // ANALIZAR ENTREGABLE DE ALUMNO
-  // ============================================================
+  // ----------------------------------------------------------
+  // LOG
+  // ----------------------------------------------------------
+
+  classroomLog(
+    "============================================================"
+  );
+
+  classroomLog(
+    "📄 ANALIZANDO DOCUMENTO DE CLASSROOM"
+  );
+
+  classroomLog(
+    "CÓDIGO:",
+    codigoNormalizado
+  );
+
+  classroomLog(
+    "COURSE ID:",
+    courseId
+  );
+
+  classroomLog(
+    "COURSEWORK ID:",
+    courseWorkId
+  );
+
+  classroomLog(
+    "USER ID:",
+    userId
+  );
+
+  classroomLog(
+    "DOCUMENTO:",
+    documento.title ||
+    documento.name ||
+    ""
+  );
+
+  classroomLog(
+    "URL:",
+    url
+  );
+
+
+  // ----------------------------------------------------------
+  // ANALIZAR DOCUMENTO
   //
-  // Esta función todavía NO aplica lineamientos de IA/documento.
-  // Prepara toda la información necesaria.<
-  // ============================================================
+  // ESTA ES LA CONEXIÓN IMPORTANTE.
+  // ----------------------------------------------------------
 
-  export async function classroomAnalizarEntregableAlumno({
+  let resultadoAnalisis;
+
+
+  try {
+
+    resultadoAnalisis =
+      await analizarDocumento({
+
+        url
+
+      });
+
+  }
+  catch (error) {
+
+    classroomError(
+      "❌ ERROR ANALIZANDO DOCUMENTO:",
+      error
+    );
+
+
+    return {
+
+      ok:
+        false,
+
+      codigo:
+        codigoNormalizado,
+
+      tieneDocumento:
+        true,
+
+      documento,
+
+      analisis:
+        null,
+
+      descuento:
+        null,
+
+      puntaje:
+        null,
+
+      error:
+        error?.message ||
+        String(error)
+
+    };
+
+  }
+
+
+  // ----------------------------------------------------------
+  // OBTENER DESCUENTO
+  //
+  // IMPORTANTE:
+  //
+  // Aquí conectamos el resultado del análisis
+  // con el sistema de descuentos.
+  //
+  // Si tu analizarDocumento() ya devuelve "descuento",
+  // lo utilizamos directamente.
+  //
+  // Si no lo devuelve, inicialmente usamos 0.
+  // ----------------------------------------------------------
+
+  let descuento = 0;
+
+
+  if (
+    resultadoAnalisis &&
+    resultadoAnalisis.descuento !== undefined &&
+    resultadoAnalisis.descuento !== null
+  ) {
+
+    descuento =
+      Number(
+        resultadoAnalisis.descuento
+      );
+
+  }
+
+
+  // ----------------------------------------------------------
+  // VALIDAR DESCUENTO
+  // ----------------------------------------------------------
+
+  if (
+    !Number.isFinite(
+      descuento
+    )
+  ) {
+
+    descuento = 0;
+
+  }
+
+
+  // ----------------------------------------------------------
+  // CALCULAR PUNTAJE
+  // ----------------------------------------------------------
+
+  const resultadoPuntaje =
+    classroomCalcularPuntajeEntregable({
+
+      codigo:
+        codigoNormalizado,
+
+      descuento
+
+    });
+
+
+  // ----------------------------------------------------------
+  // RESULTADO
+  // ----------------------------------------------------------
+
+  const resultado = {
+
+    ok:
+      true,
+
+    codigo:
+      codigoNormalizado,
+
     courseId,
+
     courseWorkId,
+
     userId,
-    codigo
-  }) {
 
-    if (!courseId) {
+    tieneDocumento:
+      true,
 
-      throw new Error(
-        "Debe especificarse courseId."
-      );
+    documento,
 
-    }
+    analisis:
+      resultadoAnalisis,
 
+    descuento:
+      resultadoPuntaje.descuento,
 
-    if (!courseWorkId) {
+    puntaje:
+      resultadoPuntaje.puntaje,
 
-      throw new Error(
-        "Debe especificarse courseWorkId."
-      );
+    valorMaximo:
+      resultadoPuntaje.valorMaximo
 
-    }
-
-
-    if (!userId) {
-
-      throw new Error(
-        "Debe especificarse userId."
-      );
-
-    }
+  };
 
 
-    const codigoNormalizado =
-      String(
-        codigo || ""
-      )
-        .trim()
-        .toUpperCase();
+  classroomLog(
+    "📊 RESULTADO ANÁLISIS:",
+    resultado
+  );
 
 
-    if (
-      !ENTREGABLES_OBJETIVO.includes(
-        codigoNormalizado
-      )
-    ) {
+  return resultado;
 
-      throw new Error(
-        "El entregable debe ser EN1, EN2 o EN3."
-      );
+}
 
-    }
+// ============================================================
+// ANALIZAR ENTREGABLE DE ALUMNO
+// ============================================================
+//
+// Esta función todavía NO aplica lineamientos de IA/documento.
+// Prepara toda la información necesaria.<
+// ============================================================
+
+// ============================================================
+// ANALIZAR ENTREGABLE DE ALUMNO
+//
+// FLUJO:
+//
+// Classroom
+//    ↓
+// Submission
+//    ↓
+// Documento
+//    ↓
+// analizarDocumento()
+//    ↓
+// Descuento
+//    ↓
+// Puntaje EN1 / EN2 / EN3
+//
+// ============================================================
+
+// ============================================================
+// ANALIZAR ENTREGABLE DE ALUMNO
+//
+// FLUJO:
+//
+// CLASSROOM
+//   ↓
+// SUBMISSION
+//   ↓
+// DOCUMENTO
+//   ↓
+// teacherService.analizarDocumento()
+//   ↓
+// ANÁLISIS
+//   ↓
+// DESCUENTO
+//   ↓
+// PUNTAJE DEL ENTREGABLE
+//
+// IMPORTANTE:
+// Esta función NO envía la nota al Revisor.
+// Solamente analiza el entregable.
+// ============================================================
+
+// ============================================================
+// ANALIZAR ENTREGABLE DE ALUMNO
+// ============================================================
+//
+// FLUJO:
+//
+// Classroom
+//    ↓
+// Submission
+//    ↓
+// Documento
+//    ↓
+// teacherService.analizarDocumento()
+//    ↓
+// análisis
+//
+// IMPORTANTE:
+//
+// Esta función NO modifica Classroom.
+//
+// Solamente obtiene la entrega y analiza el documento.
+//
+// La calificación se realiza posteriormente.
+// ============================================================
+
+export async function classroomAnalizarEntregableAlumno({
+  courseId,
+  courseWorkId,
+  userId,
+  codigo
+}) {
+
+  // ----------------------------------------------------------
+  // VALIDAR COURSE ID
+  // ----------------------------------------------------------
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
 
 
-    const submission =
-      await classroomBuscarSubmission(
-        courseId,
-        courseWorkId,
-        userId
-      );
+  // ----------------------------------------------------------
+  // VALIDAR COURSEWORK ID
+  // ----------------------------------------------------------
+
+  if (!courseWorkId) {
+
+    throw new Error(
+      "Debe especificarse courseWorkId."
+    );
+
+  }
 
 
-    if (!submission) {
+  // ----------------------------------------------------------
+  // VALIDAR USER ID
+  // ----------------------------------------------------------
 
-      return {
+  if (!userId) {
 
-        ok:
-          true,
+    throw new Error(
+      "Debe especificarse userId."
+    );
 
-        tieneEntrega:
-          false,
-
-        codigo:
-          codigoNormalizado,
-
-        courseId,
-
-        courseWorkId,
-
-        userId,
-
-        submission:
-          null,
-
-        documentos:
-          [],
-
-        analisis:
-          null,
-
-        descuento:
-          null,
-
-        puntaje:
-          0
-
-      };
-
-    }
+  }
 
 
-    const entrega =
-      classroomNormalizarEntrega(
-        submission,
-        courseId,
-        courseWorkId
-      );
+  // ----------------------------------------------------------
+  // NORMALIZAR CÓDIGO
+  // ----------------------------------------------------------
+
+  const codigoNormalizado =
+    String(
+      codigo || ""
+    )
+      .trim()
+      .toUpperCase();
 
 
-    const documentos =
-      entrega?.documentos || [];
+  // ----------------------------------------------------------
+  // VALIDAR ENTREGABLE
+  // ----------------------------------------------------------
 
+  if (
+    !ENTREGABLES_OBJETIVO.includes(
+      codigoNormalizado
+    )
+  ) {
+
+    throw new Error(
+      "El entregable debe ser EN1, EN2 o EN3."
+    );
+
+  }
+
+
+  // ----------------------------------------------------------
+  // BUSCAR SUBMISSION EN CLASSROOM
+  // ----------------------------------------------------------
+
+  const submission =
+    await classroomBuscarSubmission(
+      courseId,
+      courseWorkId,
+      userId
+    );
+
+
+  // ----------------------------------------------------------
+  // EL ALUMNO NO ENTREGÓ
+  // ----------------------------------------------------------
+
+  if (!submission) {
+
+    return {
+
+      ok:
+        true,
+
+      tieneEntrega:
+        false,
+
+      codigo:
+        codigoNormalizado,
+
+      courseId,
+
+      courseWorkId,
+
+      userId,
+
+      submission:
+        null,
+
+      documentos:
+        [],
+
+      tieneDocumento:
+        false,
+
+      documento:
+        null,
+
+      analisis:
+        null,
+
+      descuento:
+        null,
+
+      puntaje:
+        0,
+
+      estado:
+        "SIN_ENTREGA"
+
+    };
+
+  }
+
+
+  // ----------------------------------------------------------
+  // NORMALIZAR ENTREGA
+  // ----------------------------------------------------------
+
+  const entrega =
+    classroomNormalizarEntrega(
+      submission,
+      courseId,
+      courseWorkId
+    );
+
+
+  // ----------------------------------------------------------
+  // DOCUMENTOS
+  // ----------------------------------------------------------
+
+  const documentos =
+    entrega?.documentos || [];
+
+
+  // ----------------------------------------------------------
+  // SI NO EXISTE DOCUMENTO
+  // ----------------------------------------------------------
+
+  if (
+    documentos.length === 0
+  ) {
+
+    return {
+
+      ok:
+        true,
+
+      tieneEntrega:
+        true,
+
+      codigo:
+        codigoNormalizado,
+
+      courseId,
+
+      courseWorkId,
+
+      userId,
+
+      submission:
+        entrega,
+
+      estado:
+        entrega?.estado || "",
+
+      documentos:
+        [],
+
+      tieneDocumento:
+        false,
+
+      documento:
+        null,
+
+      analisis:
+        null,
+
+      descuento:
+        null,
+
+      puntaje:
+        0,
+
+      estadoAnalisis:
+        "SIN_DOCUMENTO"
+
+    };
+
+  }
+
+
+  // ----------------------------------------------------------
+  // BUSCAR DOCUMENTO ANALIZABLE
+  // ----------------------------------------------------------
+  //
+  // Preferimos un documento que tenga URL.
+  // ----------------------------------------------------------
+
+  const documento =
+    documentos.find(
+      item =>
+        item &&
+        item.url &&
+        String(item.url).trim()
+    ) ||
+    documentos[0];
+
+
+  // ----------------------------------------------------------
+  // VALIDAR URL
+  // ----------------------------------------------------------
+
+  const urlDocumento =
+    String(
+      documento?.url || ""
+    ).trim();
+
+
+  if (!urlDocumento) {
 
     return {
 
@@ -2421,7 +2970,9 @@
       documentos,
 
       tieneDocumento:
-        documentos.length > 0,
+        true,
+
+      documento,
 
       analisis:
         null,
@@ -2430,1121 +2981,1492 @@
         null,
 
       puntaje:
-        null
+        null,
+
+      estadoAnalisis:
+        "DOCUMENTO_SIN_URL"
 
     };
 
   }
 
 
-  // ============================================================
-  // ANALIZAR LOS 3 ENTREGABLES
-  // ============================================================
+  // ----------------------------------------------------------
+  // ANALIZAR DOCUMENTO
+  // ----------------------------------------------------------
+  //
+  // AQUÍ SE CONECTA CLASSROOM CON TEACHER SERVICE.
+  //
+  // NO duplicamos analizarDocumento().
+  //
+  // Usamos:
+  //
+  // teacherService
+  //       ↓
+  // analizarDocumento(url)
+  //
+  // ----------------------------------------------------------
 
-  export async function classroomAnalizarEntregablesAlumno({
+  classroomLog(
+    "📄 ANALIZANDO DOCUMENTO DEL ESTUDIANTE:",
+    {
+      codigo:
+        codigoNormalizado,
+
+      userId,
+
+      courseId,
+
+      courseWorkId,
+
+      url:
+        urlDocumento
+    }
+  );
+
+
+  let analisis = null;
+
+
+  try {
+
+    analisis =
+      await analizarDocumento(
+        urlDocumento
+      );
+
+  }
+  catch (error) {
+
+    classroomError(
+      "❌ ERROR ANALIZANDO DOCUMENTO:",
+      error
+    );
+
+
+    return {
+
+      ok:
+        false,
+
+      tieneEntrega:
+        true,
+
+      codigo:
+        codigoNormalizado,
+
+      courseId,
+
+      courseWorkId,
+
+      userId,
+
+      submission:
+        entrega,
+
+      estado:
+        entrega?.estado || "",
+
+      documentos,
+
+      tieneDocumento:
+        true,
+
+      documento,
+
+      analisis:
+        null,
+
+      descuento:
+        null,
+
+      puntaje:
+        null,
+
+      estadoAnalisis:
+        "ERROR_ANALISIS",
+
+      error:
+        error?.message ||
+        String(error)
+
+    };
+
+  }
+
+
+  // ----------------------------------------------------------
+  // RESULTADO
+  // ----------------------------------------------------------
+
+  return {
+
+    ok:
+      true,
+
+    tieneEntrega:
+      true,
+
+    codigo:
+      codigoNormalizado,
+
     courseId,
+
+    courseWorkId,
+
     userId,
-    courseWorkIds
-  }) {
 
-    if (!courseId) {
+    submission:
+      entrega,
 
-      throw new Error(
-        "Debe especificarse courseId."
+    estado:
+      entrega?.estado || "",
+
+    documentos,
+
+    tieneDocumento:
+      true,
+
+    documento,
+
+    analisis,
+
+    descuento:
+      null,
+
+    puntaje:
+      null,
+
+    estadoAnalisis:
+      "ANALIZADO"
+
+  };
+
+}
+// ============================================================
+// TEST — ANALIZAR DOCUMENTO DESDE CLASSROOM
+// ============================================================
+//
+// IMPORTANTE:
+// Este test:
+//
+// 1. NO modifica Google Classroom.
+// 2. NO asigna calificaciones.
+// 3. NO envía notas.
+// 4. Solamente toma una URL de Google Docs.
+// 5. Llama a analizarDocumento() del teacherService.
+// 6. Muestra TODO lo que devuelve.
+//
+// ============================================================
+
+export async function classroomTestAnalizarDocumento({
+  url
+}) {
+
+  console.log(
+    "============================================================"
+  );
+
+  console.log(
+    "🧪 TEST — ANALIZAR DOCUMENTO DESDE CLASSROOM"
+  );
+
+  console.log(
+    "============================================================"
+  );
+
+
+  // ----------------------------------------------------------
+  // VALIDAR URL
+  // ----------------------------------------------------------
+
+  if (
+    !url ||
+    !String(url).trim()
+  ) {
+
+    throw new Error(
+      "Debe especificarse la URL del documento."
+    );
+
+  }
+
+
+  const urlLimpia =
+    String(url).trim();
+
+
+  console.log(
+    "📄 URL DEL DOCUMENTO:"
+  );
+
+  console.log(
+    urlLimpia
+  );
+
+
+  console.log(
+    "------------------------------------------------------------"
+  );
+
+
+  try {
+
+    // --------------------------------------------------------
+    // LLAMAR AL TEACHER SERVICE
+    // --------------------------------------------------------
+
+    const resultado =
+      await analizarDocumento(
+        urlLimpia
       );
 
-    }
+
+    // --------------------------------------------------------
+    // MOSTRAR RESULTADO COMPLETO
+    // --------------------------------------------------------
+
+    console.log(
+      "✅ ANALIZAR DOCUMENTO RESPONDIÓ:"
+    );
 
 
-    if (!userId) {
+    console.log(
+      resultado
+    );
 
-      throw new Error(
-        "Debe especificarse userId."
-      );
 
-    }
+    console.log(
+      "------------------------------------------------------------"
+    );
 
+
+    console.log(
+      "📦 JSON COMPLETO:"
+    );
+
+
+    console.log(
+      JSON.stringify(
+        resultado,
+        null,
+        2
+      )
+    );
+
+
+    console.log(
+      "------------------------------------------------------------"
+    );
+
+
+    // --------------------------------------------------------
+    // MOSTRAR TIPO DE RESPUESTA
+    // --------------------------------------------------------
+
+    console.log(
+      "TIPO:",
+      typeof resultado
+    );
+
+
+    // --------------------------------------------------------
+    // MOSTRAR PROPIEDADES
+    // --------------------------------------------------------
 
     if (
-      !courseWorkIds ||
-      typeof courseWorkIds !== "object"
+      resultado &&
+      typeof resultado === "object"
     ) {
 
-      throw new Error(
-        "Debe especificarse courseWorkIds."
+      console.log(
+        "PROPIEDADES PRINCIPALES:",
+        Object.keys(resultado)
       );
 
     }
 
 
-    const resultado = {
+    // --------------------------------------------------------
+    // MOSTRAR CAMPOS QUE NOS INTERESAN
+    // --------------------------------------------------------
+
+    console.log(
+      "RESUMEN:",
+      resultado?.resumen
+    );
+
+
+    console.log(
+      "PUNTAJE:",
+      resultado?.puntaje
+    );
+
+
+    console.log(
+      "DESCUENTO:",
+      resultado?.descuento
+    );
+
+
+    console.log(
+      "CRITERIOS:",
+      resultado?.criterios
+    );
+
+
+    console.log(
+      "RESULTADOS:",
+      resultado?.resultados
+    );
+
+
+    console.log(
+      "------------------------------------------------------------"
+    );
+
+
+    // --------------------------------------------------------
+    // RETORNAR SIN MODIFICAR
+    // --------------------------------------------------------
+
+    return {
 
       ok:
         true,
 
-      courseId,
+      url:
+        urlLimpia,
 
-      userId,
-
-      EN1:
-        null,
-
-      EN2:
-        null,
-
-      EN3:
-        null,
-
-      total:
-        0,
-
-      puntajeFinal:
-        null,
-
-      errores:
-        []
+      resultado
 
     };
 
+  }
+  catch (error) {
 
-    for (
-      const codigo
-      of ENTREGABLES_OBJETIVO
-    ) {
-
-      try {
-
-        const courseWorkId =
-          courseWorkIds[codigo] ||
-          courseWorkIds[
-            codigo.toLowerCase()
-          ] ||
-          "";
+    console.error(
+      "❌ ERROR ANALIZANDO DOCUMENTO:"
+    );
 
 
-        if (!courseWorkId) {
-
-          resultado[codigo] = {
-
-            ok:
-              false,
-
-            codigo,
-
-            tieneEntrega:
-              false,
-
-            error:
-              `No se encontró courseWorkId para ${codigo}.`
-
-          };
-
-          continue;
-
-        }
+    console.error(
+      error
+    );
 
 
-        resultado[codigo] =
-          await classroomAnalizarEntregableAlumno({
+    console.error(
+      error?.message ||
+      String(error)
+    );
 
-            courseId,
 
-            courseWorkId,
+    return {
 
-            userId,
+      ok:
+        false,
 
-            codigo
+      url:
+        urlLimpia,
 
-          });
+      error:
+        error?.message ||
+        String(error)
 
-      }
-      catch (error) {
+    };
 
-        resultado.errores.push({
+  }
+
+}
+
+
+// ============================================================
+// ANALIZAR LOS 3 ENTREGABLES
+// ============================================================
+
+export async function classroomAnalizarEntregablesAlumno({
+  courseId,
+  userId,
+  courseWorkIds
+}) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  if (!userId) {
+
+    throw new Error(
+      "Debe especificarse userId."
+    );
+
+  }
+
+
+  if (
+    !courseWorkIds ||
+    typeof courseWorkIds !== "object"
+  ) {
+
+    throw new Error(
+      "Debe especificarse courseWorkIds."
+    );
+
+  }
+
+
+  const resultado = {
+
+    ok:
+      true,
+
+    courseId,
+
+    userId,
+
+    EN1:
+      null,
+
+    EN2:
+      null,
+
+    EN3:
+      null,
+
+    total:
+      0,
+
+    puntajeFinal:
+      null,
+
+    errores:
+      []
+
+  };
+
+
+  for (
+    const codigo
+    of ENTREGABLES_OBJETIVO
+  ) {
+
+    try {
+
+      const courseWorkId =
+        courseWorkIds[codigo] ||
+        courseWorkIds[
+        codigo.toLowerCase()
+        ] ||
+        "";
+
+
+      if (!courseWorkId) {
+
+        resultado[codigo] = {
+
+          ok:
+            false,
 
           codigo,
 
-          error:
-            error?.message ||
-            String(error)
+          tieneEntrega:
+            false,
 
-        });
+          error:
+            `No se encontró courseWorkId para ${codigo}.`
+
+        };
+
+        continue;
 
       }
 
-    }
 
-
-    resultado.total =
-      ENTREGABLES_OBJETIVO
-        .filter(
-          codigo =>
-            resultado[codigo]?.tieneEntrega === true
-        )
-        .length;
-
-
-    resultado.ok =
-      resultado.errores.length === 0;
-
-
-    return resultado;
-
-  }
-
-
-  // ============================================================
-  // CONSTRUIR REVISION
-  // ============================================================
-
-  export function classroomConstruirRevision({
-    codigo,
-    documento,
-    lineamientos = []
-  }) {
-
-    const codigoNormalizado =
-      String(
-        codigo || ""
-      )
-        .trim()
-        .toUpperCase();
-
-
-    if (
-      !ENTREGABLES_OBJETIVO.includes(
-        codigoNormalizado
-      )
-    ) {
-
-      throw new Error(
-        "Código de entregable inválido."
-      );
-
-    }
-
-
-    return {
-
-      codigo:
-        codigoNormalizado,
-
-      valorMaximo:
-        PUNTAJE_POR_ENTREGABLE,
-
-      documento:
-        documento || null,
-
-      tieneDocumento:
-        Boolean(documento),
-
-      criterios:
-        Array.isArray(lineamientos)
-          ? lineamientos
-          : [],
-
-      resultados:
-        [],
-
-      errores:
-        [],
-
-      descuento:
-        0,
-
-      puntaje:
-        PUNTAJE_POR_ENTREGABLE,
-
-      estado:
-        documento
-          ? "PENDIENTE_ANALISIS"
-          : "SIN_DOCUMENTO"
-
-    };
-
-  }
-
-
-  // ============================================================
-  // APLICAR DESCUENTO
-  // ============================================================
-
-  export function classroomAplicarDescuentoEntregable({
-    codigo,
-    descuento
-  }) {
-
-    const codigoNormalizado =
-      String(
-        codigo || ""
-      )
-        .trim()
-        .toUpperCase();
-
-
-    if (
-      !ENTREGABLES_OBJETIVO.includes(
-        codigoNormalizado
-      )
-    ) {
-
-      throw new Error(
-        "Código de entregable inválido."
-      );
-
-    }
-
-
-    const numeroDescuento =
-      Number(
-        descuento
-      );
-
-
-    if (
-      !Number.isFinite(
-        numeroDescuento
-      )
-    ) {
-
-      throw new Error(
-        "El descuento debe ser numérico."
-      );
-
-    }
-
-
-    if (
-      numeroDescuento < 0
-    ) {
-
-      throw new Error(
-        "El descuento no puede ser negativo."
-      );
-
-    }
-
-
-    const descuentoSeguro =
-      Math.min(
-        numeroDescuento,
-        PUNTAJE_POR_ENTREGABLE
-      );
-
-
-    const puntaje =
-      Math.max(
-        0,
-        PUNTAJE_POR_ENTREGABLE -
-        descuentoSeguro
-      );
-
-
-    return {
-
-      codigo:
-        codigoNormalizado,
-
-      valorMaximo:
-        PUNTAJE_POR_ENTREGABLE,
-
-      descuento:
-        descuentoSeguro,
-
-      puntaje
-
-    };
-
-  }
-
-
-  // ============================================================
-  // CALCULAR PUNTAJE DE UN ENTREGABLE
-  // ============================================================
-  //
-  // ÚNICA declaración de esta función.
-  // ============================================================
-
-  export function classroomCalcularPuntajeEntregable({
-    codigo,
-    descuento = 0
-  }) {
-
-    return classroomAplicarDescuentoEntregable({
-
-      codigo,
-
-      descuento
-
-    });
-
-  }
-
-
-  // ============================================================
-  // CALCULAR NOTA FINAL
-  // ============================================================
-  //
-  // ÚNICA declaración de esta función.
-  // ============================================================
-
-  export function classroomCalcularNotaFinal({
-    EN1 = {},
-    EN2 = {},
-    EN3 = {}
-  }) {
-
-    const puntajeEN1 =
-      Number(
-        EN1?.puntaje
-      ) || 0;
-
-
-    const puntajeEN2 =
-      Number(
-        EN2?.puntaje
-      ) || 0;
-
-
-    const puntajeEN3 =
-      Number(
-        EN3?.puntaje
-      ) || 0;
-
-
-    const descuentoEN1 =
-      Number(
-        EN1?.descuento
-      ) || 0;
-
-
-    const descuentoEN2 =
-      Number(
-        EN2?.descuento
-      ) || 0;
-
-
-    const descuentoEN3 =
-      Number(
-        EN3?.descuento
-      ) || 0;
-
-
-    const puntajeFinal =
-      puntajeEN1 +
-      puntajeEN2 +
-      puntajeEN3;
-
-
-    const descuentoTotal =
-      descuentoEN1 +
-      descuentoEN2 +
-      descuentoEN3;
-
-
-    return {
-
-      EN1: {
-
-        puntaje:
-          puntajeEN1,
-
-        descuento:
-          descuentoEN1
-
-      },
-
-      EN2: {
-
-        puntaje:
-          puntajeEN2,
-
-        descuento:
-          descuentoEN2
-
-      },
-
-      EN3: {
-
-        puntaje:
-          puntajeEN3,
-
-        descuento:
-          descuentoEN3
-
-      },
-
-      descuentoTotal,
-
-      puntajeFinal,
-
-      puntajeMaximo:
-        PUNTAJE_POR_ENTREGABLE * 3,
-
-      estado:
-        "PENDIENTE_ENVIO"
-
-    };
-
-  }
-
-
-  // ============================================================
-  // CONSTRUIR RESULTADO FINAL
-  // ============================================================
-  //
-  // Alias de alto nivel que utiliza classroomCalcularNotaFinal.
-  // ============================================================
-
-  export function classroomConstruirResultadoFinal({
-    EN1,
-    EN2,
-    EN3
-  }) {
-
-    return classroomCalcularNotaFinal({
-
-      EN1,
-
-      EN2,
-
-      EN3
-
-    });
-
-  }
-
-
-  // ============================================================
-  // PREPARAR CALIFICACIÓN DEL REVISOR
-  // ============================================================
-
-  export function classroomPrepararCalificacionRevisor({
-    courseId,
-    userId,
-    revisorCourseWorkId,
-    resultadoFinal
-  }) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
-
-
-    if (!userId) {
-
-      throw new Error(
-        "Debe especificarse userId."
-      );
-
-    }
-
-
-    if (!revisorCourseWorkId) {
-
-      throw new Error(
-        "Debe especificarse revisorCourseWorkId."
-      );
-
-    }
-
-
-    if (!resultadoFinal) {
-
-      throw new Error(
-        "Debe especificarse resultadoFinal."
-      );
-
-    }
-
-
-    const puntaje =
-      Number(
-        resultadoFinal.puntajeFinal
-      );
-
-
-    if (
-      !Number.isFinite(puntaje)
-    ) {
-
-      throw new Error(
-        "El puntaje final no es válido."
-      );
-
-    }
-
-
-    return {
-
-      courseId,
-
-      userId,
-
-      courseWorkId:
-        revisorCourseWorkId,
-
-      puntaje,
-
-      puntajeMaximo:
-        PUNTAJE_POR_ENTREGABLE * 3,
-
-      EN1:
-        resultadoFinal.EN1,
-
-      EN2:
-        resultadoFinal.EN2,
-
-      EN3:
-        resultadoFinal.EN3,
-
-      descuentoTotal:
-        resultadoFinal.descuentoTotal,
-
-      listoParaEnviar:
-        true,
-
-      enviado:
-        false
-
-    };
-
-  }
-
-
-  // ============================================================
-  // ASIGNAR CALIFICACIÓN
-  // ============================================================
-  //
-  // Esta función sí realiza una escritura en Classroom a través
-  // del Apps Script.
-  //
-  // IMPORTANTE:
-  // El backend debe tener la acción:
-  // classroomAsignarCalificacion
-  // ============================================================
-
-  export async function classroomAsignarCalificacion(
-    courseId,
-    courseWorkId,
-    studentSubmissionId,
-    grade
-  ) {
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
-
-
-    if (!courseWorkId) {
-
-      throw new Error(
-        "Debe especificarse courseWorkId."
-      );
-
-    }
-
-
-    if (!studentSubmissionId) {
-
-      throw new Error(
-        "Debe especificarse studentSubmissionId."
-      );
-
-    }
-
-
-    const puntaje =
-      Number(
-        grade
-      );
-
-
-    if (
-      !Number.isFinite(puntaje)
-    ) {
-
-      throw new Error(
-        "La calificación debe ser numérica."
-      );
-
-    }
-
-
-    const response =
-      await classroomRequest(
-        "classroomAsignarCalificacion",
-        {
+      resultado[codigo] =
+        await classroomAnalizarEntregableAlumno({
 
           courseId,
 
           courseWorkId,
 
-          studentSubmissionId,
-
-          grade:
-            puntaje
-
-        }
-      );
-
-
-    return classroomExtraerData(
-      response,
-      response
-    );
-
-  }
-  // ============================================================
-  // ENVÍO FINAL AL REVISOR
-  //
-  // IMPORTANTE:
-  //
-  // Esta función NO se ejecuta automáticamente.
-  //
-  // El flujo esperado es:
-  //
-  // EN1 → puntaje EN1
-  // EN2 → puntaje EN2
-  // EN3 → puntaje EN3
-  //
-  // NOTA FINAL:
-  //
-  // EN1 + EN2 + EN3
-  //
-  // Después:
-  //
-  // NOTA FINAL
-  //      ↓
-  // REVISOR DE INFORMES
-  //      ↓
-  // Google Classroom
-  //
-  // Esta función solamente envía cuando es llamada
-  // explícitamente desde el FRONT.
-  // ============================================================
-
-  export async function classroomEnviarNotaFinalRevisor({
-
-    courseId,
-
-    userId,
-
-    courseWorkIdRevisor,
-
-    notaFinal
-
-  }) {
-
-    // ----------------------------------------------------------
-    // VALIDAR COURSE ID
-    // ----------------------------------------------------------
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
-
-
-    // ----------------------------------------------------------
-    // VALIDAR USER ID
-    // ----------------------------------------------------------
-
-    if (!userId) {
-
-      throw new Error(
-        "Debe especificarse userId."
-      );
-
-    }
-
-
-    // ----------------------------------------------------------
-    // VALIDAR ACTIVIDAD REVISOR
-    // ----------------------------------------------------------
-
-    if (!courseWorkIdRevisor) {
-
-      throw new Error(
-        "Debe especificarse courseWorkIdRevisor."
-      );
-
-    }
-
-
-    // ----------------------------------------------------------
-    // VALIDAR NOTA
-    // ----------------------------------------------------------
-
-    if (
-      notaFinal === undefined ||
-      notaFinal === null ||
-      notaFinal === ""
-    ) {
-
-      throw new Error(
-        "Debe especificarse notaFinal."
-      );
-
-    }
-
-
-    const numero =
-      Number(notaFinal);
-
-
-    if (
-      Number.isNaN(numero)
-    ) {
-
-      throw new Error(
-        "La nota final no es válida."
-      );
-
-    }
-
-
-    if (
-      numero < 0
-    ) {
-
-      throw new Error(
-        "La nota final no puede ser negativa."
-      );
-
-    }
-
-
-    // ----------------------------------------------------------
-    // ENVIAR AL BACKEND
-    // ----------------------------------------------------------
-
-    const response =
-      await classroomRequest(
-        "classroomEnviarNotaFinalRevisor",
-        {
-
-          courseId,
-
           userId,
 
-          courseWorkId:
-            courseWorkIdRevisor,
+          codigo
 
-          puntaje:
-            numero
+        });
 
-        }
-      );
+    }
+    catch (error) {
+
+      resultado.errores.push({
+
+        codigo,
+
+        error:
+          error?.message ||
+          String(error)
+
+      });
+
+    }
+
+  }
 
 
-    // ----------------------------------------------------------
-    // RESPUESTA
-    // ----------------------------------------------------------
+  resultado.total =
+    ENTREGABLES_OBJETIVO
+      .filter(
+        codigo =>
+          resultado[codigo]?.tieneEntrega === true
+      )
+      .length;
 
-    return classroomExtraerData(
-      response,
-      null
+
+  resultado.ok =
+    resultado.errores.length === 0;
+
+
+  return resultado;
+
+}
+
+
+// ============================================================
+// CONSTRUIR REVISION
+// ============================================================
+
+export function classroomConstruirRevision({
+  codigo,
+  documento,
+  lineamientos = []
+}) {
+
+  const codigoNormalizado =
+    String(
+      codigo || ""
+    )
+      .trim()
+      .toUpperCase();
+
+
+  if (
+    !ENTREGABLES_OBJETIVO.includes(
+      codigoNormalizado
+    )
+  ) {
+
+    throw new Error(
+      "Código de entregable inválido."
     );
 
   }
 
 
-  // ============================================================
-  // ENVIAR NOTA FINAL DE UN ESTUDIANTE
-  //
-  // ESTA FUNCIÓN ES EL PUNTO PRINCIPAL DEL FLUJO.
-  //
-  // Recibe:
-  //
-  // EN1
-  // EN2
-  // EN3
-  //
-  // y envía:
-  //
-  // EN1 + EN2 + EN3
-  //
-  // a:
-  //
-  // REVISOR DE INFORMES
-  //
-  // NO BUSCA ACTIVIDADES.
-  // NO ANALIZA DOCUMENTOS.
-  // NO MODIFICA EN1/EN2/EN3.
-  //
-  // Solamente recibe la nota final y la envía.
-  // ============================================================
+  return {
 
-  export async function classroomEnviarNotaFinalAlumno({
+    codigo:
+      codigoNormalizado,
+
+    valorMaximo:
+      PUNTAJE_POR_ENTREGABLE,
+
+    documento:
+      documento || null,
+
+    tieneDocumento:
+      Boolean(documento),
+
+    criterios:
+      Array.isArray(lineamientos)
+        ? lineamientos
+        : [],
+
+    resultados:
+      [],
+
+    errores:
+      [],
+
+    descuento:
+      0,
+
+    puntaje:
+      PUNTAJE_POR_ENTREGABLE,
+
+    estado:
+      documento
+        ? "PENDIENTE_ANALISIS"
+        : "SIN_DOCUMENTO"
+
+  };
+
+}
+
+
+// ============================================================
+// APLICAR DESCUENTO
+// ============================================================
+
+export function classroomAplicarDescuentoEntregable({
+  codigo,
+  descuento
+}) {
+
+  const codigoNormalizado =
+    String(
+      codigo || ""
+    )
+      .trim()
+      .toUpperCase();
+
+
+  if (
+    !ENTREGABLES_OBJETIVO.includes(
+      codigoNormalizado
+    )
+  ) {
+
+    throw new Error(
+      "Código de entregable inválido."
+    );
+
+  }
+
+
+  const numeroDescuento =
+    Number(
+      descuento
+    );
+
+
+  if (
+    !Number.isFinite(
+      numeroDescuento
+    )
+  ) {
+
+    throw new Error(
+      "El descuento debe ser numérico."
+    );
+
+  }
+
+
+  if (
+    numeroDescuento < 0
+  ) {
+
+    throw new Error(
+      "El descuento no puede ser negativo."
+    );
+
+  }
+
+
+  const descuentoSeguro =
+    Math.min(
+      numeroDescuento,
+      PUNTAJE_POR_ENTREGABLE
+    );
+
+
+  const puntaje =
+    Math.max(
+      0,
+      PUNTAJE_POR_ENTREGABLE -
+      descuentoSeguro
+    );
+
+
+  return {
+
+    codigo:
+      codigoNormalizado,
+
+    valorMaximo:
+      PUNTAJE_POR_ENTREGABLE,
+
+    descuento:
+      descuentoSeguro,
+
+    puntaje
+
+  };
+
+}
+
+
+// ============================================================
+// CALCULAR PUNTAJE DE UN ENTREGABLE
+// ============================================================
+//
+// ÚNICA declaración de esta función.
+// ============================================================
+
+export function classroomCalcularPuntajeEntregable({
+  codigo,
+  descuento = 0
+}) {
+
+  return classroomAplicarDescuentoEntregable({
+
+    codigo,
+
+    descuento
+
+  });
+
+}
+
+
+// ============================================================
+// CALCULAR NOTA FINAL
+// ============================================================
+//
+// ÚNICA declaración de esta función.
+// ============================================================
+
+export function classroomCalcularNotaFinal({
+  EN1 = {},
+  EN2 = {},
+  EN3 = {}
+}) {
+
+  const puntajeEN1 =
+    Number(
+      EN1?.puntaje
+    ) || 0;
+
+
+  const puntajeEN2 =
+    Number(
+      EN2?.puntaje
+    ) || 0;
+
+
+  const puntajeEN3 =
+    Number(
+      EN3?.puntaje
+    ) || 0;
+
+
+  const descuentoEN1 =
+    Number(
+      EN1?.descuento
+    ) || 0;
+
+
+  const descuentoEN2 =
+    Number(
+      EN2?.descuento
+    ) || 0;
+
+
+  const descuentoEN3 =
+    Number(
+      EN3?.descuento
+    ) || 0;
+
+
+  const puntajeFinal =
+    puntajeEN1 +
+    puntajeEN2 +
+    puntajeEN3;
+
+
+  const descuentoTotal =
+    descuentoEN1 +
+    descuentoEN2 +
+    descuentoEN3;
+
+
+  return {
+
+    EN1: {
+
+      puntaje:
+        puntajeEN1,
+
+      descuento:
+        descuentoEN1
+
+    },
+
+    EN2: {
+
+      puntaje:
+        puntajeEN2,
+
+      descuento:
+        descuentoEN2
+
+    },
+
+    EN3: {
+
+      puntaje:
+        puntajeEN3,
+
+      descuento:
+        descuentoEN3
+
+    },
+
+    descuentoTotal,
+
+    puntajeFinal,
+
+    puntajeMaximo:
+      PUNTAJE_POR_ENTREGABLE * 3,
+
+    estado:
+      "PENDIENTE_ENVIO"
+
+  };
+
+}
+
+
+// ============================================================
+// CONSTRUIR RESULTADO FINAL
+// ============================================================
+//
+// Alias de alto nivel que utiliza classroomCalcularNotaFinal.
+// ============================================================
+
+export function classroomConstruirResultadoFinal({
+  EN1,
+  EN2,
+  EN3
+}) {
+
+  return classroomCalcularNotaFinal({
+
+    EN1,
+
+    EN2,
+
+    EN3
+
+  });
+
+}
+
+
+// ============================================================
+// PREPARAR CALIFICACIÓN DEL REVISOR
+// ============================================================
+
+export function classroomPrepararCalificacionRevisor({
+  courseId,
+  userId,
+  revisorCourseWorkId,
+  resultadoFinal
+}) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  if (!userId) {
+
+    throw new Error(
+      "Debe especificarse userId."
+    );
+
+  }
+
+
+  if (!revisorCourseWorkId) {
+
+    throw new Error(
+      "Debe especificarse revisorCourseWorkId."
+    );
+
+  }
+
+
+  if (!resultadoFinal) {
+
+    throw new Error(
+      "Debe especificarse resultadoFinal."
+    );
+
+  }
+
+
+  const puntaje =
+    Number(
+      resultadoFinal.puntajeFinal
+    );
+
+
+  if (
+    !Number.isFinite(puntaje)
+  ) {
+
+    throw new Error(
+      "El puntaje final no es válido."
+    );
+
+  }
+
+
+  return {
 
     courseId,
 
     userId,
 
-    courseWorkIdRevisor,
+    courseWorkId:
+      revisorCourseWorkId,
 
-    en1,
+    puntaje,
 
-    en2,
+    puntajeMaximo:
+      PUNTAJE_POR_ENTREGABLE * 3,
 
-    en3
+    EN1:
+      resultadoFinal.EN1,
 
-  }) {
+    EN2:
+      resultadoFinal.EN2,
 
-    // ----------------------------------------------------------
-    // VALIDACIONES
-    // ----------------------------------------------------------
+    EN3:
+      resultadoFinal.EN3,
 
-    if (!courseId) {
+    descuentoTotal:
+      resultadoFinal.descuentoTotal,
 
-      throw new Error(
-        "Debe especificarse courseId."
-      );
+    listoParaEnviar:
+      true,
 
-    }
+    enviado:
+      false
 
+  };
 
-    if (!userId) {
-
-      throw new Error(
-        "Debe especificarse userId."
-      );
-
-    }
-
-
-    if (!courseWorkIdRevisor) {
-
-      throw new Error(
-        "Debe especificarse courseWorkIdRevisor."
-      );
-
-    }
+}
 
 
-    if (
-      en1 === undefined ||
-      en1 === null ||
-      en1 === ""
-    ) {
+// ============================================================
+// ASIGNAR CALIFICACIÓN
+// ============================================================
+//
+// Esta función sí realiza una escritura en Classroom a través
+// del Apps Script.
+//
+// IMPORTANTE:
+// El backend debe tener la acción:
+// classroomAsignarCalificacion
+// ============================================================
 
-      throw new Error(
-        "Debe especificarse el puntaje de EN1."
-      );
+export async function classroomAsignarCalificacion(
+  courseId,
+  courseWorkId,
+  studentSubmissionId,
+  grade
+) {
 
-    }
+  if (!courseId) {
 
+    throw new Error(
+      "Debe especificarse courseId."
+    );
 
-    if (
-      en2 === undefined ||
-      en2 === null ||
-      en2 === ""
-    ) {
-
-      throw new Error(
-        "Debe especificarse el puntaje de EN2."
-      );
-
-    }
-
-
-    if (
-      en3 === undefined ||
-      en3 === null ||
-      en3 === ""
-    ) {
-
-      throw new Error(
-        "Debe especificarse el puntaje de EN3."
-      );
-
-    }
+  }
 
 
-    const puntajeEN1 =
-      Number(en1);
+  if (!courseWorkId) {
+
+    throw new Error(
+      "Debe especificarse courseWorkId."
+    );
+
+  }
 
 
-    const puntajeEN2 =
-      Number(en2);
+  if (!studentSubmissionId) {
+
+    throw new Error(
+      "Debe especificarse studentSubmissionId."
+    );
+
+  }
 
 
-    const puntajeEN3 =
-      Number(en3);
-
-
-    // ----------------------------------------------------------
-    // VALIDAR PUNTAJES
-    // ----------------------------------------------------------
-
-    if (
-      Number.isNaN(puntajeEN1)
-    ) {
-
-      throw new Error(
-        "El puntaje de EN1 no es válido."
-      );
-
-    }
-
-
-    if (
-      Number.isNaN(puntajeEN2)
-    ) {
-
-      throw new Error(
-        "El puntaje de EN2 no es válido."
-      );
-
-    }
-
-
-    if (
-      Number.isNaN(puntajeEN3)
-    ) {
-
-      throw new Error(
-        "El puntaje de EN3 no es válido."
-      );
-
-    }
-
-
-    if (
-      puntajeEN1 < 0 ||
-      puntajeEN2 < 0 ||
-      puntajeEN3 < 0
-    ) {
-
-      throw new Error(
-        "Los puntajes de EN1, EN2 y EN3 no pueden ser negativos."
-      );
-
-    }
-
-
-    // ----------------------------------------------------------
-    // CALCULAR NOTA FINAL
-    //
-    // IMPORTANTE:
-    //
-    // NO usamos classroomCalcularNotaFinal()
-    // aquí para evitar duplicar lógica.
-    //
-    // La suma es:
-    //
-    // EN1 + EN2 + EN3
-    // ----------------------------------------------------------
-
-    const notaFinal =
-      puntajeEN1 +
-      puntajeEN2 +
-      puntajeEN3;
-
-
-    // ----------------------------------------------------------
-    // REDONDEO
-    //
-    // Mantiene dos decimales.
-    // ----------------------------------------------------------
-
-    const notaFinalRedondeada =
-      Math.round(
-        notaFinal * 100
-      ) / 100;
-
-
-    console.log(
-      "============================================================"
+  const puntaje =
+    Number(
+      grade
     );
 
 
-    console.log(
-      "📤 ENVÍO NOTA FINAL AL REVISOR"
+  if (
+    !Number.isFinite(puntaje)
+  ) {
+
+    throw new Error(
+      "La calificación debe ser numérica."
+    );
+
+  }
+
+
+  const response =
+    await classroomRequest(
+      "classroomAsignarCalificacion",
+      {
+
+        courseId,
+
+        courseWorkId,
+
+        studentSubmissionId,
+
+        grade:
+          puntaje
+
+      }
     );
 
 
-    console.log(
-      "COURSE ID:",
-      courseId
+  return classroomExtraerData(
+    response,
+    response
+  );
+
+}
+// ============================================================
+// ENVÍO FINAL AL REVISOR
+//
+// IMPORTANTE:
+//
+// Esta función NO se ejecuta automáticamente.
+//
+// El flujo esperado es:
+//
+// EN1 → puntaje EN1
+// EN2 → puntaje EN2
+// EN3 → puntaje EN3
+//
+// NOTA FINAL:
+//
+// EN1 + EN2 + EN3
+//
+// Después:
+//
+// NOTA FINAL
+//      ↓
+// REVISOR DE INFORMES
+//      ↓
+// Google Classroom
+//
+// Esta función solamente envía cuando es llamada
+// explícitamente desde el FRONT.
+// ============================================================
+
+export async function classroomEnviarNotaFinalRevisor({
+
+  courseId,
+
+  userId,
+
+  courseWorkIdRevisor,
+
+  notaFinal
+
+}) {
+
+  // ----------------------------------------------------------
+  // VALIDAR COURSE ID
+  // ----------------------------------------------------------
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
     );
 
+  }
 
-    console.log(
-      "USER ID:",
-      userId
+
+  // ----------------------------------------------------------
+  // VALIDAR USER ID
+  // ----------------------------------------------------------
+
+  if (!userId) {
+
+    throw new Error(
+      "Debe especificarse userId."
     );
 
+  }
 
-    console.log(
-      "COURSEWORK REVISOR:",
-      courseWorkIdRevisor
+
+  // ----------------------------------------------------------
+  // VALIDAR ACTIVIDAD REVISOR
+  // ----------------------------------------------------------
+
+  if (!courseWorkIdRevisor) {
+
+    throw new Error(
+      "Debe especificarse courseWorkIdRevisor."
     );
 
+  }
 
-    console.log(
-      "EN1:",
-      puntajeEN1
+
+  // ----------------------------------------------------------
+  // VALIDAR NOTA
+  // ----------------------------------------------------------
+
+  if (
+    notaFinal === undefined ||
+    notaFinal === null ||
+    notaFinal === ""
+  ) {
+
+    throw new Error(
+      "Debe especificarse notaFinal."
     );
 
+  }
 
-    console.log(
-      "EN2:",
-      puntajeEN2
+
+  const numero =
+    Number(notaFinal);
+
+
+  if (
+    Number.isNaN(numero)
+  ) {
+
+    throw new Error(
+      "La nota final no es válida."
     );
 
+  }
 
-    console.log(
-      "EN3:",
-      puntajeEN3
+
+  if (
+    numero < 0
+  ) {
+
+    throw new Error(
+      "La nota final no puede ser negativa."
     );
 
-
-    console.log(
-      "NOTA FINAL:",
-      notaFinalRedondeada
-    );
+  }
 
 
-    // ----------------------------------------------------------
-    // ENVIAR
-    // ----------------------------------------------------------
+  // ----------------------------------------------------------
+  // ENVIAR AL BACKEND
+  // ----------------------------------------------------------
 
-    const resultado =
-      await classroomEnviarNotaFinalRevisor({
+  const response =
+    await classroomRequest(
+      "classroomEnviarNotaFinalRevisor",
+      {
 
         courseId,
 
         userId,
 
-        courseWorkIdRevisor,
+        courseWorkId:
+          courseWorkIdRevisor,
 
-        notaFinal:
-          notaFinalRedondeada
+        puntaje:
+          numero
 
-      });
+      }
+    );
 
 
-    // ----------------------------------------------------------
-    // RESPUESTA
-    // ----------------------------------------------------------
+  // ----------------------------------------------------------
+  // RESPUESTA
+  // ----------------------------------------------------------
 
-    return {
+  return classroomExtraerData(
+    response,
+    null
+  );
 
-      ok:
-        true,
+}
+
+
+// ============================================================
+// ENVIAR NOTA FINAL DE UN ESTUDIANTE
+//
+// ESTA FUNCIÓN ES EL PUNTO PRINCIPAL DEL FLUJO.
+//
+// Recibe:
+//
+// EN1
+// EN2
+// EN3
+//
+// y envía:
+//
+// EN1 + EN2 + EN3
+//
+// a:
+//
+// REVISOR DE INFORMES
+//
+// NO BUSCA ACTIVIDADES.
+// NO ANALIZA DOCUMENTOS.
+// NO MODIFICA EN1/EN2/EN3.
+//
+// Solamente recibe la nota final y la envía.
+// ============================================================
+
+export async function classroomEnviarNotaFinalAlumno({
+
+  courseId,
+
+  userId,
+
+  courseWorkIdRevisor,
+
+  en1,
+
+  en2,
+
+  en3
+
+}) {
+
+  // ----------------------------------------------------------
+  // VALIDACIONES
+  // ----------------------------------------------------------
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  if (!userId) {
+
+    throw new Error(
+      "Debe especificarse userId."
+    );
+
+  }
+
+
+  if (!courseWorkIdRevisor) {
+
+    throw new Error(
+      "Debe especificarse courseWorkIdRevisor."
+    );
+
+  }
+
+
+  if (
+    en1 === undefined ||
+    en1 === null ||
+    en1 === ""
+  ) {
+
+    throw new Error(
+      "Debe especificarse el puntaje de EN1."
+    );
+
+  }
+
+
+  if (
+    en2 === undefined ||
+    en2 === null ||
+    en2 === ""
+  ) {
+
+    throw new Error(
+      "Debe especificarse el puntaje de EN2."
+    );
+
+  }
+
+
+  if (
+    en3 === undefined ||
+    en3 === null ||
+    en3 === ""
+  ) {
+
+    throw new Error(
+      "Debe especificarse el puntaje de EN3."
+    );
+
+  }
+
+
+  const puntajeEN1 =
+    Number(en1);
+
+
+  const puntajeEN2 =
+    Number(en2);
+
+
+  const puntajeEN3 =
+    Number(en3);
+
+
+  // ----------------------------------------------------------
+  // VALIDAR PUNTAJES
+  // ----------------------------------------------------------
+
+  if (
+    Number.isNaN(puntajeEN1)
+  ) {
+
+    throw new Error(
+      "El puntaje de EN1 no es válido."
+    );
+
+  }
+
+
+  if (
+    Number.isNaN(puntajeEN2)
+  ) {
+
+    throw new Error(
+      "El puntaje de EN2 no es válido."
+    );
+
+  }
+
+
+  if (
+    Number.isNaN(puntajeEN3)
+  ) {
+
+    throw new Error(
+      "El puntaje de EN3 no es válido."
+    );
+
+  }
+
+
+  if (
+    puntajeEN1 < 0 ||
+    puntajeEN2 < 0 ||
+    puntajeEN3 < 0
+  ) {
+
+    throw new Error(
+      "Los puntajes de EN1, EN2 y EN3 no pueden ser negativos."
+    );
+
+  }
+
+
+  // ----------------------------------------------------------
+  // CALCULAR NOTA FINAL
+  //
+  // IMPORTANTE:
+  //
+  // NO usamos classroomCalcularNotaFinal()
+  // aquí para evitar duplicar lógica.
+  //
+  // La suma es:
+  //
+  // EN1 + EN2 + EN3
+  // ----------------------------------------------------------
+
+  const notaFinal =
+    puntajeEN1 +
+    puntajeEN2 +
+    puntajeEN3;
+
+
+  // ----------------------------------------------------------
+  // REDONDEO
+  //
+  // Mantiene dos decimales.
+  // ----------------------------------------------------------
+
+  const notaFinalRedondeada =
+    Math.round(
+      notaFinal * 100
+    ) / 100;
+
+
+  console.log(
+    "============================================================"
+  );
+
+
+  console.log(
+    "📤 ENVÍO NOTA FINAL AL REVISOR"
+  );
+
+
+  console.log(
+    "COURSE ID:",
+    courseId
+  );
+
+
+  console.log(
+    "USER ID:",
+    userId
+  );
+
+
+  console.log(
+    "COURSEWORK REVISOR:",
+    courseWorkIdRevisor
+  );
+
+
+  console.log(
+    "EN1:",
+    puntajeEN1
+  );
+
+
+  console.log(
+    "EN2:",
+    puntajeEN2
+  );
+
+
+  console.log(
+    "EN3:",
+    puntajeEN3
+  );
+
+
+  console.log(
+    "NOTA FINAL:",
+    notaFinalRedondeada
+  );
+
+
+  // ----------------------------------------------------------
+  // ENVIAR
+  // ----------------------------------------------------------
+
+  const resultado =
+    await classroomEnviarNotaFinalRevisor({
 
       courseId,
 
@@ -3552,198 +4474,20 @@
 
       courseWorkIdRevisor,
 
-      en1:
-        puntajeEN1,
-
-      en2:
-        puntajeEN2,
-
-      en3:
-        puntajeEN3,
-
       notaFinal:
-        notaFinalRedondeada,
+        notaFinalRedondeada
 
-      resultado
-
-    };
-
-  }
+    });
 
 
-  // ============================================================
-  // ENVIAR NOTAS FINALES DE VARIOS ESTUDIANTES
-  //
-  // Permite enviar el resultado final del grupo completo.
-  //
-  // IMPORTANTE:
-  //
-  // NO se ejecuta automáticamente.
-  //
-  // El FRONT debe llamarla explícitamente.
-  //
-  // Cada elemento debe tener:
-  //
-  // {
-  //   userId,
-  //   en1,
-  //   en2,
-  //   en3
-  // }
-  // ============================================================
+  // ----------------------------------------------------------
+  // RESPUESTA
+  // ----------------------------------------------------------
 
-  export async function classroomEnviarNotasFinalesGrupo({
+  return {
 
-    courseId,
-
-    courseWorkIdRevisor,
-
-    estudiantes
-
-  }) {
-
-    // ----------------------------------------------------------
-    // VALIDACIONES
-    // ----------------------------------------------------------
-
-    if (!courseId) {
-
-      throw new Error(
-        "Debe especificarse courseId."
-      );
-
-    }
-
-
-    if (!courseWorkIdRevisor) {
-
-      throw new Error(
-        "Debe especificarse courseWorkIdRevisor."
-      );
-
-    }
-
-
-    if (
-      !Array.isArray(estudiantes)
-    ) {
-
-      throw new Error(
-        "estudiantes debe ser un array."
-      );
-
-    }
-
-
-    // ----------------------------------------------------------
-    // RESULTADOS
-    // ----------------------------------------------------------
-
-    const resultados = [];
-
-    const errores = [];
-
-
-    // ----------------------------------------------------------
-    // PROCESAR UNO POR UNO
-    // ----------------------------------------------------------
-
-    for (
-      const estudiante
-      of estudiantes
-    ) {
-
-      try {
-
-        const resultado =
-          await classroomEnviarNotaFinalAlumno({
-
-            courseId,
-
-            userId:
-              estudiante?.userId,
-
-            courseWorkIdRevisor,
-
-            en1:
-              estudiante?.en1,
-
-            en2:
-              estudiante?.en2,
-
-            en3:
-              estudiante?.en3
-
-          });
-
-
-        resultados.push(
-          resultado
-        );
-
-      }
-      catch (error) {
-
-        errores.push({
-
-          userId:
-            estudiante?.userId ||
-            null,
-
-          error:
-            error?.message ||
-            String(error)
-
-        });
-
-      }
-
-    }
-
-
-    // ----------------------------------------------------------
-    // RESULTADO FINAL
-    // ----------------------------------------------------------
-
-    return {
-
-      ok:
-        errores.length === 0,
-
-      total:
-        estudiantes.length,
-
-      enviados:
-        resultados.length,
-
-      errores:
-        errores.length,
-
-      resultados,
-
-      detalleErrores:
-        errores
-
-    };
-
-  }
-
-
-  // ============================================================
-  // TEST — ENVÍO FINAL AL REVISOR
-  //
-  // SOLO DEBE USARSE CUANDO QUIERAS PROBAR EL ENVÍO.
-  //
-  // IMPORTANTE:
-  //
-  // ESTE TEST SÍ MODIFICA GOOGLE CLASSROOM.
-  //
-  // NO LLAMAR AUTOMÁTICAMENTE.
-  //
-  // Se deja separado de los tests de lectura.
-  // ============================================================
-
-  export async function classroomTestEnvioFinalRevisor({
+    ok:
+      true,
 
     courseId,
 
@@ -3751,45 +4495,106 @@
 
     courseWorkIdRevisor,
 
-    en1,
+    en1:
+      puntajeEN1,
 
-    en2,
+    en2:
+      puntajeEN2,
 
-    en3
+    en3:
+      puntajeEN3,
 
-  }) {
+    notaFinal:
+      notaFinalRedondeada,
 
-    if (!courseId) {
+    resultado
 
-      throw new Error(
-        "Debe especificarse courseId."
-      );
+  };
 
-    }
-
-
-    if (!userId) {
-
-      throw new Error(
-        "Debe especificarse userId."
-      );
-
-    }
+}
 
 
-    if (!courseWorkIdRevisor) {
+// ============================================================
+// ENVIAR NOTAS FINALES DE VARIOS ESTUDIANTES
+//
+// Permite enviar el resultado final del grupo completo.
+//
+// IMPORTANTE:
+//
+// NO se ejecuta automáticamente.
+//
+// El FRONT debe llamarla explícitamente.
+//
+// Cada elemento debe tener:
+//
+// {
+//   userId,
+//   en1,
+//   en2,
+//   en3
+// }
+// ============================================================
 
-      throw new Error(
-        "Debe especificarse courseWorkIdRevisor."
-      );
+export async function classroomEnviarNotasFinalesGrupo({
 
-    }
+  courseId,
 
+  courseWorkIdRevisor,
 
-    console.group(
-      "🧪 TEST — ENVÍO FINAL REVISOR"
+  estudiantes
+
+}) {
+
+  // ----------------------------------------------------------
+  // VALIDACIONES
+  // ----------------------------------------------------------
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
     );
 
+  }
+
+
+  if (!courseWorkIdRevisor) {
+
+    throw new Error(
+      "Debe especificarse courseWorkIdRevisor."
+    );
+
+  }
+
+
+  if (
+    !Array.isArray(estudiantes)
+  ) {
+
+    throw new Error(
+      "estudiantes debe ser un array."
+    );
+
+  }
+
+
+  // ----------------------------------------------------------
+  // RESULTADOS
+  // ----------------------------------------------------------
+
+  const resultados = [];
+
+  const errores = [];
+
+
+  // ----------------------------------------------------------
+  // PROCESAR UNO POR UNO
+  // ----------------------------------------------------------
+
+  for (
+    const estudiante
+    of estudiantes
+  ) {
 
     try {
 
@@ -3798,46 +4603,141 @@
 
           courseId,
 
-          userId,
+          userId:
+            estudiante?.userId,
 
           courseWorkIdRevisor,
 
-          en1,
+          en1:
+            estudiante?.en1,
 
-          en2,
+          en2:
+            estudiante?.en2,
 
-          en3
+          en3:
+            estudiante?.en3
 
         });
 
 
-      console.log(
-        "📤 RESULTADO ENVÍO:",
+      resultados.push(
         resultado
       );
-
-
-      console.groupEnd();
-
-
-      return resultado;
 
     }
     catch (error) {
 
-      console.error(
-        "❌ ERROR ENVÍO FINAL:",
-        error
-      );
+      errores.push({
+
+        userId:
+          estudiante?.userId ||
+          null,
+
+        error:
+          error?.message ||
+          String(error)
+
+      });
+
+    }
+
+  }
 
 
-      console.groupEnd();
+  // ----------------------------------------------------------
+  // RESULTADO FINAL
+  // ----------------------------------------------------------
+
+  return {
+
+    ok:
+      errores.length === 0,
+
+    total:
+      estudiantes.length,
+
+    enviados:
+      resultados.length,
+
+    errores:
+      errores.length,
+
+    resultados,
+
+    detalleErrores:
+      errores
+
+  };
+
+}
 
 
-      return {
+// ============================================================
+// TEST — ENVÍO FINAL AL REVISOR
+//
+// SOLO DEBE USARSE CUANDO QUIERAS PROBAR EL ENVÍO.
+//
+// IMPORTANTE:
+//
+// ESTE TEST SÍ MODIFICA GOOGLE CLASSROOM.
+//
+// NO LLAMAR AUTOMÁTICAMENTE.
+//
+// Se deja separado de los tests de lectura.
+// ============================================================
 
-        ok:
-          false,
+export async function classroomTestEnvioFinalRevisor({
+
+  courseId,
+
+  userId,
+
+  courseWorkIdRevisor,
+
+  en1,
+
+  en2,
+
+  en3
+
+}) {
+
+  if (!courseId) {
+
+    throw new Error(
+      "Debe especificarse courseId."
+    );
+
+  }
+
+
+  if (!userId) {
+
+    throw new Error(
+      "Debe especificarse userId."
+    );
+
+  }
+
+
+  if (!courseWorkIdRevisor) {
+
+    throw new Error(
+      "Debe especificarse courseWorkIdRevisor."
+    );
+
+  }
+
+
+  console.group(
+    "🧪 TEST — ENVÍO FINAL REVISOR"
+  );
+
+
+  try {
+
+    const resultado =
+      await classroomEnviarNotaFinalAlumno({
 
         courseId,
 
@@ -3845,51 +4745,102 @@
 
         courseWorkIdRevisor,
 
-        error:
-          error?.message ||
-          String(error)
+        en1,
 
-      };
+        en2,
 
-    }
+        en3
+
+      });
+
+
+    console.log(
+      "📤 RESULTADO ENVÍO:",
+      resultado
+    );
+
+
+    console.groupEnd();
+
+
+    return resultado;
+
+  }
+  catch (error) {
+
+    console.error(
+      "❌ ERROR ENVÍO FINAL:",
+      error
+    );
+
+
+    console.groupEnd();
+
+
+    return {
+
+      ok:
+        false,
+
+      courseId,
+
+      userId,
+
+      courseWorkIdRevisor,
+
+      error:
+        error?.message ||
+        String(error)
+
+    };
 
   }
 
+}
 
 
-  // ============================================================
-  // EXPONER FUNCIONES DE ENVÍO EN WINDOW
-  //
-  // IMPORTANTE:
-  //
-  // Exponerlas en window NO significa que se ejecuten.
-  //
-  // Solamente quedan disponibles para que el FRONT pueda
-  // llamarlas explícitamente.
-  // ============================================================
 
-  if (
-    typeof window !== "undefined"
-  ) {
+// ============================================================
+// EXPONER FUNCIONES DE ENVÍO EN WINDOW
+//
+// IMPORTANTE:
+//
+// Exponerlas en window NO significa que se ejecuten.
+//
+// Solamente quedan disponibles para que el FRONT pueda
+// llamarlas explícitamente.
+// ============================================================
 
-    window.classroomEnviarNotaFinalRevisor =
-      classroomEnviarNotaFinalRevisor;
+if (
+  typeof window !== "undefined"
+) {
 
-
-    window.classroomEnviarNotaFinalAlumno =
-      classroomEnviarNotaFinalAlumno;
+  window.classroomEnviarNotaFinalRevisor =
+    classroomEnviarNotaFinalRevisor;
 
 
-    window.classroomEnviarNotasFinalesGrupo =
-      classroomEnviarNotasFinalesGrupo;
+  window.classroomEnviarNotaFinalAlumno =
+    classroomEnviarNotaFinalAlumno;
 
 
-    window.classroomTestEnvioFinalRevisor =
-      classroomTestEnvioFinalRevisor;
-
-  }
+  window.classroomEnviarNotasFinalesGrupo =
+    classroomEnviarNotasFinalesGrupo;
 
 
-  // ============================================================
-  // FIN PARTE — ENVÍO FINAL AL REVISOR
-  // ============================================================
+  window.classroomTestEnvioFinalRevisor =
+    classroomTestEnvioFinalRevisor;
+
+}
+
+if (
+  typeof window !== "undefined"
+) {
+
+  window.classroomTestAnalizarDocumento =
+    classroomTestAnalizarDocumento;
+
+}
+
+// ============================================================
+// FIN PARTE — ENVÍO FINAL AL REVISOR
+// ============================================================

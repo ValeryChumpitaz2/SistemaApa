@@ -12,6 +12,12 @@ import {
     obtenerNombreTema,
 } from "./classroomUtils.js";
 
+import {
+    classroomObtenerActividadesPorTema,
+} from "../../services/classroomService.js";
+
+import ClassroomEntregables from "./ClassroomEntregables.jsx";
+
 
 // ============================================================
 // COMPONENTE
@@ -48,6 +54,20 @@ export default function ClassroomTopics({
         setError,
     ] = useState("");
 
+    const [
+        actividadesTema,
+        setActividadesTema,
+    ] = useState([]);
+
+    const [
+        cargandoActividades,
+        setCargandoActividades,
+    ] = useState(false);
+
+    const [
+        errorActividades,
+        setErrorActividades,
+    ] = useState("");
 
     // ----------------------------------------------------------
     // CARGAR TEMAS CUANDO CAMBIA EL CURSO
@@ -78,6 +98,75 @@ export default function ClassroomTopics({
     // ==========================================================
     // OBTENER TEMAS
     // ==========================================================
+    async function cargarActividadesTema(
+        tema
+    ) {
+
+        try {
+
+            const topicId =
+                obtenerTopicId(
+                    tema
+                );
+
+
+            if (!topicId) {
+
+                throw new Error(
+                    "El tema seleccionado no tiene topicId."
+                );
+
+            }
+
+
+            setCargandoActividades(true);
+
+            setErrorActividades("");
+
+            setActividadesTema([]);
+
+
+            const actividades =
+                await classroomObtenerActividadesPorTema(
+                    cursoSeleccionado,
+                    topicId
+                );
+
+
+            console.log(
+                "Actividades del tema:",
+                actividades
+            );
+
+
+            setActividadesTema(
+                Array.isArray(actividades)
+                    ? actividades
+                    : []
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Error cargando actividades del tema:",
+                error
+            );
+
+
+            setErrorActividades(
+                error?.message ||
+                "No se pudieron cargar las actividades."
+            );
+
+        }
+        finally {
+
+            setCargandoActividades(false);
+
+        }
+
+    }
 
     async function cargarTemas(
         cursoId
@@ -273,12 +362,12 @@ export default function ClassroomTopics({
       ===================================================== */}
 
             {!cargando &&
-  !error &&
-  temas.length > 0 && (
+                !error &&
+                temas.length > 0 && (
 
-  <div className="space-y-3">
+                    <div className="space-y-3">
 
-    <div className="
+                        <div className="
       rounded-xl
       bg-green-50
       border
@@ -287,56 +376,56 @@ export default function ClassroomTopics({
       py-3
     ">
 
-      <p className="
+                            <p className="
         text-sm
         font-bold
         text-green-700
       ">
-        ✅ Se encontraron {temas.length} temas
-      </p>
+                                ✅ Se encontraron {temas.length} temas
+                            </p>
 
-    </div>
+                        </div>
 
 
-    {temas.map((tema, index) => (
+                        {temas.map((tema, index) => (
 
-      <div
-        key={
-          tema?.id ||
-          `tema-${index}`
-        }
-        className="
+                            <div
+                                key={
+                                    tema?.id ||
+                                    `tema-${index}`
+                                }
+                                className="
           rounded-xl
           border
           border-slate-200
           bg-white
           p-4
         "
-      >
+                            >
 
-        <p className="
+                                <p className="
           text-sm
           font-bold
           text-slate-900
         ">
-          {index + 1}. {tema?.nombre}
-        </p>
+                                    {index + 1}. {tema?.nombre}
+                                </p>
 
-        <p className="
+                                <p className="
           mt-1
           text-xs
           text-slate-400
         ">
-          ID: {tema?.id}
-        </p>
+                                    ID: {tema?.id}
+                                </p>
 
-      </div>
+                            </div>
 
-    ))}
+                        ))}
 
-  </div>
+                    </div>
 
-)}
+                )}
 
 
             {/* =====================================================
@@ -513,8 +602,7 @@ export default function ClassroomTopics({
                                             `tema-${index}`
                                         }
                                         type="button"
-
-                                        onClick={() => {
+                                        onClick={async () => {
 
                                             if (
                                                 typeof onTemaSeleccionado ===
@@ -526,6 +614,11 @@ export default function ClassroomTopics({
                                                 );
 
                                             }
+
+
+                                            await cargarActividadesTema(
+                                                tema
+                                            );
 
                                         }}
 
@@ -666,47 +759,142 @@ export default function ClassroomTopics({
             {/* =====================================================
           TEMA SELECCIONADO
       ===================================================== */}
-
             {temaSeleccionado && (
 
-                <div
-                    className="
-            mt-5
-            flex
-            items-center
-            gap-2
-            rounded-xl
-            bg-emerald-50
-            dark:bg-emerald-900/20
-            px-4
-            py-3
-          "
-                >
+                <>
 
-                    <div
-                        className="
-              h-2
-              w-2
-              rounded-full
-              bg-emerald-500
-            "
-                    />
+                    {cargandoActividades && (
+
+                        <div
+                            className="
+                    mt-6
+                    rounded-2xl
+                    border
+                    border-blue-200
+                    bg-blue-50
+                    px-5
+                    py-5
+                    dark:border-blue-900
+                    dark:bg-blue-900/20
+                "
+                        >
+
+                            <div
+                                className="
+                        flex
+                        items-center
+                        gap-3
+                    "
+                            >
+
+                                <div
+                                    className="
+                            h-5
+                            w-5
+                            animate-spin
+                            rounded-full
+                            border-2
+                            border-blue-200
+                            border-t-[#1D3681]
+                        "
+                                />
+
+                                <p
+                                    className="
+                            text-sm
+                            font-bold
+                            text-blue-700
+                            dark:text-blue-300
+                        "
+                                >
+                                    Cargando entregables...
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    )}
 
 
-                    <p
-                        className="
-              text-xs
-              font-bold
-              text-emerald-700
-              dark:text-emerald-300
-            "
-                    >
-                        Tema seleccionado correctamente.
-                    </p>
+                    {!cargandoActividades &&
+                        errorActividades && (
 
-                </div>
+                            <div
+                                className="
+                    mt-6
+                    rounded-2xl
+                    border
+                    border-red-200
+                    bg-red-50
+                    px-5
+                    py-4
+                    dark:border-red-900
+                    dark:bg-red-900/20
+                "
+                            >
+
+                                <p
+                                    className="
+                        text-sm
+                        font-bold
+                        text-red-700
+                        dark:text-red-300
+                    "
+                                >
+                                    No se pudieron cargar los entregables.
+                                </p>
+
+
+                                <p
+                                    className="
+                        mt-1
+                        text-xs
+                        text-red-600
+                        dark:text-red-400
+                    "
+                                >
+                                    {errorActividades}
+                                </p>
+
+                            </div>
+
+                        )}
+
+
+                    {!cargandoActividades &&
+                        !errorActividades &&
+                        actividadesTema.length > 0 && (
+
+                            <ClassroomEntregables
+                                actividades={
+                                    actividadesTema
+                                }
+
+                                puntajes={{
+                                    EN1: 0,
+                                    EN2: 0,
+                                    EN3: 0,
+                                }}
+
+                                onEntregableSeleccionado={(
+                                    entregable
+                                ) => {
+
+                                    console.log(
+                                        "Entregable seleccionado:",
+                                        entregable
+                                    );
+
+                                }}
+                            />
+
+                        )}
+
+                </>
 
             )}
+
 
         </div>
 
