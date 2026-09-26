@@ -1,3 +1,4 @@
+
 import React, {
   useEffect,
   useMemo,
@@ -69,6 +70,213 @@ const COLORES = {
   rojo: "#dc2626",
   rojoClaro: "#fef2f2",
 };
+
+
+
+const REVISION_PANEL_STYLES = `
+  .revision-panel {
+    --rp-primary: #2563eb;
+    --rp-primary-dark: #1d4ed8;
+    --rp-text: #0f172a;
+    --rp-muted: #64748b;
+    --rp-border: #e2e8f0;
+    --rp-surface: #ffffff;
+    --rp-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    position: relative;
+    width: 100%;
+    color: var(--rp-text);
+  }
+
+  .revision-panel > * {
+    animation: rpFadeUp .35s ease both;
+  }
+
+  .revision-panel > *:nth-child(2) { animation-delay: .03s; }
+  .revision-panel > *:nth-child(3) { animation-delay: .06s; }
+  .revision-panel > *:nth-child(4) { animation-delay: .09s; }
+  .revision-panel > *:nth-child(5) { animation-delay: .12s; }
+
+  .revision-panel [class*="rounded-2xl"] {
+    transition:
+      border-color .2s ease,
+      box-shadow .2s ease,
+      transform .2s ease,
+      background-color .2s ease;
+  }
+
+  .revision-panel [class*="rounded-2xl"][class*="bg-white"] {
+    box-shadow: var(--rp-shadow);
+    border-color: rgba(226, 232, 240, .9);
+  }
+
+  .revision-panel [class*="rounded-2xl"][class*="bg-white"]:hover {
+    border-color: #dbe5f1;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, .08);
+  }
+
+  .revision-panel button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .revision-panel button:not(:disabled) {
+    transition:
+      transform .18s ease,
+      box-shadow .18s ease,
+      border-color .18s ease,
+      background-color .18s ease,
+      color .18s ease;
+  }
+
+  .revision-panel button:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+
+  .revision-panel button:not(:disabled):active {
+    transform: translateY(0);
+  }
+
+  .revision-panel button:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, .18);
+    outline-offset: 2px;
+  }
+
+  .revision-panel .border-red-200 {
+    box-shadow: 0 8px 24px rgba(220, 38, 38, .07);
+  }
+
+  .revision-panel .border-blue-100 {
+    box-shadow: 0 8px 24px rgba(37, 99, 235, .06);
+  }
+
+  .revision-panel .border-dashed {
+    background:
+      linear-gradient(180deg, rgba(248,250,252,.7), #fff);
+  }
+
+  .revision-panel [class*="animate-spin"] {
+    box-shadow: 0 0 0 5px rgba(37, 99, 235, .06);
+  }
+
+  .revision-panel .grid {
+    width: 100%;
+  }
+
+  /* Tarjetas de estadísticas */
+  .revision-panel .grid > div[class*="rounded-2xl"] {
+    min-height: 112px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .revision-panel .grid > div[class*="rounded-2xl"]::after {
+    content: "";
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    right: -24px;
+    bottom: -28px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: .045;
+    pointer-events: none;
+  }
+
+  /* Mejor lectura de títulos */
+  .revision-panel h2,
+  .revision-panel h3 {
+    letter-spacing: -.02em;
+  }
+
+  .revision-panel p {
+    line-height: 1.55;
+  }
+
+  /* Botón principal de cambio de experiencia */
+  .revision-panel button[class*="border-slate-200"] {
+    box-shadow: 0 3px 10px rgba(15, 23, 42, .04);
+  }
+
+  .revision-panel button[class*="border-slate-200"]:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 7px 18px rgba(15, 23, 42, .07);
+  }
+
+  /* Scrollbar elegante cuando algún componente hijo genera overflow */
+  .revision-panel *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .revision-panel *::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 999px;
+  }
+
+  .revision-panel *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+
+  .revision-panel *::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .revision-panel {
+      padding-bottom: 1rem;
+    }
+
+    .revision-panel [class*="rounded-2xl"] {
+      border-radius: 1rem;
+    }
+
+    .revision-panel .grid > div[class*="rounded-2xl"] {
+      min-height: 100px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .revision-panel {
+      gap: 1rem;
+    }
+
+    .revision-panel .grid {
+      gap: .65rem;
+    }
+
+    .revision-panel .grid > div[class*="rounded-2xl"] {
+      min-height: 94px;
+      padding: .85rem;
+    }
+
+    .revision-panel h2 {
+      font-size: 1.05rem;
+    }
+  }
+
+  @keyframes rpFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(7px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .revision-panel > * {
+      animation: none;
+    }
+
+    .revision-panel [class*="rounded-2xl"],
+    .revision-panel button:not(:disabled) {
+      transition: none;
+    }
+  }
+`;
 
 
 // ============================================================
@@ -1558,7 +1766,8 @@ export default function ClassroomRevisionPanel({
   // ============================================================
 
   return (
-    <div className="space-y-6">
+    <div className="revision-panel space-y-6">
+      <style>{REVISION_PANEL_STYLES}</style>
 
       {/* ====================================================
           ERROR GENERAL

@@ -18,7 +18,175 @@
     // OBTENER NOMBRE DEL DOCUMENTO
     // ============================================================
 
-    function obtenerNombreDocumento(
+    
+const DOCUMENT_VIEWER_STYLES = `
+  .document-viewer-overlay {
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: documentViewerFadeIn 180ms ease-out;
+  }
+
+  .document-viewer-modal {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow:
+      0 30px 80px rgba(15, 23, 42, 0.22),
+      0 8px 24px rgba(15, 23, 42, 0.08);
+    animation: documentViewerModalIn 220ms cubic-bezier(.2,.8,.2,1);
+  }
+
+  .document-viewer-modal > div:first-child {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255,255,255,1) 0%,
+        rgba(248,250,252,0.98) 100%
+      );
+  }
+
+  .document-viewer-modal .bg-slate-50 {
+    background:
+      radial-gradient(
+        circle at top left,
+        rgba(239,246,255,.9),
+        transparent 32%
+      ),
+      #f8fafc;
+  }
+
+  .document-viewer-modal .bg-white.rounded-2xl {
+    border: 1px solid #e2e8f0;
+    box-shadow:
+      0 8px 22px rgba(15,23,42,.055);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .document-viewer-modal .bg-white.rounded-2xl:hover {
+    transform: translateY(-2px);
+    border-color: #cbd5e1;
+    box-shadow:
+      0 14px 30px rgba(15,23,42,.09);
+  }
+
+  .document-viewer-modal .bg-blue-50 {
+    background: linear-gradient(145deg, #eff6ff, #e0ecff);
+    box-shadow: inset 0 0 0 1px rgba(37,99,235,.04);
+  }
+
+  .document-viewer-modal a.bg-\\[\\#1D3681\\] {
+    background: linear-gradient(135deg, #24459f, #1d3681);
+    box-shadow: 0 5px 12px rgba(29,54,129,.18);
+  }
+
+  .document-viewer-modal a.bg-\\[\\#1D3681\\]:hover {
+    background: linear-gradient(135deg, #1d3681, #162b68);
+    box-shadow: 0 7px 16px rgba(29,54,129,.25);
+    transform: translateY(-1px);
+  }
+
+  .document-viewer-modal a {
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .document-viewer-modal button {
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .document-viewer-modal button:hover {
+    transform: translateY(-1px);
+  }
+
+  .document-viewer-modal .rounded-full {
+    letter-spacing: .04em;
+  }
+
+  .document-viewer-modal .text-emerald-600 {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .document-viewer-modal .text-emerald-600::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,.12);
+  }
+
+  .document-viewer-modal .bg-amber-50 {
+    border: 1px solid #fde68a;
+  }
+
+  .document-viewer-modal .bg-blue-50.mt-5 {
+    box-shadow: inset 0 0 0 1px rgba(37,99,235,.025);
+  }
+
+  @keyframes documentViewerFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes documentViewerModalIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .document-viewer-modal {
+      max-height: 94vh;
+      border-radius: 18px;
+    }
+
+    .document-viewer-modal .bg-white.rounded-2xl > div {
+      align-items: flex-start;
+    }
+
+    .document-viewer-modal .bg-white.rounded-2xl {
+      padding: 14px;
+    }
+
+    .document-viewer-modal .bg-white.rounded-2xl .flex.shrink-0.items-center {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .document-viewer-modal .bg-white.rounded-2xl .flex-1 {
+      min-width: 150px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .document-viewer-overlay,
+    .document-viewer-modal,
+    .document-viewer-modal .bg-white.rounded-2xl,
+    .document-viewer-modal a,
+    .document-viewer-modal button {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+`;
+
+function obtenerNombreDocumento(
     documento
     ) {
 
@@ -436,6 +604,8 @@
 
     }
 
+    const estilos = <style>{DOCUMENT_VIEWER_STYLES}</style>;
+
 
     // ----------------------------------------------------------
     // SIN DOCUMENTOS
@@ -448,6 +618,7 @@
         return (
         <div
             className="
+            document-viewer-overlay
             fixed
             inset-0
             z-50
@@ -597,6 +768,7 @@
 
         <div
             className="
+            document-viewer-modal
             flex
             max-h-[90vh]
             w-full
