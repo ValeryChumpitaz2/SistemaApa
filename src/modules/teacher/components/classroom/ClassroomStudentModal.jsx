@@ -1,6 +1,10 @@
 import React from "react";
-import { analizarDocumento } from "../../services/teacherService.js";
 
+// ============================================================
+// SERVICIO DE ANÁLISIS
+// ============================================================
+
+import { analizarDocumento } from "../../services/teacherService.js";
 
 // ============================================================
 // ESTILOS
@@ -20,7 +24,6 @@ const COLORES = {
     rojoClaro: "#fef2f2",
 };
 
-
 // ============================================================
 // OBTENER NOMBRE DE ARCHIVO
 // ============================================================
@@ -31,13 +34,11 @@ function obtenerNombreArchivo(documento) {
         return "Documento";
     }
 
-
     const driveFile =
         documento?.driveFile ||
         documento?.driveFileAttachment ||
         documento?.file ||
         {};
-
 
     const nombre =
         documento?.title ||
@@ -49,13 +50,11 @@ function obtenerNombreArchivo(documento) {
         driveFile?.fileName ||
         "Documento";
 
-
     return String(nombre).trim();
 }
 
-
 // ============================================================
-// OBTENER URL DEL DOCUMENTO
+// OBTENER URL
 // ============================================================
 
 function obtenerUrlDocumento(documento) {
@@ -64,13 +63,11 @@ function obtenerUrlDocumento(documento) {
         return "";
     }
 
-
     const driveFile =
         documento?.driveFile ||
         documento?.driveFileAttachment ||
         documento?.file ||
         {};
-
 
     return String(
         documento?.alternateLink ||
@@ -85,7 +82,6 @@ function obtenerUrlDocumento(documento) {
     ).trim();
 }
 
-
 // ============================================================
 // OBTENER DOCUMENTOS
 // ============================================================
@@ -96,7 +92,6 @@ function obtenerDocumentos(entrega) {
         return [];
     }
 
-
     const documentos =
         entrega?.documentos ||
         entrega?.attachments ||
@@ -104,56 +99,20 @@ function obtenerDocumentos(entrega) {
         entrega?.assignmentSubmission?.driveFileAttachments ||
         [];
 
-
     return Array.isArray(documentos)
         ? documentos
         : [];
 }
 
-
 // ============================================================
-// OBTENER URL DE LA ENTREGA
-// ============================================================
-//
-// Toma el primer documento enviado.
-//
+// OBTENER PUNTOS
 // ============================================================
 
-function obtenerUrlEntrega(entrega) {
-
-    const documentos =
-        obtenerDocumentos(entrega);
-
-
-    if (
-        !Array.isArray(documentos) ||
-        documentos.length === 0
-    ) {
-        return "";
-    }
-
-
-    return obtenerUrlDocumento(
-        documentos[0]
-    );
-}
-
-
-// ============================================================
-// OBTENER PUNTOS DE CLASSROOM
-// ============================================================
-//
-// Se conserva únicamente como respaldo.
-// El puntaje principal ahora viene del análisis.
-//
-// ============================================================
-
-function obtenerPuntosClassroom(entrega) {
+function obtenerPuntos(entrega) {
 
     if (!entrega) {
         return null;
     }
-
 
     const puntos =
         entrega?.puntos ??
@@ -163,7 +122,6 @@ function obtenerPuntosClassroom(entrega) {
         entrega?.puntaje ??
         null;
 
-
     if (
         puntos === null ||
         puntos === undefined ||
@@ -172,16 +130,12 @@ function obtenerPuntosClassroom(entrega) {
         return null;
     }
 
-
-    const numero =
-        Number(puntos);
-
+    const numero = Number(puntos);
 
     return Number.isFinite(numero)
         ? numero
         : null;
 }
-
 
 // ============================================================
 // OBTENER ESTADO
@@ -193,7 +147,6 @@ function obtenerEstado(entrega) {
         return "SIN ENTREGA";
     }
 
-
     return String(
         entrega?.estado ||
         entrega?.state ||
@@ -204,46 +157,36 @@ function obtenerEstado(entrega) {
         .toUpperCase();
 }
 
-
 // ============================================================
-// COLOR DEL ESTADO
+// ESTILO ESTADO
 // ============================================================
 
 function obtenerEstiloEstado(estado) {
 
     const texto =
-        String(
-            estado || ""
-        ).toUpperCase();
-
+        String(estado || "").toUpperCase();
 
     if (
         texto.includes("TURNED_IN") ||
         texto.includes("ENTREG") ||
         texto.includes("DEVOLV")
     ) {
-
         return {
             fondo: COLORES.verdeClaro,
             texto: COLORES.verde,
         };
-
     }
-
 
     if (
         texto.includes("MISSING") ||
         texto.includes("FALTA") ||
         texto.includes("SIN ENTREGA")
     ) {
-
         return {
             fondo: COLORES.rojoClaro,
             texto: COLORES.rojo,
         };
-
     }
-
 
     return {
         fondo: COLORES.amarilloClaro,
@@ -251,6 +194,90 @@ function obtenerEstiloEstado(estado) {
     };
 }
 
+// ============================================================
+// OBTENER URL DE UN DOCUMENTO
+// ============================================================
+
+function obtenerUrlParaAnalisis(documento) {
+
+    if (!documento) {
+        return "";
+    }
+
+    const driveFile =
+        documento?.driveFile ||
+        documento?.driveFileAttachment ||
+        documento?.file ||
+        {};
+
+    const url =
+        documento?.alternateLink ||
+        documento?.webViewLink ||
+        documento?.url ||
+        documento?.link ||
+        driveFile?.alternateLink ||
+        driveFile?.webViewLink ||
+        driveFile?.url ||
+        driveFile?.link ||
+        "";
+
+    return String(url).trim();
+}
+
+// ============================================================
+// EXTRAER PUNTAJE DEL BACKEND
+// ============================================================
+
+function obtenerPuntajeAnalisis(resultado) {
+
+    if (!resultado) {
+        return null;
+    }
+
+    // --------------------------------------------------------
+    // CASO NORMAL
+    // --------------------------------------------------------
+
+    const puntajeDirecto =
+        resultado?.puntaje?.obtenido ??
+        resultado?.data?.puntaje?.obtenido ??
+        null;
+
+    if (
+        puntajeDirecto !== null &&
+        puntajeDirecto !== undefined &&
+        Number.isFinite(
+            Number(puntajeDirecto)
+        )
+    ) {
+        return Number(puntajeDirecto);
+    }
+
+    // --------------------------------------------------------
+    // POR SI EL BACKEND DEVUELVE OTRA ESTRUCTURA
+    // --------------------------------------------------------
+
+    const alternativas = [
+        resultado?.obtenido,
+        resultado?.data?.obtenido,
+        resultado?.puntaje,
+        resultado?.data?.puntaje,
+    ];
+
+    for (const valor of alternativas) {
+
+        if (
+            valor !== null &&
+            valor !== undefined &&
+            Number.isFinite(Number(valor))
+        ) {
+            return Number(valor);
+        }
+
+    }
+
+    return null;
+}
 
 // ============================================================
 // COMPONENTE
@@ -272,9 +299,8 @@ export default function ClassroomStudentModal({
 
 }) {
 
-
     // ========================================================
-    // ESTADO DE CALIFICACIONES
+    // CALIFICACIONES
     // ========================================================
 
     const [
@@ -288,9 +314,8 @@ export default function ClassroomStudentModal({
 
     });
 
-
     // ========================================================
-    // RESULTADOS COMPLETOS DEL ANÁLISIS
+    // RESULTADOS DEL ANÁLISIS
     // ========================================================
 
     const [
@@ -304,9 +329,8 @@ export default function ClassroomStudentModal({
 
     });
 
-
     // ========================================================
-    // ESTADO DE ANÁLISIS
+    // ESTADOS DE ANÁLISIS
     // ========================================================
 
     const [
@@ -320,25 +344,23 @@ export default function ClassroomStudentModal({
 
     });
 
-
     // ========================================================
-    // ERRORES DE ANÁLISIS
+    // ANALIZADOS
     // ========================================================
 
     const [
-        erroresAnalisis,
-        setErroresAnalisis
+        analizados,
+        setAnalizados
     ] = React.useState({
 
-        EN1: null,
-        EN2: null,
-        EN3: null,
+        EN1: false,
+        EN2: false,
+        EN3: false,
 
     });
 
-
     // ========================================================
-    // ESTADO DE GUARDADO
+    // GUARDAR
     // ========================================================
 
     const [
@@ -346,15 +368,13 @@ export default function ClassroomStudentModal({
         setGuardando
     ] = React.useState(false);
 
-
     const [
         guardado,
         setGuardado
     ] = React.useState(false);
 
-
     // ========================================================
-    // INFORMACIÓN DEL ESTUDIANTE
+    // INFORMACIÓN ESTUDIANTE
     // ========================================================
 
     const nombre =
@@ -363,31 +383,26 @@ export default function ClassroomStudentModal({
         estudiante?.nombreCompleto ||
         "Alumno";
 
-
     const email =
         estudiante?.email ||
         estudiante?.correo ||
         estudiante?.emailAddress ||
         "";
 
-
     const userId =
         estudiante?.userId ||
         estudiante?.id ||
         "";
 
-
     // ========================================================
     // ENTREGABLES
     // ========================================================
 
-    const entregables = [
+    const entregables = React.useMemo(() => [
 
         {
             codigo: "EN1",
-
             titulo: "Entregable 1",
-
             entrega:
                 entregas?.EN1 ||
                 estudiante?.entregas?.EN1 ||
@@ -396,9 +411,7 @@ export default function ClassroomStudentModal({
 
         {
             codigo: "EN2",
-
             titulo: "Entregable 2",
-
             entrega:
                 entregas?.EN2 ||
                 estudiante?.entregas?.EN2 ||
@@ -407,17 +420,17 @@ export default function ClassroomStudentModal({
 
         {
             codigo: "EN3",
-
             titulo: "Entregable 3",
-
             entrega:
                 entregas?.EN3 ||
                 estudiante?.entregas?.EN3 ||
                 null,
         },
 
-    ];
-
+    ], [
+        entregas,
+        estudiante,
+    ]);
 
     // ========================================================
     // ANALIZAR UN ENTREGABLE
@@ -428,88 +441,77 @@ export default function ClassroomStudentModal({
         entrega
     ) {
 
-        const url =
-            obtenerUrlEntrega(
+        console.log(
+            "=============================================="
+        );
+
+        console.log(
+            `🧪 ANALIZANDO ${codigo}`
+        );
+
+        // ----------------------------------------------------
+        // BUSCAR DOCUMENTOS
+        // ----------------------------------------------------
+
+        const documentos =
+            obtenerDocumentos(
                 entrega
             );
 
+        if (
+            documentos.length === 0
+        ) {
+
+            console.warn(
+                `⚠️ ${codigo} no tiene documentos`
+            );
+
+            return;
+
+        }
 
         // ----------------------------------------------------
-        // SIN DOCUMENTO
+        // TOMAR EL PRIMER DOCUMENTO
         // ----------------------------------------------------
+
+        const documento =
+            documentos[0];
+
+        const url =
+            obtenerUrlParaAnalisis(
+                documento
+            );
+
+        console.log(
+            "URL:",
+            url
+        );
 
         if (!url) {
 
             console.warn(
-                `No se encontró documento para ${codigo}`
+                `⚠️ ${codigo} no tiene URL`
             );
 
-
-            setErroresAnalisis(
-                prev => ({
-                    ...prev,
-
-                    [codigo]:
-                        "No se encontró un documento para analizar.",
-
-                })
-            );
-
-
-            return null;
+            return;
 
         }
 
+        // ----------------------------------------------------
+        // ACTIVAR LOADING
+        // ----------------------------------------------------
+
+        setAnalizando(
+            prev => ({
+                ...prev,
+                [codigo]: true,
+            })
+        );
 
         try {
 
             // ------------------------------------------------
-            // ACTIVAR LOADING
-            // ------------------------------------------------
-
-            setAnalizando(
-                prev => ({
-                    ...prev,
-
-                    [codigo]: true,
-
-                })
-            );
-
-
-            setErroresAnalisis(
-                prev => ({
-                    ...prev,
-
-                    [codigo]: null,
-
-                })
-            );
-
-
-            console.log(
-                "================================================"
-            );
-
-
-            console.log(
-                `🧪 ANALIZANDO ${codigo}`
-            );
-
-
-            console.log(
-                "URL:",
-                url
-            );
-
-
-            console.log(
-                "================================================"
-            );
-
-
-            // ------------------------------------------------
-            // LLAMAR TEACHER SERVICE
+            // LLAMAR BACKEND
             // ------------------------------------------------
 
             const resultado =
@@ -517,126 +519,55 @@ export default function ClassroomStudentModal({
                     url
                 );
 
-
             console.log(
                 `✅ RESULTADO DEL ANÁLISIS ${codigo}:`,
                 resultado
             );
 
-
             // ------------------------------------------------
-            // VALIDAR RESULTADO
+            // OBTENER PUNTAJE
             // ------------------------------------------------
 
             const puntaje =
-                resultado?.puntaje;
-
-
-            if (!puntaje) {
-
-                throw new Error(
-                    `El análisis de ${codigo} no devolvió información de puntaje.`
+                obtenerPuntajeAnalisis(
+                    resultado
                 );
 
-            }
-
+            console.log(
+                `📊 ${codigo}:`,
+                puntaje,
+                "/ 2"
+            );
 
             // ------------------------------------------------
-            // OBTENER VALORES
-            // ------------------------------------------------
-
-            const obtenido =
-                Number(
-                    puntaje?.obtenido
-                );
-
-
-            const maximo =
-                Number(
-                    puntaje?.maximo
-                );
-
-
-            const porcentaje =
-                Number(
-                    puntaje?.porcentaje
-                );
-
-
-            // ------------------------------------------------
-            // VALIDAR PUNTAJE
+            // PORCENTAJE
             // ------------------------------------------------
 
             if (
-                !Number.isFinite(
-                    obtenido
-                )
+                puntaje !== null
             ) {
 
-                throw new Error(
-                    `El puntaje obtenido de ${codigo} no es válido.`
+                console.log(
+                    `📊 ${codigo} porcentaje:`,
+                    Math.round(
+                        (puntaje / 2) * 100
+                    ),
+                    "%"
                 );
 
             }
 
-
             // ------------------------------------------------
-            // LA NOTA DEL ENTREGABLE
-            //
-            // El backend ya devuelve:
-            //
-            // obtenido: 1.44
-            // maximo: 2
-            // porcentaje: 72
-            //
-            // Por tanto:
-            //
-            // EN1 = 1.44 / 2
-            //
-            // ------------------------------------------------
-
-            let nota =
-                obtenido;
-
-
-            // ------------------------------------------------
-            // ASEGURAR RANGO
-            // ------------------------------------------------
-
-            if (nota < 0) {
-                nota = 0;
-            }
-
-
-            if (nota > 2) {
-                nota = 2;
-            }
-
-
-            // ------------------------------------------------
-            // REDONDEAR
-            // ------------------------------------------------
-
-            nota =
-                Math.round(
-                    nota * 100
-                ) / 100;
-
-
-            // ------------------------------------------------
-            // GUARDAR RESULTADO COMPLETO
+            // GUARDAR RESULTADO
             // ------------------------------------------------
 
             setResultadosAnalisis(
                 prev => ({
                     ...prev,
-
                     [codigo]:
                         resultado,
-
                 })
             );
-
 
             // ------------------------------------------------
             // GUARDAR CALIFICACIÓN
@@ -645,79 +576,37 @@ export default function ClassroomStudentModal({
             setCalificaciones(
                 prev => ({
                     ...prev,
-
                     [codigo]:
-                        nota,
-
+                        puntaje !== null
+                            ? Number(
+                                puntaje.toFixed(2)
+                            )
+                            : null,
                 })
             );
 
+            setAnalizados(
+                prev => ({
+                    ...prev,
+                    [codigo]: true,
+                })
+            );
 
             setGuardado(false);
 
-
-            console.log(
-                `📊 ${codigo}:`,
-                nota,
-                "/ 2"
-            );
-
-
-            console.log(
-                `📊 ${codigo} porcentaje:`,
-                Number.isFinite(porcentaje)
-                    ? porcentaje
-                    : "N/D",
-                "%"
-            );
-
-
-            console.log(
-                `📊 ${codigo} máximo backend:`,
-                Number.isFinite(maximo)
-                    ? maximo
-                    : "N/D"
-            );
-
-
-            return resultado;
-
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
                 `❌ ERROR ANALIZANDO ${codigo}:`,
                 error
             );
 
-
-            setErroresAnalisis(
-                prev => ({
-                    ...prev,
-
-                    [codigo]:
-                        error?.message ||
-                        "No se pudo analizar el documento.",
-
-                })
-            );
-
-
-            return null;
-
-        }
-        finally {
-
-            // ------------------------------------------------
-            // DESACTIVAR LOADING
-            // ------------------------------------------------
+        } finally {
 
             setAnalizando(
                 prev => ({
                     ...prev,
-
                     [codigo]: false,
-
                 })
             );
 
@@ -725,20 +614,105 @@ export default function ClassroomStudentModal({
 
     }
 
+    // ========================================================
+    // ANALIZAR TODOS
+    // ========================================================
+
+    async function analizarTodos() {
+
+        console.log(
+            "=============================================="
+        );
+
+        console.log(
+            "🤖 INICIANDO ANÁLISIS AUTOMÁTICO"
+        );
+
+        console.log(
+            "=============================================="
+        );
+
+        for (
+            const item
+            of entregables
+        ) {
+
+            if (
+                !item.entrega
+            ) {
+                continue;
+            }
+
+            const documentos =
+                obtenerDocumentos(
+                    item.entrega
+                );
+
+            if (
+                documentos.length === 0
+            ) {
+                continue;
+            }
+
+            await analizarEntregable(
+                item.codigo,
+                item.entrega
+            );
+
+        }
+
+        console.log(
+            "=============================================="
+        );
+
+        console.log(
+            "🤖 ANÁLISIS AUTOMÁTICO TERMINADO"
+        );
+
+        console.log(
+            "=============================================="
+        );
+
+    }
 
     // ========================================================
-    // ANALIZAR TODOS LOS ENTREGABLES
+    // ANALIZAR AUTOMÁTICAMENTE AL ABRIR
     // ========================================================
+
+    const estudianteIdAnalisis =
+        estudiante?.userId ||
+        estudiante?.id ||
+        "";
+
+    const analisisEjecutadoRef =
+        React.useRef("");
 
     React.useEffect(() => {
 
-        if (!estudiante) {
+        if (
+            !open ||
+            !estudiante
+        ) {
             return;
         }
 
+        const clave =
+            String(
+                estudianteIdAnalisis
+            );
+
+        if (
+            analisisEjecutadoRef.current ===
+            clave
+        ) {
+            return;
+        }
+
+        analisisEjecutadoRef.current =
+            clave;
 
         // ----------------------------------------------------
-        // LIMPIAR ESTADO
+        // LIMPIAR
         // ----------------------------------------------------
 
         setCalificaciones({
@@ -749,7 +723,6 @@ export default function ClassroomStudentModal({
 
         });
 
-
         setResultadosAnalisis({
 
             EN1: null,
@@ -758,17 +731,7 @@ export default function ClassroomStudentModal({
 
         });
 
-
-        setErroresAnalisis({
-
-            EN1: null,
-            EN2: null,
-            EN3: null,
-
-        });
-
-
-        setAnalizando({
+        setAnalizados({
 
             EN1: false,
             EN2: false,
@@ -776,95 +739,18 @@ export default function ClassroomStudentModal({
 
         });
 
-
         setGuardado(false);
-
-
-        // ----------------------------------------------------
-        // LISTA
-        // ----------------------------------------------------
-
-        const lista = [
-
-            {
-                codigo: "EN1",
-
-                entrega:
-                    entregas?.EN1 ||
-                    estudiante?.entregas?.EN1 ||
-                    null,
-            },
-
-            {
-                codigo: "EN2",
-
-                entrega:
-                    entregas?.EN2 ||
-                    estudiante?.entregas?.EN2 ||
-                    null,
-            },
-
-            {
-                codigo: "EN3",
-
-                entrega:
-                    entregas?.EN3 ||
-                    estudiante?.entregas?.EN3 ||
-                    null,
-            },
-
-        ];
-
 
         // ----------------------------------------------------
         // ANALIZAR
         // ----------------------------------------------------
 
-        async function analizarTodo() {
-
-            for (
-                const item
-                of lista
-            ) {
-
-                if (
-                    !item.entrega
-                ) {
-                    continue;
-                }
-
-
-                const url =
-                    obtenerUrlEntrega(
-                        item.entrega
-                    );
-
-
-                if (!url) {
-                    continue;
-                }
-
-
-                await analizarEntregable(
-                    item.codigo,
-                    item.entrega
-                );
-
-            }
-
-        }
-
-
-        analizarTodo();
-
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        analizarTodos();
 
     }, [
-        estudiante,
-        entregas,
+        open,
+        estudianteIdAnalisis,
     ]);
-
 
     // ========================================================
     // TOTAL
@@ -875,22 +761,18 @@ export default function ClassroomStudentModal({
             calificaciones
         );
 
-
     const notasValidas =
         notas.filter(
             nota =>
                 nota !== null &&
                 nota !== undefined &&
-                nota !== "" &&
                 Number.isFinite(
                     Number(nota)
                 )
         );
 
-
     const total =
         notasValidas.length > 0
-
             ? notasValidas.reduce(
                 (
                     suma,
@@ -898,56 +780,29 @@ export default function ClassroomStudentModal({
                 ) =>
                     suma +
                     Number(nota),
-
                 0
             )
-
             : null;
-
 
     const totalRedondeado =
         total !== null
-
             ? Number(
                 total.toFixed(2)
             )
-
             : null;
-
 
     const porcentaje =
         total !== null
-
             ? Math.min(
                 (
-                    total /
-                    6
+                    total / 6
                 ) * 100,
-
                 100
             )
-
             : 0;
 
-
     // ========================================================
-    // ¿SE ESTÁ ANALIZANDO ALGO?
-    // ========================================================
-
-    const hayAnalisisActivo =
-        Object.values(
-            analizando
-        ).some(
-            valor => valor === true
-        );
-
-
-    // ========================================================
-    // CAMBIAR CALIFICACIÓN
-    //
-    // Se conserva por si quieres permitir edición manual
-    // en el futuro.
-    //
+    // CAMBIAR CALIFICACIÓN MANUAL
     // ========================================================
 
     function cambiarCalificacion(
@@ -962,104 +817,78 @@ export default function ClassroomStudentModal({
             setCalificaciones(
                 prev => ({
                     ...prev,
-
-                    [codigo]:
-                        null,
-
+                    [codigo]: null,
                 })
             );
 
-
             setGuardado(false);
 
-
             return;
-        }
 
+        }
 
         let numero =
             Number(valor);
-
 
         if (
             !Number.isFinite(
                 numero
             )
         ) {
-
             return;
-
         }
-
 
         if (
             numero < 0
         ) {
-
             numero = 0;
-
         }
-
 
         if (
             numero > 2
         ) {
-
             numero = 2;
-
         }
-
 
         numero =
             Math.round(
                 numero * 100
             ) / 100;
 
-
         setCalificaciones(
             prev => ({
                 ...prev,
-
-                [codigo]:
-                    numero,
-
+                [codigo]: numero,
             })
         );
-
 
         setGuardado(false);
 
     }
 
-
     // ========================================================
-    // GUARDAR
+    // GUARDAR CALIFICACIONES
     // ========================================================
 
     async function guardarCalificaciones() {
 
-        if (!onSaveGrades) {
+        if (
+            !onSaveGrades
+        ) {
 
             console.warn(
                 "No se proporcionó onSaveGrades"
             );
 
-
             return;
-        }
 
+        }
 
         try {
 
-            setGuardando(
-                true
-            );
+            setGuardando(true);
 
-
-            setGuardado(
-                false
-            );
-
+            setGuardado(false);
 
             await onSaveGrades({
 
@@ -1084,44 +913,33 @@ export default function ClassroomStudentModal({
                 total:
                     totalRedondeado,
 
-                maximo:
-                    6,
-
-                // --------------------------------------------
-                // ENVIAMOS TAMBIÉN LOS RESULTADOS DEL ANÁLISIS
-                // --------------------------------------------
+                maximo: 6,
 
                 resultadosAnalisis,
 
             });
 
+            setGuardado(true);
 
-            setGuardado(
-                true
-            );
-
-        }
-        catch (error) {
+        } catch (
+            error
+        ) {
 
             console.error(
-                "Error guardando calificaciones:",
+                "❌ Error guardando calificaciones:",
                 error
             );
 
-        }
-        finally {
+        } finally {
 
-            setGuardando(
-                false
-            );
+            setGuardando(false);
 
         }
 
     }
 
-
     // ========================================================
-    // CERRAR CON ESC
+    // ESC
     // ========================================================
 
     React.useEffect(() => {
@@ -1141,12 +959,10 @@ export default function ClassroomStudentModal({
 
         }
 
-
         document.addEventListener(
             "keydown",
             manejarKeyDown
         );
-
 
         return () => {
 
@@ -1158,9 +974,8 @@ export default function ClassroomStudentModal({
         };
 
     }, [
-        onClose
+        onClose,
     ]);
-
 
     // ========================================================
     // NO MOSTRAR
@@ -1175,6 +990,29 @@ export default function ClassroomStudentModal({
 
     }
 
+    // ========================================================
+    // CONTADOR ENTREGABLES
+    // ========================================================
+
+    const cantidadEntregas =
+        entregables.filter(
+            item =>
+                item.entrega
+        ).length;
+
+    const cantidadAnalizados =
+        Object.values(
+            analizados
+        ).filter(
+            Boolean
+        ).length;
+
+    const cantidadAnalizando =
+        Object.values(
+            analizando
+        ).filter(
+            Boolean
+        ).length;
 
     // ========================================================
     // RENDER
@@ -1183,7 +1021,6 @@ export default function ClassroomStudentModal({
     return (
 
         <div
-
             className="
                 fixed
                 inset-0
@@ -1195,8 +1032,9 @@ export default function ClassroomStudentModal({
                 p-4
                 backdrop-blur-sm
             "
-
-            onMouseDown={(evento) => {
+            onMouseDown={(
+                evento
+            ) => {
 
                 if (
                     evento.target ===
@@ -1208,11 +1046,9 @@ export default function ClassroomStudentModal({
                 }
 
             }}
-
         >
 
             <div
-
                 className="
                     flex
                     w-full
@@ -1224,7 +1060,6 @@ export default function ClassroomStudentModal({
                     bg-white
                     shadow-2xl
                 "
-
             >
 
                 {/* ================================================= */}
@@ -1232,7 +1067,6 @@ export default function ClassroomStudentModal({
                 {/* ================================================= */}
 
                 <div
-
                     className="
                         flex
                         shrink-0
@@ -1245,7 +1079,6 @@ export default function ClassroomStudentModal({
                         px-6
                         py-5
                     "
-
                 >
 
                     <div className="min-w-0">
@@ -1275,13 +1108,10 @@ export default function ClassroomStudentModal({
                                     shadow-blue-200
                                 "
                             >
-
                                 {nombre
                                     .charAt(0)
                                     .toUpperCase()}
-
                             </div>
-
 
                             <div className="min-w-0">
 
@@ -1295,7 +1125,6 @@ export default function ClassroomStudentModal({
                                 >
                                     {nombre}
                                 </h2>
-
 
                                 {email && (
 
@@ -1316,7 +1145,6 @@ export default function ClassroomStudentModal({
 
                         </div>
 
-
                         {userId && (
 
                             <p
@@ -1333,13 +1161,9 @@ export default function ClassroomStudentModal({
 
                     </div>
 
-
                     <button
-
                         type="button"
-
                         onClick={onClose}
-
                         className="
                             flex
                             h-9
@@ -1354,29 +1178,24 @@ export default function ClassroomStudentModal({
                             hover:bg-slate-100
                             hover:text-slate-700
                         "
-
                         aria-label="Cerrar"
-
                     >
                         ×
                     </button>
 
                 </div>
 
-
                 {/* ================================================= */}
                 {/* CONTENIDO */}
                 {/* ================================================= */}
 
                 <div
-
                     className="
                         flex-1
                         overflow-y-auto
                         px-6
                         py-6
                     "
-
                 >
 
                     {/* ================================================= */}
@@ -1392,9 +1211,7 @@ export default function ClassroomStudentModal({
                         "
                     >
 
-                        {/* ----------------------------------------- */}
                         {/* ENTREGABLES */}
-                        {/* ----------------------------------------- */}
 
                         <div
                             className="
@@ -1428,7 +1245,6 @@ export default function ClassroomStudentModal({
                                         Entregables
                                     </p>
 
-
                                     <p
                                         className="
                                             mt-1
@@ -1437,13 +1253,7 @@ export default function ClassroomStudentModal({
                                             text-slate-900
                                         "
                                     >
-
-                                        {
-                                            entregables.filter(
-                                                item =>
-                                                    item.entrega
-                                            ).length
-                                        }
+                                        {cantidadEntregas}
 
                                         <span
                                             className="
@@ -1454,11 +1264,9 @@ export default function ClassroomStudentModal({
                                         >
                                             {" "} / 3
                                         </span>
-
                                     </p>
 
                                 </div>
-
 
                                 <div
                                     className="
@@ -1477,12 +1285,22 @@ export default function ClassroomStudentModal({
 
                             </div>
 
+                            <p
+                                className="
+                                    mt-3
+                                    text-xs
+                                    font-semibold
+                                    text-slate-500
+                                "
+                            >
+                                {cantidadAnalizando > 0
+                                    ? `Analizando ${cantidadAnalizando} documento(s)...`
+                                    : `${cantidadAnalizados} de ${cantidadEntregas} analizado(s)`}
+                            </p>
+
                         </div>
 
-
-                        {/* ----------------------------------------- */}
                         {/* PUNTAJE */}
-                        {/* ----------------------------------------- */}
 
                         <div
                             className="
@@ -1518,7 +1336,6 @@ export default function ClassroomStudentModal({
                                         Puntaje del análisis
                                     </p>
 
-
                                     <p
                                         className="
                                             mt-1
@@ -1527,11 +1344,8 @@ export default function ClassroomStudentModal({
                                             text-blue-700
                                         "
                                     >
-
                                         {totalRedondeado !== null
-
                                             ? totalRedondeado.toFixed(2)
-
                                             : "—"}
 
                                         <span
@@ -1548,7 +1362,6 @@ export default function ClassroomStudentModal({
                                     </p>
 
                                 </div>
-
 
                                 <div
                                     className="
@@ -1568,9 +1381,6 @@ export default function ClassroomStudentModal({
 
                             </div>
 
-
-                            {/* BARRA */}
-
                             <div
                                 className="
                                     mt-4
@@ -1582,7 +1392,6 @@ export default function ClassroomStudentModal({
                             >
 
                                 <div
-
                                     className="
                                         h-full
                                         rounded-full
@@ -1590,16 +1399,13 @@ export default function ClassroomStudentModal({
                                         transition-all
                                         duration-300
                                     "
-
                                     style={{
                                         width:
                                             `${porcentaje}%`,
                                     }}
-
                                 />
 
                             </div>
-
 
                             <p
                                 className="
@@ -1609,23 +1415,14 @@ export default function ClassroomStudentModal({
                                     text-blue-500
                                 "
                             >
-
-                                {hayAnalisisActivo
-
-                                    ? "Analizando documentos..."
-
-                                    : total !== null
-
-                                        ? `${porcentaje.toFixed(0)}% del puntaje máximo`
-
-                                        : "Aún no se han analizado documentos"}
-
+                                {total !== null
+                                    ? `${porcentaje.toFixed(0)}% del puntaje máximo`
+                                    : "Esperando análisis"}
                             </p>
 
                         </div>
 
                     </div>
-
 
                     {/* ================================================= */}
                     {/* INDICACIÓN */}
@@ -1655,8 +1452,7 @@ export default function ClassroomStudentModal({
                                 🤖
                             </span>
 
-
-                            <div>
+                            <div className="flex-1">
 
                                 <p
                                     className="
@@ -1668,7 +1464,6 @@ export default function ClassroomStudentModal({
                                     Calificación automática por análisis
                                 </p>
 
-
                                 <p
                                     className="
                                         mt-0.5
@@ -1677,18 +1472,37 @@ export default function ClassroomStudentModal({
                                         text-blue-600
                                     "
                                 >
-                                    Cada documento se analiza automáticamente
-                                    y el puntaje obtenido se asigna al
-                                    entregable correspondiente. Cada entregable
+                                    Cada documento se analiza
+                                    automáticamente y el puntaje
+                                    obtenido se asigna al entregable
+                                    correspondiente. Cada entregable
                                     tiene un valor máximo de 2 puntos.
                                 </p>
 
                             </div>
 
+                            {cantidadAnalizando > 0 && (
+
+                                <div
+                                    className="
+                                        shrink-0
+                                        rounded-lg
+                                        bg-blue-100
+                                        px-2.5
+                                        py-1.5
+                                        text-xs
+                                        font-bold
+                                        text-blue-700
+                                    "
+                                >
+                                    Analizando...
+                                </div>
+
+                            )}
+
                         </div>
 
                     </div>
-
 
                     {/* ================================================= */}
                     {/* ENTREGABLES */}
@@ -1697,7 +1511,6 @@ export default function ClassroomStudentModal({
                     <div className="space-y-4">
 
                         {entregables.map(
-
                             ({
                                 codigo,
                                 titulo,
@@ -1709,55 +1522,53 @@ export default function ClassroomStudentModal({
                                         entrega
                                     );
 
-
                                 const estiloEstado =
                                     obtenerEstiloEstado(
                                         estado
                                     );
-
 
                                 const documentos =
                                     obtenerDocumentos(
                                         entrega
                                     );
 
-
                                 const puntos =
                                     calificaciones[
                                         codigo
                                     ];
 
+                                const estaAnalizando =
+                                    analizando[
+                                        codigo
+                                    ];
+
+                                const fueAnalizado =
+                                    analizados[
+                                        codigo
+                                    ];
 
                                 const resultado =
                                     resultadosAnalisis[
                                         codigo
                                     ];
 
-
-                                const analizandoActual =
-                                    analizando[
-                                        codigo
-                                    ];
-
-
-                                const errorAnalisis =
-                                    erroresAnalisis[
-                                        codigo
-                                    ];
-
-
-                                const porcentajeAnalisis =
-                                    Number(
-                                        resultado?.puntaje?.porcentaje
-                                    );
-
+                                const porcentajeEntregable =
+                                    puntos !== null &&
+                                    puntos !== undefined
+                                        ? Math.min(
+                                            (
+                                                Number(
+                                                    puntos
+                                                ) / 2
+                                            ) * 100,
+                                            100
+                                        )
+                                        : 0;
 
                                 return (
 
                                     <div
-
                                         key={codigo}
-
                                         className="
                                             rounded-2xl
                                             border
@@ -1768,12 +1579,9 @@ export default function ClassroomStudentModal({
                                             transition
                                             hover:shadow-md
                                         "
-
                                     >
 
-                                        {/* ========================================= */}
                                         {/* CABECERA */}
-                                        {/* ========================================= */}
 
                                         <div
                                             className="
@@ -1810,7 +1618,6 @@ export default function ClassroomStudentModal({
                                                         {codigo}
                                                     </span>
 
-
                                                     <h3
                                                         className="
                                                             font-black
@@ -1821,7 +1628,6 @@ export default function ClassroomStudentModal({
                                                     </h3>
 
                                                 </div>
-
 
                                                 <p
                                                     className="
@@ -1839,10 +1645,7 @@ export default function ClassroomStudentModal({
 
                                             </div>
 
-
-                                            {/* ========================================= */}
-                                            {/* ESTADO + CALIFICACIÓN */}
-                                            {/* ========================================= */}
+                                            {/* CALIFICACIÓN */}
 
                                             <div
                                                 className="
@@ -1863,14 +1666,12 @@ export default function ClassroomStudentModal({
                                                     style={{
                                                         backgroundColor:
                                                             estiloEstado.fondo,
-
                                                         color:
                                                             estiloEstado.texto,
                                                     }}
                                                 >
                                                     {estado}
                                                 </span>
-
 
                                                 <div
                                                     className="
@@ -1881,62 +1682,52 @@ export default function ClassroomStudentModal({
                                                         border
                                                         border-slate-200
                                                         bg-slate-50
-                                                        px-3
-                                                        py-2
+                                                        px-2
+                                                        py-1.5
                                                     "
                                                 >
 
-                                                    {analizandoActual ? (
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="2"
+                                                        step="0.01"
+                                                        value={
+                                                            puntos ??
+                                                            ""
+                                                        }
+                                                        onChange={(
+                                                            evento
+                                                        ) =>
+                                                            cambiarCalificacion(
+                                                                codigo,
+                                                                evento
+                                                                    .target
+                                                                    .value
+                                                            )
+                                                        }
+                                                        className="
+                                                            w-16
+                                                            bg-transparent
+                                                            text-center
+                                                            text-base
+                                                            font-black
+                                                            text-slate-800
+                                                            outline-none
+                                                        "
+                                                        placeholder="—"
+                                                    />
 
-                                                        <span
-                                                            className="
-                                                                text-sm
-                                                                font-bold
-                                                                text-blue-600
-                                                            "
-                                                        >
-                                                            Analizando...
-                                                        </span>
-
-                                                    ) : (
-
-                                                        <>
-
-                                                            <span
-                                                                className="
-                                                                    min-w-[3rem]
-                                                                    text-center
-                                                                    text-base
-                                                                    font-black
-                                                                    text-slate-800
-                                                                "
-                                                            >
-
-                                                                {puntos !== null &&
-                                                                puntos !== undefined
-
-                                                                    ? Number(
-                                                                        puntos
-                                                                    ).toFixed(2)
-
-                                                                    : "—"}
-
-                                                            </span>
-
-
-                                                            <span
-                                                                className="
-                                                                    text-xs
-                                                                    font-bold
-                                                                    text-slate-400
-                                                                "
-                                                            >
-                                                                / 2
-                                                            </span>
-
-                                                        </>
-
-                                                    )}
+                                                    <span
+                                                        className="
+                                                            pr-1
+                                                            text-xs
+                                                            font-bold
+                                                            text-slate-400
+                                                        "
+                                                    >
+                                                        / 2
+                                                    </span>
 
                                                 </div>
 
@@ -1944,20 +1735,54 @@ export default function ClassroomStudentModal({
 
                                         </div>
 
+                                        {/* ESTADO DEL ANÁLISIS */}
 
-                                        {/* ========================================= */}
-                                        {/* RESULTADO DEL ANÁLISIS */}
-                                        {/* ========================================= */}
-
-                                        {resultado && !analizandoActual && (
+                                        {estaAnalizando && (
 
                                             <div
                                                 className="
                                                     mt-4
+                                                    flex
+                                                    items-center
+                                                    gap-2
+                                                    rounded-xl
+                                                    bg-blue-50
+                                                    px-4
+                                                    py-3
+                                                "
+                                            >
+
+                                                <span>
+                                                    🔄
+                                                </span>
+
+                                                <p
+                                                    className="
+                                                        text-xs
+                                                        font-bold
+                                                        text-blue-700
+                                                    "
+                                                >
+                                                    Analizando documento...
+                                                </p>
+
+                                            </div>
+
+                                        )}
+
+                                        {fueAnalizado &&
+                                            !estaAnalizando && (
+
+                                            <div
+                                                className="
+                                                    mt-4
+                                                    flex
+                                                    items-center
+                                                    justify-between
                                                     rounded-xl
                                                     border
-                                                    border-green-100
-                                                    bg-green-50
+                                                    border-emerald-100
+                                                    bg-emerald-50
                                                     px-4
                                                     py-3
                                                 "
@@ -1966,120 +1791,61 @@ export default function ClassroomStudentModal({
                                                 <div
                                                     className="
                                                         flex
-                                                        flex-col
+                                                        items-center
                                                         gap-2
-                                                        sm:flex-row
-                                                        sm:items-center
-                                                        sm:justify-between
                                                     "
                                                 >
 
-                                                    <div>
+                                                    <span>
+                                                        ✓
+                                                    </span>
 
-                                                        <p
-                                                            className="
-                                                                text-xs
-                                                                font-bold
-                                                                text-green-700
-                                                            "
-                                                        >
-                                                            ✓ Análisis completado
-                                                        </p>
-
-
-                                                        <p
-                                                            className="
-                                                                mt-1
-                                                                text-xs
-                                                                text-green-600
-                                                            "
-                                                        >
-
-                                                            {Number.isFinite(
-                                                                porcentajeAnalisis
-                                                            )
-
-                                                                ? `Resultado del análisis: ${porcentajeAnalisis}%`
-
-                                                                : "Documento analizado correctamente"}
-
-                                                        </p>
-
-                                                    </div>
-
-
-                                                    <div
+                                                    <p
                                                         className="
-                                                            text-sm
-                                                            font-black
-                                                            text-green-700
+                                                            text-xs
+                                                            font-bold
+                                                            text-emerald-700
                                                         "
                                                     >
-
-                                                        {puntos !== null &&
-                                                        puntos !== undefined
-
-                                                            ? `${Number(puntos).toFixed(2)} / 2`
-
-                                                            : "—"}
-
-                                                    </div>
+                                                        Análisis completado
+                                                    </p>
 
                                                 </div>
 
-                                            </div>
+                                                {resultado?.puntaje && (
 
-                                        )}
+                                                    <span
+                                                        className="
+                                                            text-xs
+                                                            font-black
+                                                            text-emerald-700
+                                                        "
+                                                    >
+                                                        Resultado del análisis:
+                                                        {" "}
+                                                        {resultado
+                                                            .puntaje
+                                                            .porcentaje
+                                                            ??
+                                                            Math.round(
+                                                                (
+                                                                    Number(
+                                                                        puntos
+                                                                    ) /
+                                                                    2
+                                                                ) *
+                                                                100
+                                                            )}
+                                                        %
+                                                    </span>
 
-
-                                        {/* ========================================= */}
-                                        {/* ERROR DEL ANÁLISIS */}
-                                        {/* ========================================= */}
-
-                                        {errorAnalisis && (
-
-                                            <div
-                                                className="
-                                                    mt-4
-                                                    rounded-xl
-                                                    border
-                                                    border-red-100
-                                                    bg-red-50
-                                                    px-4
-                                                    py-3
-                                                "
-                                            >
-
-                                                <p
-                                                    className="
-                                                        text-xs
-                                                        font-bold
-                                                        text-red-700
-                                                    "
-                                                >
-                                                    No se pudo analizar este documento
-                                                </p>
-
-
-                                                <p
-                                                    className="
-                                                        mt-1
-                                                        text-xs
-                                                        leading-relaxed
-                                                        text-red-600
-                                                    "
-                                                >
-                                                    {errorAnalisis}
-                                                </p>
+                                                )}
 
                                             </div>
 
                                         )}
 
-
-                                        {/* ========================================= */}
-                                        {/* INDICADOR DE NOTA */}
-                                        {/* ========================================= */}
+                                        {/* INDICADOR */}
 
                                         <div className="mt-4">
 
@@ -2101,31 +1867,23 @@ export default function ClassroomStudentModal({
                                                     Puntaje del análisis
                                                 </span>
 
-
                                                 <span
                                                     className="
                                                         font-black
                                                         text-slate-600
                                                     "
                                                 >
-
-                                                    {analizandoActual
-
-                                                        ? "Analizando..."
-
-                                                        : puntos !== null &&
-                                                          puntos !== undefined
-
-                                                            ? `${Number(
-                                                                puntos
-                                                            ).toFixed(2)} / 2`
-
+                                                    {puntos !== null &&
+                                                    puntos !== undefined
+                                                        ? `${Number(
+                                                            puntos
+                                                        ).toFixed(2)} / 2`
+                                                        : estaAnalizando
+                                                            ? "Analizando..."
                                                             : "Sin calificar"}
-
                                                 </span>
 
                                             </div>
-
 
                                             <div
                                                 className="
@@ -2138,7 +1896,6 @@ export default function ClassroomStudentModal({
                                             >
 
                                                 <div
-
                                                     className="
                                                         h-full
                                                         rounded-full
@@ -2146,35 +1903,17 @@ export default function ClassroomStudentModal({
                                                         transition-all
                                                         duration-300
                                                     "
-
                                                     style={{
                                                         width:
-
-                                                            puntos !== null &&
-                                                            puntos !== undefined
-
-                                                                ? `${Math.min(
-                                                                    (
-                                                                        Number(puntos) /
-                                                                        2
-                                                                    ) * 100,
-
-                                                                    100
-                                                                )}%`
-
-                                                                : "0%",
+                                                            `${porcentajeEntregable}%`,
                                                     }}
-
                                                 />
 
                                             </div>
 
                                         </div>
 
-
-                                        {/* ========================================= */}
                                         {/* DOCUMENTOS */}
-                                        {/* ========================================= */}
 
                                         <div
                                             className="
@@ -2197,7 +1936,6 @@ export default function ClassroomStudentModal({
                                             >
                                                 Documento enviado
                                             </p>
-
 
                                             {documentos.length === 0 ? (
 
@@ -2224,7 +1962,6 @@ export default function ClassroomStudentModal({
                                                         No se encontró un documento
                                                     </p>
 
-
                                                     <p
                                                         className="
                                                             mt-1
@@ -2243,7 +1980,6 @@ export default function ClassroomStudentModal({
                                                 <div className="space-y-2">
 
                                                     {documentos.map(
-
                                                         (
                                                             documento,
                                                             indice
@@ -2254,23 +1990,19 @@ export default function ClassroomStudentModal({
                                                                     documento
                                                                 );
 
-
                                                             const url =
                                                                 obtenerUrlDocumento(
                                                                     documento
                                                                 );
 
-
                                                             return (
 
                                                                 <div
-
                                                                     key={
                                                                         documento?.id ||
                                                                         documento?.fileId ||
                                                                         indice
                                                                     }
-
                                                                     className="
                                                                         flex
                                                                         flex-col
@@ -2284,7 +2016,6 @@ export default function ClassroomStudentModal({
                                                                         sm:items-center
                                                                         sm:justify-between
                                                                     "
-
                                                                 >
 
                                                                     <div
@@ -2313,7 +2044,6 @@ export default function ClassroomStudentModal({
                                                                             📄
                                                                         </div>
 
-
                                                                         <div className="min-w-0">
 
                                                                             <p
@@ -2326,7 +2056,6 @@ export default function ClassroomStudentModal({
                                                                             >
                                                                                 {nombreArchivo}
                                                                             </p>
-
 
                                                                             <p
                                                                                 className="
@@ -2342,7 +2071,6 @@ export default function ClassroomStudentModal({
 
                                                                     </div>
 
-
                                                                     <div
                                                                         className="
                                                                             flex
@@ -2355,13 +2083,9 @@ export default function ClassroomStudentModal({
                                                                         {url && (
 
                                                                             <a
-
                                                                                 href={url}
-
                                                                                 target="_blank"
-
                                                                                 rel="noopener noreferrer"
-
                                                                                 className="
                                                                                     rounded-xl
                                                                                     border
@@ -2377,20 +2101,16 @@ export default function ClassroomStudentModal({
                                                                                     hover:bg-blue-50
                                                                                     hover:text-blue-700
                                                                                 "
-
                                                                             >
                                                                                 Abrir
                                                                             </a>
 
                                                                         )}
 
-
                                                                         {onOpenDocument && (
 
                                                                             <button
-
                                                                                 type="button"
-
                                                                                 onClick={() =>
                                                                                     onOpenDocument(
                                                                                         documento,
@@ -2401,7 +2121,6 @@ export default function ClassroomStudentModal({
                                                                                         }
                                                                                     )
                                                                                 }
-
                                                                                 className="
                                                                                     rounded-xl
                                                                                     bg-blue-600
@@ -2413,7 +2132,6 @@ export default function ClassroomStudentModal({
                                                                                     transition
                                                                                     hover:bg-blue-700
                                                                                 "
-
                                                                             >
                                                                                 Ver documento
                                                                             </button>
@@ -2427,7 +2145,6 @@ export default function ClassroomStudentModal({
                                                             );
 
                                                         }
-
                                                     )}
 
                                                 </div>
@@ -2441,20 +2158,17 @@ export default function ClassroomStudentModal({
                                 );
 
                             }
-
                         )}
 
                     </div>
 
                 </div>
 
-
                 {/* ================================================= */}
                 {/* FOOTER */}
                 {/* ================================================= */}
 
                 <div
-
                     className="
                         flex
                         shrink-0
@@ -2469,7 +2183,6 @@ export default function ClassroomStudentModal({
                         sm:items-center
                         sm:justify-between
                     "
-
                 >
 
                     <div>
@@ -2493,6 +2206,25 @@ export default function ClassroomStudentModal({
                                 Calificaciones guardadas correctamente
                             </p>
 
+                        ) : cantidadAnalizando > 0 ? (
+
+                            <p
+                                className="
+                                    flex
+                                    items-center
+                                    gap-2
+                                    text-xs
+                                    font-semibold
+                                    text-blue-600
+                                "
+                            >
+                                <span>
+                                    🔄
+                                </span>
+
+                                Analizando documentos...
+                            </p>
+
                         ) : (
 
                             <p
@@ -2501,19 +2233,13 @@ export default function ClassroomStudentModal({
                                     text-slate-500
                                 "
                             >
-
-                                {hayAnalisisActivo
-
-                                    ? "Analizando los documentos del estudiante..."
-
-                                    : "Cada entregable vale hasta 2 puntos. Puntaje máximo: 6."}
-
+                                Cada entregable vale hasta 2 puntos.
+                                Puntaje máximo: 6.
                             </p>
 
                         )}
 
                     </div>
-
 
                     <div
                         className="
@@ -2524,11 +2250,8 @@ export default function ClassroomStudentModal({
                     >
 
                         <button
-
                             type="button"
-
                             onClick={onClose}
-
                             className="
                                 rounded-xl
                                 border
@@ -2542,26 +2265,18 @@ export default function ClassroomStudentModal({
                                 transition
                                 hover:bg-slate-100
                             "
-
                         >
                             Cerrar
                         </button>
 
-
                         <button
-
                             type="button"
-
-                            onClick={
-                                guardarCalificaciones
-                            }
-
+                            onClick={guardarCalificaciones}
                             disabled={
                                 guardando ||
-                                !onSaveGrades ||
-                                hayAnalisisActivo
+                                cantidadAnalizando > 0 ||
+                                !onSaveGrades
                             }
-
                             className="
                                 rounded-xl
                                 bg-blue-600
@@ -2576,18 +2291,11 @@ export default function ClassroomStudentModal({
                                 disabled:cursor-not-allowed
                                 disabled:opacity-50
                             "
-
                         >
 
                             {guardando
-
                                 ? "Guardando..."
-
-                                : hayAnalisisActivo
-
-                                    ? "Analizando..."
-
-                                    : "Guardar calificaciones"}
+                                : "Guardar calificaciones"}
 
                         </button>
 
@@ -2600,4 +2308,5 @@ export default function ClassroomStudentModal({
         </div>
 
     );
+
 }

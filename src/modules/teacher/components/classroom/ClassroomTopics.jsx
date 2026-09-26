@@ -5,18 +5,15 @@ import React, {
 
 import {
     classroomObtenerTemas,
+    classroomObtenerActividadesPorTema,
 } from "../../services/classroomService.js";
 
 import {
     obtenerTopicId,
     obtenerNombreTema,
+    obtenerTitulo,
+    reconocerEntregable,
 } from "./classroomUtils.js";
-
-import {
-    classroomObtenerActividadesPorTema,
-} from "../../services/classroomService.js";
-
-import ClassroomEntregables from "./ClassroomEntregables.jsx";
 
 
 // ============================================================
@@ -31,23 +28,23 @@ export default function ClassroomTopics({
 
     onTemaSeleccionado,
 
+    onEntregableSeleccionado,
+
 }) {
 
-    // ----------------------------------------------------------
+    // ========================================================
     // ESTADOS
-    // ----------------------------------------------------------
+    // ========================================================
 
     const [
         temas,
         setTemas,
     ] = useState([]);
 
-
     const [
         cargando,
         setCargando,
     ] = useState(false);
-
 
     const [
         error,
@@ -69,9 +66,10 @@ export default function ClassroomTopics({
         setErrorActividades,
     ] = useState("");
 
-    // ----------------------------------------------------------
-    // CARGAR TEMAS CUANDO CAMBIA EL CURSO
-    // ----------------------------------------------------------
+
+    // ========================================================
+    // CARGAR TEMAS
+    // ========================================================
 
     useEffect(() => {
 
@@ -85,7 +83,6 @@ export default function ClassroomTopics({
 
         }
 
-
         cargarTemas(
             cursoSeleccionado
         );
@@ -95,78 +92,9 @@ export default function ClassroomTopics({
     ]);
 
 
-    // ==========================================================
-    // OBTENER TEMAS
-    // ==========================================================
-    async function cargarActividadesTema(
-        tema
-    ) {
-
-        try {
-
-            const topicId =
-                obtenerTopicId(
-                    tema
-                );
-
-
-            if (!topicId) {
-
-                throw new Error(
-                    "El tema seleccionado no tiene topicId."
-                );
-
-            }
-
-
-            setCargandoActividades(true);
-
-            setErrorActividades("");
-
-            setActividadesTema([]);
-
-
-            const actividades =
-                await classroomObtenerActividadesPorTema(
-                    cursoSeleccionado,
-                    topicId
-                );
-
-
-            console.log(
-                "Actividades del tema:",
-                actividades
-            );
-
-
-            setActividadesTema(
-                Array.isArray(actividades)
-                    ? actividades
-                    : []
-            );
-
-        }
-        catch (error) {
-
-            console.error(
-                "Error cargando actividades del tema:",
-                error
-            );
-
-
-            setErrorActividades(
-                error?.message ||
-                "No se pudieron cargar las actividades."
-            );
-
-        }
-        finally {
-
-            setCargandoActividades(false);
-
-        }
-
-    }
+    // ========================================================
+    // CARGAR TEMAS
+    // ========================================================
 
     async function cargarTemas(
         cursoId
@@ -180,21 +108,19 @@ export default function ClassroomTopics({
 
             setTemas([]);
 
+            setActividadesTema([]);
 
             const respuesta =
                 await classroomObtenerTemas(
                     cursoId
                 );
 
-
             console.log(
                 "Classroom temas:",
                 respuesta
             );
 
-
             let lista = [];
-
 
             if (
                 Array.isArray(
@@ -202,8 +128,7 @@ export default function ClassroomTopics({
                 )
             ) {
 
-                lista =
-                    respuesta;
+                lista = respuesta;
 
             }
 
@@ -240,7 +165,6 @@ export default function ClassroomTopics({
 
             }
 
-
             setTemas(
                 lista
             );
@@ -254,13 +178,9 @@ export default function ClassroomTopics({
                 err
             );
 
-
             setError(
-
                 err?.message ||
-
                 "No se pudieron cargar los temas."
-
             );
 
         }
@@ -274,9 +194,199 @@ export default function ClassroomTopics({
     }
 
 
-    // ==========================================================
+    // ========================================================
+    // CARGAR ACTIVIDADES DEL TEMA
+    // ========================================================
+
+    async function cargarActividadesTema(
+        tema
+    ) {
+
+        try {
+
+            const topicId =
+                obtenerTopicId(
+                    tema
+                );
+
+            if (!topicId) {
+
+                throw new Error(
+                    "El tema seleccionado no tiene topicId."
+                );
+
+            }
+
+            setCargandoActividades(
+                true
+            );
+
+            setErrorActividades("");
+
+            setActividadesTema([]);
+
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "CARGANDO ACTIVIDADES"
+            );
+
+            console.log(
+                "Topic ID:",
+                topicId
+            );
+
+            console.log(
+                "================================"
+            );
+
+            const actividades =
+                await classroomObtenerActividadesPorTema(
+                    cursoSeleccionado,
+                    topicId
+                );
+
+            console.log(
+                "Actividades del tema:",
+                actividades
+            );
+
+            const lista =
+                Array.isArray(
+                    actividades
+                )
+                    ? actividades
+                    : [];
+
+            setActividadesTema(
+                lista
+            );
+
+        }
+
+        catch (err) {
+
+            console.error(
+                "Error cargando actividades:",
+                err
+            );
+
+            setErrorActividades(
+                err?.message ||
+                "No se pudieron cargar las actividades."
+            );
+
+        }
+
+        finally {
+
+            setCargandoActividades(
+                false
+            );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // SELECCIONAR TEMA
+    // ========================================================
+
+    async function seleccionarTema(
+        tema
+    ) {
+
+        console.log(
+            "Tema seleccionado:",
+            tema
+        );
+
+        if (
+            typeof onTemaSeleccionado ===
+            "function"
+        ) {
+
+            onTemaSeleccionado(
+                tema
+            );
+
+        }
+
+        await cargarActividadesTema(
+            tema
+        );
+
+    }
+
+
+    // ========================================================
+    // SELECCIONAR ENTREGABLE
+    // ========================================================
+
+    function seleccionarEntregable(
+        actividad
+    ) {
+
+        const codigo =
+            reconocerEntregable(
+                actividad
+            );
+
+        const entregable = {
+
+            ...actividad,
+
+            codigo:
+
+                codigo ||
+
+                actividad?.codigo ||
+
+                null,
+
+        };
+
+        console.log(
+            "================================"
+        );
+
+        console.log(
+            "ENTREGABLE SELECCIONADO"
+        );
+
+        console.log(
+            entregable
+        );
+
+        console.log(
+            "Código:",
+            codigo
+        );
+
+        console.log(
+            "================================"
+        );
+
+        if (
+            typeof onEntregableSeleccionado ===
+            "function"
+        ) {
+
+            onEntregableSeleccionado(
+                entregable
+            );
+
+        }
+
+    }
+
+
+    // ========================================================
     // SI NO HAY CURSO
-    // ==========================================================
+    // ========================================================
 
     if (!cursoSeleccionado) {
 
@@ -285,70 +395,64 @@ export default function ClassroomTopics({
     }
 
 
-    // ==========================================================
+    // ========================================================
     // RENDER
-    // ==========================================================
+    // ========================================================
 
     return (
 
         <div
             className="
-        mt-6
-        bg-white
-        dark:bg-slate-900
-        border
-        border-slate-200/80
-        dark:border-slate-800
-        rounded-2xl
-        p-5
-        lg:p-6
-        shadow-sm
-      "
+                mt-6
+                rounded-2xl
+                border
+                border-slate-200/80
+                bg-white
+                p-5
+                shadow-sm
+                dark:border-slate-800
+                dark:bg-slate-900
+                lg:p-6
+            "
         >
 
-            {/* =====================================================
-          CABECERA
-      ===================================================== */}
+            {/* ================================================= */}
+            {/* CABECERA */}
+            {/* ================================================= */}
 
-            <div
-                className="
-          mb-5
-        "
-            >
+            <div className="mb-5">
 
                 <p
                     className="
-            text-xs
-            font-bold
-            uppercase
-            tracking-[0.14em]
-            text-[#1D3681]
-            mb-1
-          "
+                        mb-1
+                        text-xs
+                        font-bold
+                        uppercase
+                        tracking-[0.14em]
+                        text-[#1D3681]
+                    "
                 >
                     Paso 2
                 </p>
 
-
                 <h2
                     className="
-            text-lg
-            font-black
-            text-slate-900
-            dark:text-white
-          "
+                        text-lg
+                        font-black
+                        text-slate-900
+                        dark:text-white
+                    "
                 >
                     Seleccionar tema
                 </h2>
 
-
                 <p
                     className="
-            mt-1
-            text-sm
-            text-slate-500
-            dark:text-slate-400
-          "
+                        mt-1
+                        text-sm
+                        text-slate-500
+                        dark:text-slate-400
+                    "
                 >
                     Selecciona el tema o experiencia
                     específica que deseas revisar.
@@ -357,201 +461,106 @@ export default function ClassroomTopics({
             </div>
 
 
-            {/* =====================================================
-          CARGANDO
-      ===================================================== */}
+            {/* ================================================= */}
+            {/* CARGANDO TEMAS */}
+            {/* ================================================= */}
 
-            {!cargando &&
-                !error &&
-                temas.length > 0 && (
-
-                    <div className="space-y-3">
-
-                        <div className="
-      rounded-xl
-      bg-green-50
-      border
-      border-green-200
-      px-4
-      py-3
-    ">
-
-                            <p className="
-        text-sm
-        font-bold
-        text-green-700
-      ">
-                                ✅ Se encontraron {temas.length} temas
-                            </p>
-
-                        </div>
-
-
-                        {temas.map((tema, index) => (
-
-                            <div
-                                key={
-                                    tema?.id ||
-                                    `tema-${index}`
-                                }
-                                className="
-          rounded-xl
-          border
-          border-slate-200
-          bg-white
-          p-4
-        "
-                            >
-
-                                <p className="
-          text-sm
-          font-bold
-          text-slate-900
-        ">
-                                    {index + 1}. {tema?.nombre}
-                                </p>
-
-                                <p className="
-          mt-1
-          text-xs
-          text-slate-400
-        ">
-                                    ID: {tema?.id}
-                                </p>
-
-                            </div>
-
-                        ))}
-
-                    </div>
-
-                )}
-
-
-            {/* =====================================================
-          ERROR
-      ===================================================== */}
-
-            {!cargando && error && (
+            {cargando && (
 
                 <div
                     className="
-            rounded-xl
-            border
-            border-red-200
-            bg-red-50
-            dark:bg-red-900/20
-            dark:border-red-900
-            px-4
-            py-4
-          "
+                        rounded-xl
+                        border
+                        border-blue-200
+                        bg-blue-50
+                        px-4
+                        py-4
+                    "
                 >
 
                     <p
                         className="
-              text-sm
-              font-bold
-              text-red-700
-              dark:text-red-300
-            "
+                            text-sm
+                            font-bold
+                            text-blue-700
+                        "
                     >
-                        No se pudieron cargar los temas.
+                        Cargando temas...
                     </p>
-
-
-                    <p
-                        className="
-              mt-1
-              text-xs
-              text-red-600
-              dark:text-red-400
-            "
-                    >
-                        {error}
-                    </p>
-
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            cargarTemas(
-                                cursoSeleccionado
-                            )
-                        }
-                        className="
-              mt-3
-              rounded-lg
-              bg-red-600
-              px-4
-              py-2
-              text-xs
-              font-bold
-              text-white
-              hover:bg-red-700
-              transition-colors
-            "
-                    >
-                        Intentar nuevamente
-                    </button>
 
                 </div>
 
             )}
 
 
-            {/* =====================================================
-          SIN TEMAS
-      ===================================================== */}
+            {/* ================================================= */}
+            {/* ERROR TEMAS */}
+            {/* ================================================= */}
 
             {!cargando &&
-                !error &&
-                temas.length === 0 && (
+                error && (
 
                     <div
                         className="
-              rounded-xl
-              border
-              border-amber-200
-              bg-amber-50
-              dark:bg-amber-900/20
-              dark:border-amber-900
-              px-4
-              py-4
-            "
+                            rounded-xl
+                            border
+                            border-red-200
+                            bg-red-50
+                            px-4
+                            py-4
+                        "
                     >
 
                         <p
                             className="
-                text-sm
-                font-bold
-                text-amber-700
-                dark:text-amber-300
-              "
+                                text-sm
+                                font-bold
+                                text-red-700
+                            "
                         >
-                            No se encontraron temas.
+                            No se pudieron cargar los temas.
                         </p>
-
 
                         <p
                             className="
-                mt-1
-                text-xs
-                text-amber-600
-                dark:text-amber-400
-              "
+                                mt-1
+                                text-xs
+                                text-red-600
+                            "
                         >
-                            Esta experiencia formativa no tiene
-                            temas disponibles en Classroom.
+                            {error}
                         </p>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                cargarTemas(
+                                    cursoSeleccionado
+                                )
+                            }
+                            className="
+                                mt-3
+                                rounded-lg
+                                bg-red-600
+                                px-4
+                                py-2
+                                text-xs
+                                font-bold
+                                text-white
+                                hover:bg-red-700
+                            "
+                        >
+                            Intentar nuevamente
+                        </button>
 
                     </div>
 
                 )}
 
 
-            {/* =====================================================
-          LISTA DE TEMAS
-      ===================================================== */}
+            {/* ================================================= */}
+            {/* TEMAS */}
+            {/* ================================================= */}
 
             {!cargando &&
                 !error &&
@@ -559,11 +568,11 @@ export default function ClassroomTopics({
 
                     <div
                         className="
-              grid
-              gap-3
-              sm:grid-cols-2
-              lg:grid-cols-3
-            "
+                            grid
+                            gap-3
+                            sm:grid-cols-2
+                            lg:grid-cols-3
+                        "
                     >
 
                         {temas.map(
@@ -577,22 +586,19 @@ export default function ClassroomTopics({
                                         tema
                                     );
 
-
                                 const nombre =
                                     obtenerNombreTema(
                                         tema
                                     );
 
-
                                 const seleccionado =
-
                                     String(
-                                        temaSeleccionado || ""
+                                        temaSeleccionado ||
+                                        ""
                                     ) ===
                                     String(
                                         id
                                     );
-
 
                                 return (
 
@@ -602,138 +608,102 @@ export default function ClassroomTopics({
                                             `tema-${index}`
                                         }
                                         type="button"
-                                        onClick={async () => {
-
-                                            if (
-                                                typeof onTemaSeleccionado ===
-                                                "function"
-                                            ) {
-
-                                                onTemaSeleccionado(
-                                                    tema
-                                                );
-
-                                            }
-
-
-                                            await cargarActividadesTema(
+                                        onClick={() =>
+                                            seleccionarTema(
                                                 tema
-                                            );
-
-                                        }}
-
+                                            )
+                                        }
                                         className={`
-                      text-left
-                      rounded-xl
-                      border
-                      p-4
-                      transition-all
-                      duration-200
+                                            rounded-xl
+                                            border
+                                            p-4
+                                            text-left
+                                            transition-all
 
-                      ${seleccionado
-
-                                                ? `
-                            border-[#1D3681]
-                            bg-[#EEF3FF]
-                            dark:bg-blue-900/20
-                            shadow-sm
-                          `
-
-                                                : `
-                            border-slate-200
-                            dark:border-slate-700
-                            bg-white
-                            dark:bg-slate-800
-                            hover:border-blue-300
-                            hover:bg-slate-50
-                            dark:hover:bg-slate-800/80
-                          `
+                                            ${
+                                                seleccionado
+                                                    ? `
+                                                        border-[#1D3681]
+                                                        bg-[#EEF3FF]
+                                                        shadow-sm
+                                                    `
+                                                    : `
+                                                        border-slate-200
+                                                        bg-white
+                                                        hover:border-blue-300
+                                                        hover:bg-slate-50
+                                                    `
                                             }
-                    `}
+                                        `}
                                     >
 
                                         <div
                                             className="
-                        flex
-                        items-start
-                        gap-3
-                      "
+                                                flex
+                                                items-start
+                                                gap-3
+                                            "
                                         >
 
                                             <div
                                                 className={`
-                          flex
-                          h-9
-                          w-9
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-lg
-                          text-sm
-                          font-black
+                                                    flex
+                                                    h-9
+                                                    w-9
+                                                    shrink-0
+                                                    items-center
+                                                    justify-center
+                                                    rounded-lg
+                                                    text-sm
+                                                    font-black
 
-                          ${seleccionado
-
-                                                        ? `
-                                bg-[#1D3681]
-                                text-white
-                              `
-
-                                                        : `
-                                bg-slate-100
-                                text-slate-500
-                                dark:bg-slate-700
-                                dark:text-slate-300
-                              `
+                                                    ${
+                                                        seleccionado
+                                                            ? `
+                                                                bg-[#1D3681]
+                                                                text-white
+                                                            `
+                                                            : `
+                                                                bg-slate-100
+                                                                text-slate-500
+                                                            `
                                                     }
-                        `}
+                                                `}
                                             >
-
                                                 {index + 1}
-
                                             </div>
-
 
                                             <div
                                                 className="
-                          min-w-0
-                          flex-1
-                        "
+                                                    min-w-0
+                                                    flex-1
+                                                "
                                             >
 
                                                 <p
                                                     className={`
-                            text-sm
-                            font-bold
-                            leading-5
+                                                        text-sm
+                                                        font-bold
+                                                        leading-5
 
-                            ${seleccionado
-
-                                                            ? `
-                                  text-[#1D3681]
-                                  dark:text-blue-300
-                                `
-
-                                                            : `
-                                  text-slate-800
-                                  dark:text-white
-                                `
+                                                        ${
+                                                            seleccionado
+                                                                ? "text-[#1D3681]"
+                                                                : "text-slate-800"
                                                         }
-                          `}
+                                                    `}
                                                 >
                                                     {nombre}
                                                 </p>
-
 
                                                 {id && (
 
                                                     <p
                                                         className="
-                              mt-1
-                              text-[10px]
-                              text-slate-400
-                              dark:text-slate-500
-                            "
+                                                            mt-1
+                                                            text-[10px]
+                                                            text-slate-400
+                                                        "
                                                     >
                                                         ID: {id}
                                                     </p>
@@ -756,56 +726,154 @@ export default function ClassroomTopics({
                 )}
 
 
-            {/* =====================================================
-          TEMA SELECCIONADO
-      ===================================================== */}
+            {/* ================================================= */}
+            {/* SIN TEMAS */}
+            {/* ================================================= */}
+
+            {!cargando &&
+                !error &&
+                temas.length === 0 && (
+
+                    <div
+                        className="
+                            rounded-xl
+                            border
+                            border-amber-200
+                            bg-amber-50
+                            px-4
+                            py-4
+                        "
+                    >
+
+                        <p
+                            className="
+                                text-sm
+                                font-bold
+                                text-amber-700
+                            "
+                        >
+                            No se encontraron temas.
+                        </p>
+
+                    </div>
+
+                )}
+
+
+            {/* ================================================= */}
+            {/* ACTIVIDADES DEL TEMA */}
+            {/* ================================================= */}
+
             {temaSeleccionado && (
 
-                <>
+                <div className="mt-6">
+
+                    {/* ----------------------------------------- */}
+                    {/* CABECERA */}
+                    {/* ----------------------------------------- */}
+
+                    <div
+                        className="
+                            mb-4
+                            flex
+                            items-center
+                            justify-between
+                            gap-3
+                        "
+                    >
+
+                        <div>
+
+                            <p
+                                className="
+                                    text-xs
+                                    font-bold
+                                    uppercase
+                                    tracking-wide
+                                    text-slate-400
+                                "
+                            >
+                                Actividades
+                            </p>
+
+                            <h3
+                                className="
+                                    mt-1
+                                    text-base
+                                    font-black
+                                    text-slate-800
+                                "
+                            >
+                                Entregables del tema
+                            </h3>
+
+                        </div>
+
+                        {!cargandoActividades &&
+                            actividadesTema.length > 0 && (
+
+                                <span
+                                    className="
+                                        rounded-full
+                                        bg-blue-50
+                                        px-3
+                                        py-1
+                                        text-xs
+                                        font-bold
+                                        text-blue-700
+                                    "
+                                >
+                                    {actividadesTema.length}
+                                </span>
+
+                            )}
+
+                    </div>
+
+
+                    {/* ----------------------------------------- */}
+                    {/* CARGANDO */}
+                    {/* ----------------------------------------- */}
 
                     {cargandoActividades && (
 
                         <div
                             className="
-                    mt-6
-                    rounded-2xl
-                    border
-                    border-blue-200
-                    bg-blue-50
-                    px-5
-                    py-5
-                    dark:border-blue-900
-                    dark:bg-blue-900/20
-                "
+                                rounded-2xl
+                                border
+                                border-blue-200
+                                bg-blue-50
+                                px-5
+                                py-5
+                            "
                         >
 
                             <div
                                 className="
-                        flex
-                        items-center
-                        gap-3
-                    "
+                                    flex
+                                    items-center
+                                    gap-3
+                                "
                             >
 
                                 <div
                                     className="
-                            h-5
-                            w-5
-                            animate-spin
-                            rounded-full
-                            border-2
-                            border-blue-200
-                            border-t-[#1D3681]
-                        "
+                                        h-5
+                                        w-5
+                                        animate-spin
+                                        rounded-full
+                                        border-2
+                                        border-blue-200
+                                        border-t-[#1D3681]
+                                    "
                                 />
 
                                 <p
                                     className="
-                            text-sm
-                            font-bold
-                            text-blue-700
-                            dark:text-blue-300
-                        "
+                                        text-sm
+                                        font-bold
+                                        text-blue-700
+                                    "
                                 >
                                     Cargando entregables...
                                 </p>
@@ -817,42 +885,41 @@ export default function ClassroomTopics({
                     )}
 
 
+                    {/* ----------------------------------------- */}
+                    {/* ERROR */}
+                    {/* ----------------------------------------- */}
+
                     {!cargandoActividades &&
                         errorActividades && (
 
                             <div
                                 className="
-                    mt-6
-                    rounded-2xl
-                    border
-                    border-red-200
-                    bg-red-50
-                    px-5
-                    py-4
-                    dark:border-red-900
-                    dark:bg-red-900/20
-                "
+                                    rounded-2xl
+                                    border
+                                    border-red-200
+                                    bg-red-50
+                                    px-5
+                                    py-4
+                                "
                             >
 
                                 <p
                                     className="
-                        text-sm
-                        font-bold
-                        text-red-700
-                        dark:text-red-300
-                    "
+                                        text-sm
+                                        font-bold
+                                        text-red-700
+                                    "
                                 >
-                                    No se pudieron cargar los entregables.
+                                    No se pudieron cargar
+                                    los entregables.
                                 </p>
-
 
                                 <p
                                     className="
-                        mt-1
-                        text-xs
-                        text-red-600
-                        dark:text-red-400
-                    "
+                                        mt-1
+                                        text-xs
+                                        text-red-600
+                                    "
                                 >
                                     {errorActividades}
                                 </p>
@@ -862,39 +929,193 @@ export default function ClassroomTopics({
                         )}
 
 
+                    {/* ----------------------------------------- */}
+                    {/* ACTIVIDADES */}
+                    {/* ----------------------------------------- */}
+
                     {!cargandoActividades &&
                         !errorActividades &&
                         actividadesTema.length > 0 && (
 
-                            <ClassroomEntregables
-                                actividades={
-                                    actividadesTema
-                                }
+                            <div
+                                className="
+                                    space-y-3
+                                "
+                            >
 
-                                puntajes={{
-                                    EN1: 0,
-                                    EN2: 0,
-                                    EN3: 0,
-                                }}
+                                {actividadesTema.map(
+                                    (
+                                        actividad,
+                                        index
+                                    ) => {
 
-                                onEntregableSeleccionado={(
-                                    entregable
-                                ) => {
+                                        const titulo =
+                                            obtenerTitulo(
+                                                actividad
+                                            ) ||
+                                            `Actividad ${index + 1}`;
 
-                                    console.log(
-                                        "Entregable seleccionado:",
-                                        entregable
-                                    );
+                                        const codigo =
+                                            reconocerEntregable(
+                                                actividad
+                                            );
 
-                                }}
-                            />
+                                        return (
+
+                                            <button
+                                                key={
+                                                    actividad?.id ||
+                                                    actividad?.courseWorkId ||
+                                                    `actividad-${index}`
+                                                }
+                                                type="button"
+                                                onClick={() =>
+                                                    seleccionarEntregable(
+                                                        actividad
+                                                    )
+                                                }
+                                                className="
+                                                    flex
+                                                    w-full
+                                                    items-center
+                                                    justify-between
+                                                    gap-4
+                                                    rounded-2xl
+                                                    border
+                                                    border-slate-200
+                                                    bg-white
+                                                    p-4
+                                                    text-left
+                                                    transition
+                                                    hover:border-blue-300
+                                                    hover:bg-blue-50
+                                                    hover:shadow-sm
+                                                "
+                                            >
+
+                                                <div
+                                                    className="
+                                                        flex
+                                                        min-w-0
+                                                        items-center
+                                                        gap-3
+                                                    "
+                                                >
+
+                                                    <div
+                                                        className="
+                                                            flex
+                                                            h-11
+                                                            w-11
+                                                            shrink-0
+                                                            items-center
+                                                            justify-center
+                                                            rounded-xl
+                                                            bg-blue-50
+                                                            text-lg
+                                                        "
+                                                    >
+                                                        📄
+                                                    </div>
+
+                                                    <div
+                                                        className="
+                                                            min-w-0
+                                                        "
+                                                    >
+
+                                                        <p
+                                                            className="
+                                                                truncate
+                                                                text-sm
+                                                                font-black
+                                                                text-slate-800
+                                                            "
+                                                        >
+                                                            {titulo}
+                                                        </p>
+
+                                                        <p
+                                                            className="
+                                                                mt-1
+                                                                text-xs
+                                                                text-slate-400
+                                                            "
+                                                        >
+                                                            {codigo
+                                                                ? `Código: ${codigo}`
+                                                                : "Actividad de Classroom"}
+                                                        </p>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <span
+                                                    className="
+                                                        shrink-0
+                                                        rounded-xl
+                                                        bg-[#1D3681]
+                                                        px-3
+                                                        py-2
+                                                        text-xs
+                                                        font-bold
+                                                        text-white
+                                                    "
+                                                >
+                                                    Revisar
+                                                </span>
+
+                                            </button>
+
+                                        );
+
+                                    }
+                                )}
+
+                            </div>
 
                         )}
 
-                </>
+
+                    {/* ----------------------------------------- */}
+                    {/* SIN ACTIVIDADES */}
+                    {/* ----------------------------------------- */}
+
+                    {!cargandoActividades &&
+                        !errorActividades &&
+                        actividadesTema.length === 0 && (
+
+                            <div
+                                className="
+                                    rounded-2xl
+                                    border
+                                    border-dashed
+                                    border-slate-300
+                                    bg-slate-50
+                                    px-5
+                                    py-8
+                                    text-center
+                                "
+                            >
+
+                                <p
+                                    className="
+                                        text-sm
+                                        font-bold
+                                        text-slate-600
+                                    "
+                                >
+                                    Este tema no tiene actividades.
+                                </p>
+
+                            </div>
+
+                        )}
+
+                </div>
 
             )}
-
 
         </div>
 
